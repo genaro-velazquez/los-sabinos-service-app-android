@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lossabinos.serviceapp.ui.components.organisms.LoginForm
 import com.lossabinos.serviceapp.ui.components.templates.LoginTemplate
@@ -40,7 +41,7 @@ import com.lossabinos.serviceapp.viewmodel.LoginViewModel
  */
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     // ✅ Estado del login
     val state = viewModel.state.collectAsState()

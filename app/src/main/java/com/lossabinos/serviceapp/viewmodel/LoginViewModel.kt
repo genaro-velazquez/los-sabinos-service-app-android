@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.util.Patterns
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 // ============================================================================
 // 1. DATA CLASSES - Estado y Eventos
@@ -59,7 +61,11 @@ sealed class NavigationEvent {
  * - Simular login
  * - Navegar a otras pantallas
  */
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    // ✅ Aquí irán las dependencias cuando las tengas
+    // private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()

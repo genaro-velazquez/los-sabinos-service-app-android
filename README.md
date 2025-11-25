@@ -1,4 +1,4 @@
-# 🔧 Sistema de Gestión de Servicios de Mantenimiento para Mecánicos
+# 🔧 Los Sabinos - Sistema de Gestión de Servicios de Mantenimiento
 
 Aplicación Android nativa para gestionar servicios de mantenimiento con funcionalidad offline-first, captura de evidencia y sincronización automática de datos.
 
@@ -28,6 +28,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Offline-First** con sincronización automática
 - ✅ **Manejo robusto de errores y reintentos**
 - ✅ **UI moderna** con Jetpack Compose
+- ✅ **Inyección de dependencias con Hilt**
 
 ---
 
@@ -36,7 +37,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 ### Mínimos del Sistema
 - **Android Studio** 2023.1 o superior
 - **JDK 17** o superior
-- **Android SDK** API 28+ (Android 9.0 Pie)
+- **Android SDK** API 26+ (Android 8.0 Oreo)
 - **Gradle** 8.0+
 
 ### Recomendado
@@ -51,8 +52,8 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/mecanicos-app.git
-cd mecanicos-app
+git clone https://github.com/genaro-velazquez/los-sabinos-service-app-android.git
+cd los-sabinos-service-app-android
 ```
 
 ### 2. Abrir en Android Studio
@@ -92,105 +93,47 @@ android-studio . &
 ```
 app/src/main/java/com/lossabinos/serviceapp/
 │
+├── LosSabinosApplication.kt       # Entrada de Hilt
+├── MainActivity.kt                # Actividad principal
+│
 ├── data/                          # 🗄️ Capa de Datos
 │   ├── local/
-│   │   ├── database/              # Room Database
-│   │   │   ├── AppDatabase.kt
-│   │   │   └── dao/               # Data Access Objects
-│   │   │       ├── MecanicoDao.kt
-│   │   │       ├── ServicioDao.kt
-│   │   │       ├── TareaDao.kt
-│   │   │       └── EvidenciaDao.kt
-│   │   └── entity/                # Entidades de BD
-│   │       ├── MecanicoEntity.kt
-│   │       ├── ServicioEntity.kt
-│   │       ├── TareaEntity.kt
-│   │       └── EvidenciaEntity.kt
-│   │
+│   │   ├── database/              # Room Database (próximo)
+│   │   ├── dao/                   # Data Access Objects (próximo)
+│   │   └── entity/                # Entidades de BD (próximo)
 │   ├── remote/
-│   │   ├── api/                   # Retrofit APIs
-│   │   │   ├── AuthApi.kt
-│   │   │   ├── ServicioApi.kt
-│   │   │   └── EvidenciaApi.kt
-│   │   └── dto/                   # Data Transfer Objects
-│   │       ├── ServicioDto.kt
-│   │       ├── TareaDto.kt
-│   │       └── EvidenciaDto.kt
-│   │
-│   ├── repository/                # Repositorios (Data Layer)
-│   │   ├── AuthRepository.kt
-│   │   ├── ServicioRepository.kt
-│   │   └── TareaRepository.kt
-│   │
-│   └── sync/                      # Sincronización
-│       ├── SyncManager.kt
-│       └── SyncWorker.kt
+│   │   ├── api/                   # Retrofit APIs (próximo)
+│   │   └── dto/                   # Data Transfer Objects (próximo)
+│   ├── repository/                # Repositorios (próximo)
+│   └── sync/                      # Sincronización (próximo)
 │
-├── domain/                        # 💼 Capa de Dominio (Lógica de Negocio)
-│   ├── model/                     # Modelos de Dominio
-│   │   ├── Mecanico.kt
-│   │   ├── Servicio.kt
-│   │   ├── Tarea.kt
-│   │   └── Evidencia.kt
-│   │
-│   ├── repository/                # Interfaces de Repositorios
-│   │   ├── IAuthRepository.kt
-│   │   ├── IServicioRepository.kt
-│   │   └── ITareaRepository.kt
-│   │
-│   └── usecase/                   # Casos de Uso
-│       ├── auth/
-│       │   ├── LoginUseCase.kt
-│       │   └── LogoutUseCase.kt
-│       ├── servicio/
-│       │   ├── ObtenerServiciosUseCase.kt
-│       │   ├── EscanearCodigoBarrasUseCase.kt
-│       │   └── ObtenerServicioDetailUseCase.kt
-│       └── tarea/
-│           ├── ObtenerTareasUseCase.kt
-│           ├── CompletarTareaUseCase.kt
-│           └── GuardarEvidenciaUseCase.kt
+├── domain/                        # 💼 Capa de Dominio (próximo)
+│   ├── model/
+│   ├── repository/
+│   └── usecase/
 │
-├── presentation/                  # 🎨 Capa de Presentación (UI/ViewModel)
+├── presentation/                  # 🎨 Capa de Presentación
 │   ├── viewmodel/
-│   │   ├── AuthViewModel.kt
-│   │   ├── HomeViewModel.kt
-│   │   ├── ServiciosViewModel.kt
-│   │   ├── TareasViewModel.kt
-│   │   └── EscaneoViewModel.kt
+│   │   ├── LoginViewModel.kt      # ✅ Con @HiltViewModel
+│   │   └── (otros ViewModels próximo)
 │   │
 │   └── ui/
 │       ├── screens/
 │       │   ├── login/
-│       │   │   ├── LoginScreen.kt
-│       │   │   └── LoginViewModel.kt
-│       │   ├── home/
-│       │   │   ├── HomeScreen.kt
-│       │   │   └── HomeViewModel.kt
-│       │   ├── escaneo/
-│       │   │   ├── EscaneoScreen.kt
-│       │   │   └── EscaneoViewModel.kt
-│       │   ├── servicios/
-│       │   │   ├── ServiciosScreen.kt
-│       │   │   └── ServiciosViewModel.kt
-│       │   └── tareas/
-│       │       ├── TareasScreen.kt
-│       │       ├── CapturadorImagenes.kt
-│       │       └── VisorEvidencias.kt
+│       │   │   ├── LoginScreen.kt  # ✅ Con hiltViewModel()
+│       │   │   ├── LoginForm.kt
+│       │   │   └── LoginViewModel.kt (legacy)
+│       │   └── (otras pantallas próximo)
 │       │
 │       ├── components/
-│       │   ├── atoms/             # Botones, Inputs, Icons
+│       │   ├── atoms/
 │       │   │   ├── PrimaryButton.kt
-│       │   │   ├── IconTextField.kt
-│       │   │   └── ...
-│       │   ├── molecules/         # Componentes medianos
+│       │   │   └── IconTextField.kt
+│       │   ├── molecules/
 │       │   │   ├── PasswordTextField.kt
-│       │   │   ├── EmailTextField.kt
-│       │   │   └── ...
-│       │   └── organisms/         # Componentes complejos
-│       │       ├── LoginForm.kt
-│       │       ├── ServiciosList.kt
-│       │       └── ...
+│       │   │   └── EmailTextField.kt
+│       │   └── organisms/
+│       │       └── LoginForm.kt
 │       │
 │       ├── theme/
 │       │   ├── Color.kt
@@ -198,18 +141,17 @@ app/src/main/java/com/lossabinos/serviceapp/
 │       │   └── Theme.kt
 │       │
 │       └── navigation/
-│           └── NavGraph.kt
+│           └── NavGraph.kt (próximo)
 │
 ├── di/                            # 💉 Inyección de Dependencias (Hilt)
-│   ├── DatabaseModule.kt
-│   ├── NetworkModule.kt
-│   └── RepositoryModule.kt
+│   ├── AppModule.kt              # ✅ Módulo principal
+│   ├── ViewModelModule.kt         # ✅ Módulo de ViewModels
+│   └── RepositoryModule.kt        # ✅ Módulo de Repositorios
 │
 └── utils/                         # 🛠️ Utilidades
     ├── Constants.kt
     ├── ExtensionFunctions.kt
-    ├── ConnectivityManager.kt
-    └── CameraUtils.kt
+    └── (más próximo)
 ```
 
 ---
@@ -244,24 +186,16 @@ La aplicación sigue principios de arquitectura limpia con separación clara de 
 ```
 User Interaction (Tap, Type)
         ↓
-   ViewModel (observa State)
+   ViewModel (observa State con Flow)
         ↓
    UseCase (lógica de negocio)
         ↓
-   Repository (abstracción)
+   Repository (abstracción de datos)
         ↓
    Local/Remote Data Sources
         ↓
    Retorna datos → ViewModel → UI se actualiza
 ```
-
-#### **Ventajas:**
-
-✅ **Testeable** - Cada capa se puede testear independientemente  
-✅ **Mantenible** - Cambios en una capa no afectan otras  
-✅ **Escalable** - Fácil agregar nuevas funcionalidades  
-✅ **Desacoplado** - Dependencias inyectadas con Hilt  
-✅ **Reutilizable** - Componentes pueden usarse en múltiples pantallas
 
 ---
 
@@ -272,32 +206,32 @@ User Interaction (Tap, Type)
 - **Material Design 3** - Componentes estándar
 - **Compose Navigation** - Navegación entre pantallas
 
+### Inyección de Dependencias
+- **Hilt** - DI framework basado en Dagger 2 (✅ INTEGRADO)
+
 ### Base de Datos
-- **Room** - SQLite con abstracción ORM
-- **SQLite** - BD local persistente
+- **Room** - SQLite con abstracción ORM (próximo)
+- **SQLite** - BD local persistente (próximo)
 
 ### Networking
-- **Retrofit** - Cliente HTTP
-- **OkHttp** - Interceptores y logging
-- **Gson** - Serialización JSON
-
-### Inyección de Dependencias
-- **Hilt** - DI framework basado en Dagger 2
+- **Retrofit** - Cliente HTTP (próximo)
+- **OkHttp** - Interceptores y logging (próximo)
+- **Gson** - Serialización JSON (próximo)
 
 ### Concurrencia
 - **Coroutines** - Operaciones asincrónicas
 - **Flow** - Streams reactivos
 
 ### Sincronización & Background
-- **WorkManager** - Tareas en background
-- **Custom SyncManager** - Sincronización offline-first
+- **WorkManager** - Tareas en background (próximo)
+- **Custom SyncManager** - Sincronización offline-first (próximo)
 
 ### Cámara y Escaneo
-- **CameraX** - API moderna para cámara
-- **ML Kit Barcode Scanning** - Escaneo de códigos
+- **CameraX** - API moderna para cámara (próximo)
+- **ML Kit Barcode Scanning** - Escaneo de códigos (próximo)
 
 ### Otras Librerías
-- **Coil** - Carga de imágenes eficiente
+- **Coil** - Carga de imágenes eficiente (próximo)
 - **Lifecycle** - Gestión del ciclo de vida
 
 ---
@@ -345,103 +279,146 @@ emulator -avd MiEmulador
 ## 📱 Flujo Principal
 
 ```
-┌─────────────────┐
-│   LOGIN SCREEN  │  ← Validar email + contraseña
-│                 │     • Email no vacío
-│                 │     • Email válido (formato)
-│                 │     • Password no vacío
-│                 │     • Password >= 6 caracteres
-└────────┬────────┘
+┌─────────────────────┐
+│   LOGIN SCREEN      │  ← Validaciones en cliente
+│                     │     • Email no vacío
+│                     │     • Email formato válido
+│                     │     • Password no vacío
+│                     │     • Password >= 6 caracteres
+│                     │     • Indicador de carga
+└────────┬────────────┘
          │
          ↓
-┌─────────────────┐
-│  HOME SCREEN    │  ← Indicadores + Botón escanear
-│                 │     • Servicios completados
-│                 │     • Servicios pendientes
-└────────┬────────┘
+┌─────────────────────┐
+│   HOME SCREEN       │  ← Indicadores + Botón escanear
+│                     │     (Próximo módulo)
+└────────┬────────────┘
          │
          ↓
-┌─────────────────────────┐
-│ ESCANEO QR/BARCODE      │  ← Validar código en backend
-└────────┬────────────────┘
+┌─────────────────────┐
+│ ESCANEO QR/BARCODE  │  ← Validar código
+│                     │     (Próximo módulo)
+└────────┬────────────┘
          │
          ↓
-┌─────────────────────────┐
-│ LISTA SERVICIOS         │  ← Servicios asignados
-└────────┬────────────────┘
+┌─────────────────────┐
+│ LISTA SERVICIOS     │  ← Servicios asignados
+│                     │     (Próximo módulo)
+└────────┬────────────┘
          │
          ↓
-┌─────────────────────────┐
-│ DETALLE SERVICIO        │  ← Info y tareas
-└────────┬────────────────┘
+┌─────────────────────┐
+│ DETALLE SERVICIO    │  ← Info y tareas
+│                     │     (Próximo módulo)
+└────────┬────────────┘
          │
          ↓
-┌─────────────────────────┐
-│ PANEL TAREAS            │  ← Checklist + evidencia
-│ ├─ Tarea 1 ☑            │
-│ ├─ Tarea 2 (foto)       │
-│ └─ Tarea 3              │
-└────────┬────────────────┘
+┌─────────────────────┐
+│ PANEL TAREAS        │  ← Checklist + evidencia
+│ ├─ Tarea 1 ☑        │     (Próximo módulo)
+│ ├─ Tarea 2 (foto)   │
+│ └─ Tarea 3          │
+└────────┬────────────┘
          │
          ↓
-┌─────────────────────────┐
+┌─────────────────────┐
 │ GUARDAR & SINCRONIZAR   │  ← Sync con backend
-└─────────────────────────┘
+│                         │     (Próximo módulo)
+└─────────────────────┘
 ```
 
 ---
 
-## 🎨 Convenciones de Código
+## 👨‍💻 Desarrollo
 
-### Naming
+### Convenciones de Código
 - **Variables/Funciones**: `camelCase`
 - **Clases**: `PascalCase`
 - **Constantes**: `UPPER_SNAKE_CASE`
 - **Archivos Composable**: `NombrePantalla.kt`
 
+### Commits
+```bash
+git commit -m "feat: nueva funcionalidad"      # Nueva feature
+git commit -m "fix: corregir bug"              # Bug fix
+git commit -m "docs: actualizar readme"        # Documentación
+git commit -m "refactor: optimizar código"     # Refactorización
+git commit -m "test: agregar tests"            # Tests
+git commit -m "chore: actualizar deps"         # Mantenimiento
+```
+
 ### Estructura de Archivos
 - 1 archivo = 1 clase principal
-- Composables relacionados en mismo archivo
+- Composables relacionados pueden estar juntos
 - Data classes antes que funciones
-
-### Comentarios
-```kotlin
-/**
- * Descripción clara de la función
- */
-fun miFunction() {
-    // TODO: Comentario cuando sea necesario
-}
-```
 
 ---
 
 ## 📊 Estado del Proyecto
 
-### ✅ Completado (v1.0.0)
-- [x] Estructura base con Clean Architecture
+### ✅ v1.0.0-beta (Completado)
+
+#### Módulo de Autenticación
+- [x] Estructura Clean Architecture implementada
 - [x] Sistema de autenticación (UI + ViewModel)
-- [x] Validaciones en cliente
-- [x] Componentes de UI (atoms + molecules)
-- [x] Indicador de carga en login
-- [x] Manejo de errores y Snackbars
+- [x] Validaciones en cliente (email, password)
+- [x] Componentes de UI reutilizables (atoms, molecules, organisms)
+- [x] Indicador de carga en LoginButton
+- [x] Manejo de errores con Snackbar
+- [x] **Inyección de dependencias con Hilt** ✨ NUEVO
+  - [x] @HiltAndroidApp en LosSabinosApplication
+  - [x] @HiltViewModel en LoginViewModel
+  - [x] hiltViewModel() en LoginScreen
+  - [x] @AndroidEntryPoint en MainActivity
+  - [x] Módulos Hilt (AppModule, ViewModelModule, RepositoryModule)
 
-### 🚧 En Desarrollo
-- [ ] Integración con API backend
-- [ ] Pantalla Home con indicadores
-- [ ] Módulo de escaneo QR/Barcode
-- [ ] Lista de servicios
-- [ ] Panel de tareas
-- [ ] Captura de imágenes
-- [ ] Sincronización offline-first
+### 🚧 v1.1.0 (Próximo)
+
+#### Conexión a Backend (Login Service)
+- [ ] Crear interfaz AuthApi con Retrofit
+- [ ] Implementar AuthRepository en data layer
+- [ ] Crear LoginUseCase en domain layer
+- [ ] Inyectar AuthRepository en LoginViewModel
+- [ ] Conectar LoginViewModel con AuthApi
+- [ ] Manejar respuestas del servidor (success, error, timeout)
+- [ ] Guardar token JWT después de login exitoso
+- [ ] Implementar interceptor OkHttp para agregar token en headers
+
+#### Navegación
+- [ ] Crear NavGraph.kt
+- [ ] Conectar LoginScreen → HomeScreen
+- [ ] Implementar navegación con composables
+
+### 🔮 v1.2.0+ (Futuro)
+
+#### Room Database
+- [ ] Crear entidades de datos
+- [ ] Implementar DAOs
+- [ ] Configurar AppDatabase
+- [ ] Crear migraciones
+
+#### Home Screen
+- [ ] Indicadores de servicios
+- [ ] Botón escanear QR
+
+#### Módulo de Escaneo
+- [ ] Integrar ML Kit Barcode Scanning
+- [ ] Pantalla de escaneo
+
+#### Panel de Tareas
+- [ ] Lista de tareas
+- [ ] Checklist interactivo
+- [ ] Captura de imágenes con CameraX
+
+#### Sincronización
+- [ ] Implementar SyncManager
 - [ ] WorkManager para background sync
+- [ ] Sincronización offline-first
 
-### 📅 Próximas Fases
-- Tests unitarios
-- Tests de integración
-- Mejoras de UI/UX
-- Documentación de API
-- Optimización de rendimiento
+#### Testing
+- [ ] Tests unitarios
+- [ ] Tests de integración
+- [ ] Tests de UI
 
 ---
 
@@ -463,42 +440,38 @@ emulator -list-avds
 emulator -avd nombre_emulador
 ```
 
-### Error: Permisos de cámara
+### Error: Hilt no inyecta dependencias
 
-```kotlin
-// Necesitas agregar en AndroidManifest.xml:
-<uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.INTERNET" />
+```
+Asegúrate que:
+- ✅ LosSabinosApplication tiene @HiltAndroidApp
+- ✅ MainActivity tiene @AndroidEntryPoint
+- ✅ AndroidManifest.xml tiene android:name=".LosSabinosApplication"
+- ✅ LoginViewModel tiene @HiltViewModel
+- ✅ LoginScreen usa hiltViewModel()
 ```
 
----
-
-## 📝 Commits y Versionado
-
-Usamos [Conventional Commits](https://www.conventionalcommits.org/):
+### Error: "Unresolved reference 'hiltViewModel'"
 
 ```bash
-git commit -m "feat: nueva funcionalidad"      # Nueva feature
-git commit -m "fix: corregir bug"              # Bug fix
-git commit -m "docs: actualizar readme"        # Documentación
-git commit -m "refactor: optimizar código"     # Refactorización
-git commit -m "test: agregar tests"            # Tests
-git commit -m "chore: actualizar deps"         # Mantenimiento
+# Solución: Agregar dependencia en build.gradle.kts
+implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 ```
 
 ---
 
 ## 📧 Contacto
 
-Para preguntas o sugerencias: [tu-email@empresa.com]
+Genaro Velázquez - [@genaro-velazquez](https://github.com/genaro-velazquez)
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - ver archivo LICENSE para detalles.
+MIT License - ver archivo LICENSE para detalles.
 
 ---
 
 **Última actualización:** Noviembre 2025  
-**Versión:** 1.0.0-beta
+**Versión:** 1.0.0-beta  
+**Estado:** Hilt integrado, listo para conectar backend

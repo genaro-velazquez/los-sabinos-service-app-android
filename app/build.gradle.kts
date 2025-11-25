@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    /*Hilt Dependence Injection*/
+    id("kotlin-kapt")  // ✅ AGREGAR ESTO
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -64,5 +67,10 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     // Material icons
     implementation(libs.material.v1120)
+    // Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    // Hilt para ViewModel
+    implementation(libs.androidx.hilt.navigation.compose)
 
 }
