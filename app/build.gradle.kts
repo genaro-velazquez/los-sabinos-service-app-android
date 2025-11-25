@@ -61,6 +61,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // ✅ REFERENCIAR DATA
+    implementation(project(":data"))
+    implementation(project(":domain"))
+
     // Viewmodels
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     // Material icons extensions
@@ -72,5 +76,14 @@ dependencies {
     kapt(libs.hilt.compiler)
     // Hilt para ViewModel
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // ejecutar servicios
+    // Retrofit
+    implementation(libs.retrofit.v2100)
+    // Retrofit - Scalars Converter (para String responses)
+    implementation(libs.converter.scalars)
+    // OkHttp (explícito)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
 }

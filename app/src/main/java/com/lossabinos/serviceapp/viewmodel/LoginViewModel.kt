@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.util.Patterns
+import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -63,8 +64,7 @@ sealed class NavigationEvent {
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    // ✅ Aquí irán las dependencias cuando las tengas
-    // private val authRepository: AuthRepository
+    private val emailPasswordLoginUseCase: EmailPasswordLoginUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -101,14 +101,20 @@ class LoginViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true, isError = false) }
 
+                val email = _state.value.email.trim()  // ✅ TRIM espacios
+                val password = _state.value.password
+
                 // ✅ VALIDAR FORMULARIO (nueva función)
-                val validationError = validateForm()
+                val validationError = validateForm(email = email, password = password)
                 if (validationError != null) {
                     throw Exception(validationError)
                 }
 
                 // ✅ SIMULAR LLAMADA A API
-                delay(2000)
+                //delay(2000)
+
+                // ejecuta usecase
+                val response = emailPasswordLoginUseCase.execute(email = email, password = password)
 
                 // ✅ ÉXITO
                 _state.update {
@@ -136,9 +142,7 @@ class LoginViewModel @Inject constructor(
      * Valida todos los campos del formulario
      * Retorna null si es válido, o el mensaje de error si no lo es
      */
-    private fun validateForm(): String? {
-        val email = _state.value.email.trim()  // ✅ TRIM espacios
-        val password = _state.value.password
+    private fun validateForm(email: String, password:String): String? {
 
         // ✅ Validar email vacío
         if (email.isEmpty()) {

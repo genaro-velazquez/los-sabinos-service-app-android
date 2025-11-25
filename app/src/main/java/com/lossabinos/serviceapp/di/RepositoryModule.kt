@@ -1,11 +1,51 @@
 package com.lossabinos.serviceapp.di
 
+import android.content.SharedPreferences
+import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
+import com.lossabinos.data.dto.utilities.HeadersMaker
+import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
+import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
+import com.lossabinos.domain.repositories.AuthenticationRepository
+import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
-    // Los repositorios irán aquí cuando tengamos Room
+
+    // ============== USER PREFERENCES REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideUserPreferencesRepository(
+        sharedPreferences: SharedPreferences
+    ): UserPreferencesRepository {
+        return UserSharedPreferencesRepositoryImpl(sharedPreferences)
+    }
+
+    // ============== AUTHENTICATION REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideHeadersMaker(
+        userPreferencesRepository: UserPreferencesRepository
+    ): HeadersMaker {
+        return HeadersMaker(
+            userPreferencesRepository = userPreferencesRepository,
+            language = "es"
+        )
+    }
+    @Singleton
+    @Provides
+    fun provideAuthenticationRepository(
+        authenticationServices: AuthenticationServices,
+        headersMaker: HeadersMaker
+    ): AuthenticationRepository {
+        return AuthenticationRetrofitRepository(
+            authenticationServices = authenticationServices,
+            headersMaker = headersMaker
+        )
+    }
 }

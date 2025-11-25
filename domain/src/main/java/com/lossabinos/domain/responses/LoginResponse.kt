@@ -7,6 +7,7 @@ class LoginResponse(
     val primaryColor:   String,
     val secondaryColor: String,
     val appName:        String,
+    val accessToken:    String,
     val refreshToken:   String,
     val client:         User
 ): DomainEntity()

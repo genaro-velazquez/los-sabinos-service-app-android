@@ -35,7 +35,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setPrimaryColor(color: String) {
         sharedPreferences.edit {
-            putString(primaryColorKey, "")
+            putString(primaryColorKey, color)
             apply()
         }
     }
@@ -46,7 +46,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setSecondaryColor(color: String) {
         sharedPreferences.edit{
-            putString(secondaryColorKey,"")
+            putString(secondaryColorKey,color)
             apply()
         }
     }
@@ -57,7 +57,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setNameApp(name: String) {
         sharedPreferences.edit {
-            putString(appNameKey,"")
+            putString(appNameKey,name)
             apply()
         }
     }
@@ -68,7 +68,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserEmail(email: String) {
         sharedPreferences.edit {
-            putString(emailKey,"")
+            putString(emailKey,email)
             apply()
         }
     }
@@ -79,7 +79,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserFirstName(firstName: String) {
         sharedPreferences.edit {
-            putString(firstName,"")
+            putString(firstName,firstName)
             apply()
         }
     }
@@ -90,7 +90,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserLastName(lastName: String) {
         sharedPreferences.edit {
-            putString(userLastNameKey,"")
+            putString(userLastNameKey,lastName)
             apply()
         }
     }
@@ -101,7 +101,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserid(id: String) {
         sharedPreferences.edit {
-            putString(userIdKey,"")
+            putString(userIdKey,id)
             apply()
         }
     }
@@ -112,7 +112,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserIsAdmin(isAdmin: Boolean) {
         sharedPreferences.edit {
-            putBoolean(userIdAdminKey,false)
+            putBoolean(userIdAdminKey,isAdmin)
             apply()
         }
     }
@@ -123,7 +123,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserRolCode(rolCode: String) {
         sharedPreferences.edit {
-            putString(userRolCodeKey,"")
+            putString(userRolCodeKey,rolCode)
             apply()
         }
     }
@@ -134,7 +134,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserRolId(rolId: String) {
         sharedPreferences.edit {
-            putString(userRolIdKey,"")
+            putString(userRolIdKey,rolId)
             apply()
         }
     }
@@ -145,7 +145,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserRoleName(rolName: String) {
         sharedPreferences.edit {
-            putString(userRolNameKey,"")
+            putString(userRolNameKey,rolName)
             apply()
         }
     }
@@ -156,7 +156,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setRefreshToken(refreshToken: String) {
         sharedPreferences.edit {
-            putString(refreshTokenKey,"")
+            putString(refreshTokenKey,refreshToken)
             apply()
         }
     }

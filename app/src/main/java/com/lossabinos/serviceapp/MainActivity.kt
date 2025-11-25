@@ -18,6 +18,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            //android.widget.Toast.makeText(this, "App iniciada", android.widget.Toast.LENGTH_SHORT).show()
+
             LosabosTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -26,6 +28,7 @@ class MainActivity : ComponentActivity() {
                     LoginScreen()
                 }
             }
+
         }
     }
 }

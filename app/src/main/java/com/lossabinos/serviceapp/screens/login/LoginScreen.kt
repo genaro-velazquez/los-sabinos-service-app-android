@@ -8,12 +8,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lossabinos.serviceapp.ui.components.organisms.LoginForm
 import com.lossabinos.serviceapp.ui.components.templates.LoginTemplate
-import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 import com.lossabinos.serviceapp.viewmodel.LoginEvent
 import com.lossabinos.serviceapp.viewmodel.LoginViewModel
 
@@ -101,18 +98,6 @@ fun LoginScreen(
 /**
  * Preview para ver el diseño sin interactividad
  */
-@Preview(
-    name = "Login Screen",
-    showBackground = true,
-    showSystemUi = true,
-    device = "id:pixel_5"
-)
-@Composable
-fun LoginScreenPreview() {
-    LosabosTheme {
-        LoginScreen()
-    }
-}
 
 /**
  * EXPLICACIÓN TÉCNICA:

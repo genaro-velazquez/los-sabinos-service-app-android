@@ -13,7 +13,8 @@ open class LoginResponseDTO(
     val primaryColor    = json.asJSONObject("data").asJSONObject("tenant").asJSONObject("brandingConfig").asString("primaryColor")
     val secondaryColor  = json.asJSONObject("data").asJSONObject("tenant").asJSONObject("brandingConfig").asString("secondaryColor")
     val appName         = json.asJSONObject("data").asJSONObject("tenant").asString("name")
-    val refreshToken    = json.asJSONObject("data").asString("permissions")
+    val accessToken     = json.asJSONObject("data").asJSONObject("tokens").asString("accessToken")
+    val refreshToken    = json.asJSONObject("data").asJSONObject("tokens").asString("refreshToken")
     val client          = UserDTO(json.asJSONObject("data").asJSONObject("user"))
 
 
@@ -21,6 +22,7 @@ open class LoginResponseDTO(
         primaryColor    = primaryColor,
         secondaryColor  = secondaryColor,
         appName         = appName,
+        accessToken     = accessToken,
         refreshToken    = refreshToken,
         client          = client.toEntity()
     )
