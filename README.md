@@ -1,194 +1,160 @@
-# 🔧 Sistema de Gestión de Servicios de Mantenimiento para Mecánicos
+# 🔧 Los Sabinos - Sistema de Gestión de Servicios de Mantenimiento
 
-Una aplicación Android moderna desarrollada con **Jetpack Compose**, **Clean Architecture** y **MVVM** para gestionar servicios de mantenimiento en campo.
+Aplicación Android nativa para gestionar servicios de mantenimiento con funcionalidad offline-first, captura de evidencia, sincronización automática de datos y validación automática de sesiones.
 
-![Android](https://img.shields.io/badge/Android-34A048?style=flat-square&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
-![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=flat-square&logo=android&logoColor=white)
+---
 
-## 📸 Características Principales
+## 📋 Tabla de Contenidos
 
-✅ **Autenticación Segura**
-- Login con email/contraseña
-- Validación de sesión automática al abrir la app
-- Logout con confirmación modal
-- Respeto de sesiones guardadas
+- [Características](#características)
+- [Requisitos](#requisitos)
+- [Instalación](#instalación)
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Flujo de Autenticación](#flujo-de-autenticación)
+- [Estado del Proyecto](#estado-del-proyecto)
+- [Backend Integration](#backend-integration)
+- [Debugging & Logging](#debugging--logging)
+- [Cómo Ejecutar](#cómo-ejecutar)
+- [Flujo Principal](#flujo-principal)
 
-✅ **Gestión de Sesiones**
-- SplashScreen que valida sesión automáticamente
-- Si usuario logado → va a Home
-- Si no logado → va a Login
-- Limpia datos correctamente al cerrar sesión
+---
 
-✅ **Panel de Control (Home)**
-- Información real del usuario (nombre, ubicación)
-- Indicadores de servicios (completados, pendientes, en proceso)
-- Métricas de eficiencia
-- Estado de sincronización
-- Botón de logout con modal de confirmación
+## ✨ Características
 
-✅ **Modal de Confirmación**
-- Confirmación elegante antes de cerrar sesión
-- Diseño intuitivo y responsivo
-- Ancho personalizable
-- Botones primario y secundario
+- ✅ **Autenticación** con correo y contraseña (validaciones cliente y servidor)
+- ✅ **Integración con backend Azure** para autenticación
+- ✅ **JSON API** con body serializado (Content-Type: application/json)
+- ✅ **Validación automática de sesión** con SplashScreen
+- ✅ **Respeto de sesiones guardadas** - Si usuario logado, va directo a Home
+- ✅ **Modal de confirmación** elegante para logout
+- ✅ **Logout seguro** con limpieza completa de datos
+- ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
+- ✅ **Logging de peticiones CURL** para debugging
+- ✅ **Indicadores y métricas** en pantalla Home
+- ✅ **Escaneo de códigos de barras/QR** para asignar servicios
+- ✅ **Panel de tareas** con checklist interactivo
+- ✅ **Captura de evidencia** (imágenes con cámara)
+- ✅ **Offline-First** con sincronización automática
+- ✅ **Inyección de dependencias con Hilt**
+- ✅ **Atomic Design** para componentes UI reutilizables
+- ✅ **Manejo robusto de errores y reintentos**
+- ✅ **UI moderna** con Jetpack Compose
 
-✅ **Arquitectura Limpia**
-- Separación clara de responsabilidades
-- Atomic Design para componentes UI
-- MVVM con StateFlow reactivos
-- Inyección de dependencias con Hilt
-- Clean Architecture en 3 capas
+---
+
+## 🔧 Requisitos
+
+### Mínimos del Sistema
+- **Android Studio** 2023.1 o superior
+- **JDK 17** o superior
+- **Kotlin** 2.2.21 o superior
+- **Android SDK** API 26+ (Android 8.0 Oreo)
+- **Gradle** 8.0+
+
+### Recomendado
+- Dispositivo/Emulador con Android 10.0 (API 29) o superior
+- 4GB RAM disponible
+- Git instalado
+
+---
+
+## 📦 Instalación
+
+### 1. Clonar el Repositorio
+
+```bash
+git clone https://github.com/genaro-velazquez/los-sabinos-service-app-android.git
+cd los-sabinos-service-app-android
+```
+
+### 2. Abrir en Android Studio
+
+```bash
+# Opción A: Desde terminal
+android-studio . &
+
+# Opción B: Manualmente
+# 1. Abre Android Studio
+# 2. Selecciona "Open an Existing Project"
+# 3. Navega a la carpeta del proyecto
+# 4. Espera a que Gradle sincronice automáticamente
+```
+
+### 3. Sincronizar Gradle
+
+```bash
+./gradlew clean
+./gradlew build
+```
+
+### 4. Ejecutar en Emulador/Dispositivo
+
+```bash
+# Opción A: Desde Android Studio
+# Presiona Shift + F10 o Run → Run 'app'
+
+# Opción B: Desde terminal
+./gradlew installDebug
+```
 
 ---
 
 ## 🏗️ Arquitectura
 
-### Estructura del Proyecto
+### Clean Architecture + MVVM + Repository Pattern + Hilt DI
 
 ```
-app/src/main/java/com/lossabinos/serviceapp/
-├── data/
-│   ├── local/
-│   │   ├── database/
-│   │   │   ├── AppDatabase.kt
-│   │   │   └── dao/
-│   │   │       ├── MecanicoDao.kt
-│   │   │       ├── ServicioDao.kt
-│   │   │       ├── TareaDao.kt
-│   │   │       └── EvidenciaDao.kt
-│   │   └── entity/
-│   │       ├── MecanicoEntity.kt
-│   │       ├── ServicioEntity.kt
-│   │       ├── TareaEntity.kt
-│   │       └── EvidenciaEntity.kt
-│   ├── remote/
-│   │   ├── api/
-│   │   │   ├── AuthApi.kt
-│   │   │   ├── ServicioApi.kt
-│   │   │   └── EvidenciaApi.kt
-│   │   └── dto/
-│   │       ├── ServicioDto.kt
-│   │       ├── TareaDto.kt
-│   │       └── EvidenciaDto.kt
-│   ├── repository/
-│   │   ├── AuthRepository.kt
-│   │   ├── ServicioRepository.kt
-│   │   └── TareaRepository.kt
-│   └── sync/
-│       ├── SyncManager.kt
-│       └── SyncWorker.kt
-│
-├── domain/
-│   ├── model/
-│   │   ├── Mecanico.kt
-│   │   ├── Servicio.kt
-│   │   ├── Tarea.kt
-│   │   └── Evidencia.kt
-│   ├── repository/
-│   │   ├── IAuthRepository.kt
-│   │   ├── IServicioRepository.kt
-│   │   └── ITareaRepository.kt
-│   └── usecase/
-│       ├── auth/
-│       │   ├── LoginUseCase.kt
-│       │   └── LogoutUseCase.kt
-│       ├── user/
-│       │   └── GetUserPreferencesUseCase.kt
-│       ├── servicio/
-│       │   ├── ObtenerServiciosUseCase.kt
-│       │   ├── EscanearCodigoBarrasUseCase.kt
-│       │   └── ObtenerServicioDetailUseCase.kt
-│       └── tarea/
-│           ├── ObtenerTareasUseCase.kt
-│           ├── CompletarTareaUseCase.kt
-│           └── GuardarEvidenciaUseCase.kt
-│
-├── presentation/
-│   ├── screens/
-│   │   ├── splash/
-│   │   │   └── SplashScreen.kt              ✨ NUEVO
-│   │   ├── login/
-│   │   │   ├── LoginScreen.kt
-│   │   │   └── LoginState.kt
-│   │   └── home/
-│   │       └── HomePage.kt
-│   │
-│   ├── viewmodel/
-│   │   ├── SplashViewModel.kt              ✨ NUEVO
-│   │   ├── AuthViewModel.kt
-│   │   ├── HomeViewModel.kt                ✨ NUEVO
-│   │   ├── ServiciosViewModel.kt
-│   │   ├── TareasViewModel.kt
-│   │   └── EscaneoViewModel.kt
-│   │
-│   ├── ui/
-│   │   ├── components/
-│   │   │   ├── atoms/
-│   │   │   │   ├── Avatar.kt
-│   │   │   │   ├── MetricIcon.kt
-│   │   │   │   ├── StatusBadge.kt
-│   │   │   │   ├── ActionButton.kt
-│   │   │   │   ├── PrimaryButton.kt
-│   │   │   │   ├── SecondaryButton.kt      ✨ NUEVO
-│   │   │   │   ├── StatusText.kt
-│   │   │   │   ├── ModalTitle.kt           ✨ NUEVO
-│   │   │   │   └── ModalContent.kt         ✨ NUEVO
-│   │   │   ├── molecules/
-│   │   │   │   ├── UserHeader.kt
-│   │   │   │   ├── MetricCard.kt
-│   │   │   │   ├── StatusSection.kt
-│   │   │   │   ├── UnsyncSection.kt
-│   │   │   │   └── ModalButtonGroup.kt     ✨ NUEVO
-│   │   │   └── organisms/
-│   │   │       ├── HomeHeaderSection.kt
-│   │   │       ├── MetricsSection.kt
-│   │   │       ├── SyncSection.kt
-│   │   │       └── ConfirmationDialog.kt   ✨ NUEVO
-│   │   ├── templates/
-│   │   │   └── HomeTemplate.kt             📝 ACTUALIZADO
-│   │   ├── theme/
-│   │   │   ├── Color.kt
-│   │   │   ├── Type.kt
-│   │   │   └── Theme.kt
-│   │   └── screens/
-│   │       ├── login/
-│   │       │   └── LoginScreen.kt
-│   │       ├── home/
-│   │       │   └── HomePage.kt
-│   │       └── splash/
-│   │           └── SplashScreen.kt
-│   │
-│   └── navigation/
-│       ├── NavGraph.kt                     📝 ACTUALIZADO
-│       ├── NavigationEvent.kt              📝 ACTUALIZADO
-│       └── Routes.kt                       📝 ACTUALIZADO
-│
-├── di/
-│   ├── DatabaseModule.kt
-│   ├── NetworkModule.kt
-│   └── RepositoryModule.kt
-│
-└── MainActivity.kt
+┌────────────────────────────────────────┐
+│   PRESENTATION (UI/ViewModel)          │  ← Usuario interactúa
+│   (Screens, Components, ViewModels)    │
+└────────────────────────────────────────┘
+                   ↕
+┌────────────────────────────────────────┐
+│   DOMAIN (Lógica de Negocio)           │  ← UseCases, Interfaces
+│   (UseCases, Modelos, Repositorios)    │
+└────────────────────────────────────────┘
+                   ↕
+┌────────────────────────────────────────┐
+│   DATA (Fuentes de Datos)              │  ← API, BD Local
+│   (Repositories, DTOs, Entities)       │
+└────────────────────────────────────────┘
 ```
 
-### Capas de la Arquitectura
+#### **Flujo de Datos:**
 
-**Presentation Layer (UI + State)**
-- Composables (Screens, Templates, Organisms, Molecules, Atoms)
-- ViewModels (manejo de estado con StateFlow)
-- Navigation (orquestación de rutas con NavGraph)
+```
+User Interaction (Tap, Type)
+        ↓
+   ViewModel (observa State con Flow)
+        ↓
+   UseCase (lógica de negocio)
+        ↓
+   Repository (abstracción de datos)
+        ↓
+   Remote/Local Data Sources
+        ↓
+   Retorna datos → ViewModel → UI se actualiza
+```
 
-**Domain Layer (Lógica de Negocio)**
-- Use Cases (ejecutan lógica de negocio)
-- Models (entidades de dominio)
-- Repository Interfaces (contratos)
+#### **Inyección de Dependencias (Hilt):**
 
-**Data Layer (Acceso a Datos)**
-- Repositories (implementación)
-- Remote API (backend - Retrofit)
-- Local Database (Room - SQLite)
-- Sincronización (WorkManager)
+```
+@HiltAndroidApp
+LosSabinosApplication
+        ↓
+    Módulos Hilt (5):
+    ├── AppModule (Context)
+    ├── NetworkModule (Retrofit, OkHttp, API)
+    ├── SharedPreferencesModule (Storage)
+    ├── RepositoryModule (Repositories)
+    └── UseCaseModule (Use Cases)
+        ↓
+   @HiltViewModel / @AndroidEntryPoint
+        ↓
+   Inyección automática de dependencias
+```
 
 ---
 
@@ -196,45 +162,34 @@ app/src/main/java/com/lossabinos/serviceapp/
 
 La aplicación usa **Atomic Design** para componentes UI reutilizables:
 
-### Jerarquía
-
 ```
-ATOMS (9)              → Elementos básicos reutilizables
-├── Avatar
-├── MetricIcon
-├── StatusBadge
-├── ActionButton
-├── PrimaryButton
-├── SecondaryButton        ✨ NUEVO
-├── StatusText
-├── ModalTitle             ✨ NUEVO
-└── ModalContent           ✨ NUEVO
+ATOMS (9)              → Elementos básicos
+├── Avatar, MetricIcon, StatusBadge
+├── ActionButton, PrimaryButton, SecondaryButton
+├── StatusText, ModalTitle, ModalContent
     ↓
-MOLECULES (5)         → Componentes simples combinando atoms
-├── UserHeader
-├── MetricCard
-├── StatusSection
-├── UnsyncSection
-└── ModalButtonGroup       ✨ NUEVO
+MOLECULES (5)         → Componentes simples
+├── UserHeader, MetricCard, StatusSection
+├── UnsyncSection, ModalButtonGroup
     ↓
-ORGANISMS (4)         → Componentes complejos combinando molecules
-├── HomeHeaderSection
-├── MetricsSection
-├── SyncSection
-└── ConfirmationDialog     ✨ NUEVO
+ORGANISMS (4)         → Componentes complejos
+├── HomeHeaderSection, MetricsSection
+├── SyncSection, ConfirmationDialog ✨ NUEVO
     ↓
-TEMPLATES (1)         → Estructura/Layout sin datos
-└── HomeTemplate          📝 ACTUALIZADO (parámetros spacing)
+TEMPLATES (1)         → Layout sin datos
+└── HomeTemplate (con parámetros spacing)
     ↓
-PAGES (1)             → Pantalla completa con datos
-└── HomePage              📝 ACTUALIZADO (con HomeViewModel)
+PAGES (3)             → Pantallas completas
+├── SplashScreen ✨ NUEVO
+├── LoginScreen
+└── HomePage ✨ ACTUALIZADO
 ```
 
 ---
 
-## 🔐 Flujo de Autenticación y Sesiones
+## 🔐 Flujo de Autenticación
 
-### 1️⃣ Inicio de la Aplicación
+### 1️⃣ Inicio de la Aplicación - SplashScreen ✨ NUEVO
 
 ```
 App inicia en MainActivity
@@ -245,16 +200,15 @@ SplashScreen se muestra (spinner de carga)
     ↓
 SplashViewModel ejecuta validateSession()
     ↓
-GetUserPreferencesUseCase.getIsLogged() → API/Caché
+GetUserPreferencesUseCase.getIsLogged() 
+    ↓ (valida sesión guardada)
     ↓
 ┌─────────────────────────────┐
 │ ¿Usuario está logado?       │
 ├─────────────────────────────┤
-│ SÍ  → NavigateToHome        │
-│ NO  → NavigateToLogin       │
+│ SÍ  → Navega a HomePage     │
+│ NO  → Navega a LoginScreen  │
 └─────────────────────────────┘
-    ↓
-Splash desaparece y muestra HomePage o LoginScreen
 ```
 
 ### 2️⃣ Proceso de Login
@@ -280,17 +234,17 @@ EmailPasswordLoginUseCase.execute(email, password)
 HomePage se muestra con datos del usuario
 ```
 
-### 3️⃣ Proceso de Logout (Lo Nuevo)
+### 3️⃣ Proceso de Logout ✨ NUEVO - Modal de Confirmación
 
 ```
 HomePage se muestra
-    ↓ (usuario presiona botón logout/flecha)
+    ↓ (usuario presiona botón logout)
     ↓
 HomeViewModel.onEvent(HomeEvent.LogoutClicked)
     ↓
 state.showLogoutDialog = true
     ↓
-ConfirmationDialog se muestra (modal elegante)
+ConfirmationDialog ✨ NUEVO se muestra (modal elegante)
     ↓ (usuario presiona "Cerrar Sesión" o "Cancelar")
     ↓
 ┌──────────────────────────────────┐
@@ -299,7 +253,7 @@ ConfirmationDialog se muestra (modal elegante)
 │ Cerrar Sesión:                   │
 │ → ConfirmLogout event            │
 │ → GetUserPreferencesUseCase      │
-│    .clear()                      │
+│    .clear() (limpia sesión)      │
 │ → Limpiar datos locales          │
 │ → NavigateToLogin                │
 │                                  │
@@ -312,7 +266,7 @@ ConfirmationDialog se muestra (modal elegante)
 LoginScreen o HomePage
 ```
 
-### 4️⃣ Respeto de Sesiones Guardadas
+### 4️⃣ Respeto de Sesiones Guardadas ✨ NUEVO
 
 ```
 Usuario logado ayer
@@ -327,31 +281,283 @@ GetUserPreferencesUseCase.getIsLogged()
     ↓
 Sesión guardada existe (token válido)
     ↓
-Navigator a HomePage (automático)
+Navega a HomePage (automático)
     ↓
-Usuario ve HomePage SIN hacer login
+Usuario ve HomePage SIN hacer login de nuevo
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+app/src/main/java/com/lossabinos/serviceapp/
+│
+├── LosSabinosApplication.kt           ✅ @HiltAndroidApp
+├── MainActivity.kt                    ✅ @AndroidEntryPoint
+│
+├── data/                              # 🗄️ Capa de Datos
+│   ├── local/
+│   │   └── UserSharedPreferencesRepositoryImpl.kt  ✅
+│   ├── remote/
+│   │   ├── api/
+│   │   │   └── AuthenticationServices.kt          ✅
+│   │   └── dto/
+│   │       ├── LoginRequestDTO.kt                 ✅
+│   │       └── LoginResponseDTO.kt                ✅
+│   ├── repository/
+│   │   ├── AuthenticationRetrofitRepository.kt    ✅
+│   │   └── UserPreferencesRepository.kt           ✅ NUEVO
+│   ├── utils/
+│   │   ├── HeadersMaker.kt                        ✅
+│   │   ├── CurlLoggingInterceptor.kt             ✅
+│   │   └── RetrofitResponseValidator.kt           ✅
+│   └── sync/
+│       └── (próximo)
+│
+├── domain/                            # 💼 Capa de Dominio
+│   ├── model/
+│   │   ├── User.kt
+│   │   └── LoginResponse.kt
+│   ├── repositories/
+│   │   ├── AuthenticationRepository.kt            ✅
+│   │   └── UserPreferencesRepository.kt           ✅ NUEVO
+│   └── usecases/
+│       ├── authentication/
+│       │   └── EmailPasswordLoginUseCase.kt       ✅
+│       └── user/
+│           └── GetUserPreferencesUseCase.kt       ✅ NUEVO
+│
+├── presentation/                      # 🎨 Capa de Presentación
+│   ├── viewmodel/
+│   │   ├── SplashViewModel.kt         ✅ NUEVO - Valida sesión
+│   │   ├── LoginViewModel.kt          ✅ - Maneja autenticación
+│   │   └── HomeViewModel.kt           ✅ NUEVO - Maneja home
+│   │
+│   └── ui/
+│       ├── screens/
+│       │   ├── splash/
+│       │   │   └── SplashScreen.kt   ✅ NUEVO - Validación
+│       │   ├── login/
+│       │   │   └── LoginScreen.kt    ✅ - Autenticación
+│       │   └── home/
+│       │       └── HomePage.kt       ✅ NUEVO - Panel control
+│       │
+│       ├── components/
+│       │   ├── atoms/
+│       │   │   ├── PrimaryButton.kt
+│       │   │   ├── SecondaryButton.kt ✅ NUEVO
+│       │   │   ├── IconTextField.kt
+│       │   │   ├── ModalTitle.kt     ✅ NUEVO
+│       │   │   └── ModalContent.kt   ✅ NUEVO
+│       │   ├── molecules/
+│       │   │   ├── PasswordTextField.kt
+│       │   │   ├── EmailTextField.kt
+│       │   │   └── ModalButtonGroup.kt ✅ NUEVO
+│       │   └── organisms/
+│       │       ├── LoginForm.kt
+│       │       ├── HomeHeaderSection.kt ✅ NUEVO
+│       │       ├── MetricsSection.kt ✅ NUEVO
+│       │       ├── SyncSection.kt    ✅ NUEVO
+│       │       └── ConfirmationDialog.kt ✅ NUEVO
+│       │
+│       ├── theme/
+│       │   ├── Color.kt
+│       │   ├── Type.kt
+│       │   └── Theme.kt
+│       │
+│       └── templates/
+│           ├── LoginTemplate.kt
+│           └── HomeTemplate.kt       ✅ NUEVO
+│
+├── navigation/                        # 🧭 Navegación NUEVO
+│   ├── NavGraph.kt                   ✅ NUEVO
+│   ├── NavigationEvent.kt            ✅ NUEVO
+│   └── Routes.kt                     ✅ NUEVO
+│
+├── di/                                # 💉 Inyección de Dependencias
+│   ├── AppModule.kt                  ✅
+│   ├── NetworkModule.kt              ✅
+│   ├── SharedPreferencesModule.kt    ✅
+│   ├── RepositoryModule.kt           ✅
+│   └── UseCaseModule.kt              ✅
+│
+└── utils/                             # 🛠️ Utilidades
+    ├── Constants.kt
+    ├── ExtensionFunctions.kt
+    └── RetrofitResponseValidator.kt
+```
+
+---
+
+## 🛠️ Tecnologías
+
+### UI & Composables
+- **Jetpack Compose** - UI declarativa moderna
+- **Material Design 3** - Componentes estándar
+- **Compose Navigation** - Navegación entre pantallas ✅ NUEVO
+
+### Inyección de Dependencias
+- **Hilt** - DI framework (✅ INTEGRADO)
+
+### Networking
+- **Retrofit** - Cliente HTTP (✅ INTEGRADO)
+- **OkHttp** - Interceptores y logging (✅ INTEGRADO)
+- **OkHttp Logging Interceptor** - HTTP logging (✅ INTEGRADO)
+- **Gson** - Serialización JSON (✅ INTEGRADO)
+
+### Almacenamiento Local
+- **SharedPreferences** - Preferencias de usuario (✅ INTEGRADO)
+- **Room** - BD local SQLite (próximo)
+
+### Concurrencia
+- **Kotlin Coroutines** - Operaciones asincrónicas (✅ INTEGRADO)
+- **Flow** - Streams reactivos (✅ INTEGRADO)
+
+### Sincronización & Background
+- **WorkManager** - Tareas en background (próximo)
+- **Custom SyncManager** - Sincronización offline-first (próximo)
+
+### Cámara y Escaneo
+- **CameraX** - API moderna para cámara (próximo)
+- **ML Kit Barcode Scanning** - Escaneo de códigos (próximo)
+
+### Otras Librerías
+- **Coil** - Carga de imágenes eficiente (próximo)
+- **Lifecycle** - Gestión del ciclo de vida (✅ INTEGRADO)
+
+---
+
+## 🌐 Backend Integration
+
+### URL Base (Azure)
+```
+https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net
+```
+
+### Endpoints Actuales
+- **POST** `/api/v1/auth/login` - Login con email y password
+
+### Configuración API
+
+**Content-Type:** `application/json`
+
+**Request Format:**
+```json
+{
+  "email": "usuario@example.com",
+  "password": "password123"
+}
+```
+
+**Response Format:**
+```json
+{
+  "data": {
+    "tenant": {
+      "name": "Nombre App",
+      "brandingConfig": {
+        "primaryColor": "#FF5722",
+        "secondaryColor": "#2196F3"
+      }
+    },
+    "user": {
+      "id": "user-123",
+      "email": "usuario@example.com",
+      "firstName": "Juan",
+      "lastName": "Pérez",
+      "isAdmin": false,
+      "rol": {
+        "code": "MECANICO",
+        "id": "rol-123",
+        "name": "Mecánico"
+      }
+    },
+    "permissions": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+### Headers Personalizados
+```
+X-LOS-SABINOS-PLATFORM-TYPE: "app"
+X-LOS-SABINOS-PLATFORM-name: "Android"
+Content-Type: "application/json"
+```
+
+---
+
+## 🐛 Debugging & Logging
+
+### Ver peticiones CURL en Logcat
+
+La app incluye **CurlLoggingInterceptor** que imprime las peticiones en formato CURL.
+
+**Para ver los logs:**
+
+1. Abre Android Studio
+2. Ve a `View → Tool Windows → Logcat`
+3. Filtra por: `CURL_REQUEST`
+4. Ejecuta login
+
+**Verás:**
+```
+D/CURL_REQUEST: curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-LOS-SABINOS-PLATFORM-TYPE: app" \
+  -H "X-LOS-SABINOS-PLATFORM-name: Android" \
+  -d '{"email":"usuario@example.com","password":"password123"}' \
+  "https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/auth/login"
+
+D/CURL_RESPONSE: Status: 200 OK
+```
+
+### Copiar CURL para Postman/Terminal
+
+Puedes copiar el CURL de Logcat y probarlo directamente:
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-LOS-SABINOS-PLATFORM-TYPE: app" \
+  -H "X-LOS-SABINOS-PLATFORM-name: Android" \
+  -d '{"email":"usuario@example.com","password":"password123"}' \
+  "https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/auth/login"
+```
+
+### OkHttp Logging Interceptor
+
+Además de CURL, también tienes logs detallados de OkHttp:
+
+```
+D/OkHttp: --> POST /api/v1/auth/login http/1.1
+D/OkHttp: X-LOS-SABINOS-PLATFORM-TYPE: app
+D/OkHttp: X-LOS-SABINOS-PLATFORM-name: Android
+D/OkHttp: Content-Type: application/json
+D/OkHttp: {"email":"usuario@example.com","password":"password123"}
+D/OkHttp: --> END POST (45-byte body)
+D/OkHttp: <-- 200 OK /api/v1/auth/login (500ms)
+D/OkHttp: {"data":{...}}
 ```
 
 ---
 
 ## 📱 Pantallas Implementadas
 
-### 🎬 SplashScreen (✨ NUEVO)
-```kotlin
-SplashScreen()
+### 🎬 SplashScreen ✨ NUEVO
+```
+SplashScreen
 ├── Muestra spinner de carga
 ├── Valida sesión en background
-├── Redirige automáticamente a:
-│   ├── HomePage (si está logado)
-│   └── LoginScreen (si no está logado)
-└── Tiempo de visualización: ~1 segundo
+├── GetUserPreferencesUseCase.getIsLogged()
+└── Navega a:
+    ├── HomePage (si está logado)
+    └── LoginScreen (si no está logado)
 ```
 
-**Ubicación:** `presentation/screens/splash/SplashScreen.kt`
-
 ### 🔑 LoginScreen
-```kotlin
-LoginScreen(viewModel: LoginViewModel)
+```
+LoginScreen
 ├── Campo email con validación
 ├── Campo password con validación
 ├── Botón "Iniciar Sesión"
@@ -360,23 +566,15 @@ LoginScreen(viewModel: LoginViewModel)
 └── Mostrador de errores
 ```
 
-**Ubicación:** `presentation/screens/login/LoginScreen.kt`
-
-### 🏠 HomePage (📝 ACTUALIZADO)
-```kotlin
-HomePage(
-    onLogoutConfirmed: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onSyncClick: () -> Unit,
-    onSyncNowClick: () -> Unit,
-    viewModel: HomeViewModel
-)
+### 🏠 HomePage ✨ NUEVO
+```
+HomePage
 ├── HomeHeaderSection
-│   ├── Avatar del usuario (foto)
-│   ├── Nombre del usuario (datos reales) ← GetUserPreferencesUseCase
-│   ├── Ubicación del usuario ← GetUserPreferencesUseCase
+│   ├── Avatar del usuario
+│   ├── Nombre real del usuario (del backend)
+│   ├── Ubicación del usuario
 │   ├── Estado online/offline
-│   └── Botón logout (con confirmación)
+│   └── Botón logout con ConfirmationDialog ✨ NUEVO
 │
 ├── SyncSection
 │   ├── Estado de sincronización
@@ -391,154 +589,6 @@ HomePage(
     └── % de eficiencia
 ```
 
-**Ubicación:** `presentation/screens/home/HomePage.kt`
-
----
-
-## 🛠️ Tecnologías Utilizadas
-
-### UI & Compose
-- **Jetpack Compose** - Framework UI declarativo
-- **Material 3** - Diseño moderno
-- **Compose Navigation** - Navegación entre pantallas
-
-### Architecture & Design Patterns
-- **Clean Architecture** - 3 capas bien definidas
-- **MVVM** - Model-View-ViewModel pattern
-- **Atomic Design** - Componentes escalables y reutilizables
-
-### State Management
-- **Kotlin Flow** - Streams reactivos
-- **StateFlow** - State management
-- **ViewModel** - Lifecycle aware
-
-### Dependency Injection
-- **Hilt** - DI framework
-- **Dagger** - Dependency injection
-
-### Database
-- **Room** - SQLite wrapper
-- **SQLite** - Local storage
-
-### Networking
-- **Retrofit** - HTTP client
-- **OkHttp** - HTTP interceptor
-- **Gson** - JSON serialization
-
-### Async Programming
-- **Kotlin Coroutines** - Async/await
-- **Flow** - Reactive streams
-- **viewModelScope** - Lifecycle-aware coroutines
-
-### Background Work
-- **WorkManager** - Scheduled tasks
-- **SyncManager** - Custom sync manager
-
-### Scanning
-- **ML Kit** - Machine Learning Kit
-- **Barcode Scanning** - QR/Barcode reading
-
----
-
-## 📋 Requisitos
-
-- **Android Studio:** 2023.1 o superior
-- **Android SDK:** 34 o superior
-- **Kotlin:** 1.9 o superior
-- **Gradle:** 8.0 o superior
-- **JDK:** 11 o superior
-
----
-
-## 🚀 Instalación
-
-### 1️⃣ Clonar el repositorio
-
-```bash
-git clone https://github.com/LosabinOS/serviceapp.git
-cd serviceapp
-```
-
-### 2️⃣ Sincronizar dependencias
-
-```bash
-./gradlew build
-```
-
-### 3️⃣ Configurar credenciales (si es necesario)
-
-```gradle
-// En local.properties (crear si no existe)
-sdk.dir=/path/to/android-sdk
-api_key=TU_API_KEY
-```
-
-### 4️⃣ Ejecutar en emulador o dispositivo
-
-```bash
-./gradlew installDebug
-```
-
-O desde Android Studio:
-- Click en "Run" → "Run 'app'"
-
----
-
-## 📖 Cómo Usar la Aplicación
-
-### 🎯 Primer Inicio
-
-1. **App inicia y muestra SplashScreen**
-2. **Valida si hay sesión guardada**
-3. **Si no hay → Muestra LoginScreen**
-4. **Ingresa las credenciales de prueba:**
-   ```
-   Email:    henry@lossabinos.como.mx
-   Password: Lossabinos123456789!
-   ```
-5. **Presiona "Iniciar Sesión"**
-6. **Espera a que se valide en backend**
-7. **Navega automáticamente a HomePage** ✅
-
-### 🏠 En HomePage
-
-1. **Ver datos del usuario**
-   - Nombre real (obtenido del backend)
-   - Ubicación real
-   - Avatar/foto
-
-2. **Ver indicadores de servicios**
-   - Servicios completados
-   - Servicios en proceso
-   - Servicios pendientes
-   - % de eficiencia
-
-3. **Ver estado de sincronización**
-   - Última sincronización
-   - Servicios sin sincronizar
-   - Botones para sincronizar
-
-4. **Cerrar sesión**
-   - Presiona el botón logout (flecha arriba a la derecha)
-   - Se muestra ConfirmationDialog elegante
-   - Presiona "Cerrar Sesión"
-   - Se limpia la sesión completamente
-   - Vuelve a LoginScreen
-
-### 🔄 Próximos Inicios (Si mantiene sesión)
-
-- **App inicia → SplashScreen**
-- **Valida sesión guardada**
-- **Si sesión es válida → HomePage (automático)**
-- **No necesita hacer login de nuevo**
-
-### 🔄 Próximos Inicios (Si hace logout)
-
-- **App inicia → SplashScreen**
-- **Valida sesión (fue limpiada)**
-- **No hay sesión → LoginScreen**
-- **Necesita hacer login de nuevo**
-
 ---
 
 ## 🧪 Testing
@@ -552,10 +602,43 @@ Password: Lossabinos123456789!
 
 ### Escenarios a Probar
 
+#### ✅ Validación de Sesión (SplashScreen) ✨ NUEVO
+```
+App abre → Muestra SplashScreen (~1 segundo)
+         → Si tiene sesión válida → HomePage (automático)
+         → Si no tiene sesión → LoginScreen
+```
+
 #### ✅ Login válido
 ```
 Entrada:  Email válido + Password válido
-Resultado: ✅ Login exitoso → HomePage muestra datos
+Resultado: ✅ Login exitoso → HomePage con datos reales
+```
+
+#### ✅ Logout con Confirmación ✨ NUEVO
+```
+En HomePage → Presiona logout
+            → Modal de confirmación aparece
+            → Presiona "Cerrar Sesión"
+            → GetUserPreferencesUseCase.clear() ejecuta
+            → Navega a LoginScreen
+            → Próxima vez: va a LoginScreen (sesión limpiada)
+```
+
+#### ✅ Cancelar Logout ✨ NUEVO
+```
+En HomePage → Presiona logout
+            → Modal de confirmación aparece
+            → Presiona "Cancelar"
+            → Sigue en HomePage
+```
+
+#### ✅ Respeto de Sesiones ✨ NUEVO
+```
+1. Hacer login exitoso
+2. Cerrar la app completamente
+3. Abrir la app de nuevo
+4. Resultado: Va directo a HomePage (sesión guardada)
 ```
 
 #### ✅ Login inválido
@@ -564,298 +647,267 @@ Entrada:  Email inválido o Password incorrecto
 Resultado: ❌ Muestra error en pantalla
 ```
 
-#### ✅ Validación de campos
-```
-Email vacío    → "Por favor ingresa un email"
-Email inválido → "Email inválido"
-Pass < 6 chars → "La contraseña debe tener al menos 6 caracteres"
+---
+
+## 📊 Estado del Proyecto
+
+### ✅ v1.2.0 (Completado) - Session Management + Modal ✨ NUEVO
+
+#### Módulo de Autenticación (v1.1.1)
+- [x] Login UI con Jetpack Compose
+- [x] Validaciones en cliente
+- [x] ViewModel con MVVM pattern
+- [x] Hilt DI completamente integrado (5 módulos)
+- [x] Conexión con backend Azure
+- [x] JSON body serializado
+- [x] CurlLoggingInterceptor para debugging
+- [x] SharedPreferences para datos de usuario
+
+#### Módulo de Sesiones ✨ NUEVO
+- [x] SplashScreen con validación automática
+- [x] SplashViewModel para lógica de validación
+- [x] GetUserPreferencesUseCase.getIsLogged()
+- [x] Respeto de sesiones guardadas
+- [x] Navegación automática basada en sesión
+- [x] HomeViewModel para gestionar Home
+- [x] HomePage con datos reales del usuario
+- [x] ConfirmationDialog elegante para logout
+- [x] GetUserPreferencesUseCase.clear() en logout
+- [x] Limpieza completa de datos al salir
+- [x] NavGraph con múltiples rutas (SPLASH, LOGIN, HOME)
+- [x] NavigationEvent para manejo de eventos
+- [x] Atomic Design Components (5 nuevos)
+
+### 🚧 v1.3.0 (Próximo)
+
+#### Room Database
+- [ ] Crear entidades de datos
+- [ ] Implementar DAOs
+- [ ] Configurar AppDatabase
+- [ ] Crear migraciones
+
+#### Home Screen (Ampliación)
+- [ ] Indicadores avanzados
+- [ ] Botón escanear QR
+- [ ] Actualización en tiempo real
+
+### 🔮 v1.4.0+ (Futuro)
+
+#### Módulo de Escaneo
+- [ ] Integrar ML Kit Barcode Scanning
+- [ ] Pantalla de escaneo con CameraX
+
+#### Panel de Tareas
+- [ ] Lista de tareas
+- [ ] Checklist interactivo
+- [ ] Captura de imágenes con CameraX
+
+#### Sincronización
+- [ ] Implementar SyncManager
+- [ ] WorkManager para background sync
+- [ ] Sincronización offline-first
+
+#### Testing
+- [ ] Tests unitarios
+- [ ] Tests de integración
+- [ ] Tests de UI
+
+---
+
+## 🚀 Cómo Ejecutar
+
+### Opción 1: Android Studio (Recomendado)
+
+```bash
+1. Abre el proyecto en Android Studio
+2. Espera a que Gradle sincronice (File → Sync Now)
+3. Presiona Shift + F10 o Run → Run 'app'
+4. Selecciona emulador o dispositivo conectado
+5. Espera a que la app se compile e instale
 ```
 
-#### ✅ SplashScreen
-```
-App abre → Muestra spinner ~1 segundo
-         → Si logado → HomePage
-         → Si no logado → LoginScreen
+### Opción 2: Terminal
+
+```bash
+# Compilar APK debug
+./gradlew assembleDebug
+
+# Instalar en dispositivo/emulador
+./gradlew installDebug
+
+# Ejecutar directamente
+./gradlew run
 ```
 
-#### ✅ HomePage
-```
-Muestra nombre real del usuario (del backend)
-Muestra ubicación real
-Muestra indicadores
-Botón logout funciona
-```
+### Opción 3: Crear Emulador
 
-#### ✅ Modal de confirmación
-```
-Presiona logout      → Modal aparece
-Presiona Cancelar   → Sigue en Home
-Presiona Confirmar  → LoginScreen
-```
+```bash
+# Ver emuladores disponibles
+emulator -list-avds
 
-#### ✅ Respeto de sesiones
-```
-Login → Cierra app → Abre app → HomePage (automático)
-Logout → Cierra app → Abre app → LoginScreen
+# Crear uno nuevo (si no existe)
+avdmanager create avd -n MiEmulador -k "system-images;android-34;default;x86_64"
+
+# Iniciar emulador
+emulator -avd MiEmulador
 ```
 
 ---
 
-## 📊 State Management
+## 📱 Flujo Principal
 
-### SplashViewModel
-```kotlin
-data class SplashState(
-    val isLoading: Boolean = true,
-    val errorMessage: String? = null
-)
-
-// Ejecuta en init
-init {
-    validateSession() // GetUserPreferencesUseCase.getIsLogged()
-}
 ```
-
-**Ubicación:** `presentation/viewmodel/SplashViewModel.kt`
-
-### LoginViewModel
-```kotlin
-data class LoginState(
-    val email: String = "",
-    val password: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isError: Boolean = false
-)
-
-// Eventos
-sealed class LoginEvent {
-    data class EmailChanged(val email: String) : LoginEvent()
-    data class PasswordChanged(val password: String) : LoginEvent()
-    object LoginClicked : LoginEvent()
-    object ForgotPasswordClicked : LoginEvent()
-    object ClearError : LoginEvent()
-}
-
-// Método nuevo
-fun clearState() {
-    getUserPreferencesUseCase.clear() // Limpia sesión
-}
-```
-
-**Ubicación:** `presentation/viewmodel/LoginViewModel.kt`
-
-### HomeViewModel
-```kotlin
-data class HomeState(
-    val showLogoutDialog: Boolean = false,
-    val userName: String = "Cargando...", // Del backend
-    val userLocation: String = "Mexico City", // Del backend
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
-)
-
-// Eventos
-sealed class HomeEvent {
-    object LogoutClicked : HomeEvent()
-    object ConfirmLogout : HomeEvent()
-    object CancelLogout : HomeEvent()
-}
-
-// Cargar datos
-init {
-    loadUserPreferences() // GetUserPreferencesUseCase.execute()
-}
-```
-
-**Ubicación:** `presentation/viewmodel/HomeViewModel.kt`
-
----
-
-## 🔌 APIs Utilizadas
-
-### Autenticación
-```
-POST /api/auth/login
-Body: { email: String, password: String }
-Response: { token: String, user: User }
-Status: 200 (OK) o 401 (Unauthorized)
-```
-
-### Obtener Preferencias del Usuario
-```
-GET /api/user/preferences
-Headers: Authorization: Bearer {token}
-Response: {
-    id: String,
-    name: String,
-    email: String,
-    location: String,
-    avatar: String,
-    lastLogin: Long
-}
-Status: 200 (OK) o 401 (Unauthorized)
-```
-
-### Limpiar Sesión
-```
-POST /api/user/logout
-Headers: Authorization: Bearer {token}
-Response: { success: Boolean }
-Status: 200 (OK)
+┌─────────────────────────┐
+│   SPLASH SCREEN        │  ← Valida sesión (✨ NUEVO)
+│   • Muestra spinner     │     • Si logado → Home
+│   • Valida sesión       │     • Si no logado → Login
+└────────┬────────────────┘
+         │
+         ├─────────────────────────────┐
+         │                             │
+         ↓ (No logado)         ↓ (Logado)
+┌─────────────────────────┐  ┌──────────────────────┐
+│   LOGIN SCREEN          │  │  HOME SCREEN        │  ← Datos reales (✨ NUEVO)
+│ • Email                 │  │ • Nombre usuario    │     • Modal logout
+│ • Password              │  │ • Ubicación         │     • Confirmación
+│ • Validaciones          │  │ • Indicadores       │     • Limpieza datos
+└────────┬────────────────┘  │ • Sincronización    │
+         │                    └─────────┬────────────┘
+         ↓ (Exitoso)                    │
+         └──────────────────────────────┘
+                   │
+                   ↓
+         ┌─────────────────────────┐
+         │ ESCANEO QR/BARCODE      │  ← Validar código (Próximo)
+         └────────┬────────────────┘
+                  │
+                  ↓
+         ┌─────────────────────────┐
+         │ LISTA SERVICIOS         │  ← Servicios asignados (Próximo)
+         └────────┬────────────────┘
+                  │
+                  ↓
+         ┌─────────────────────────┐
+         │ PANEL TAREAS            │  ← Checklist (Próximo)
+         │ ├─ Tarea 1 ☑            │
+         │ ├─ Tarea 2 (foto)       │
+         │ └─ Tarea 3              │
+         └────────┬────────────────┘
+                  │
+                  ↓
+         ┌─────────────────────────┐
+         │ GUARDAR & SINCRONIZAR   │  ← Sync con backend (Próximo)
+         └─────────────────────────┘
 ```
 
 ---
 
-## 🐛 Debugging
+## 🐛 Troubleshooting
 
-### Logs Disponibles
+### Error: "Unable to create @Body converter"
+**Solución:** Usar `JsonObject` o `RequestBody` en lugar de `Map`
 
-En `NavGraph.kt`:
-```kotlin
-println("Navigate to ForgotPassword")
-println("Settings clicked")
-println("Sync clicked")
-println("Logout confirmed - navegación manejada por NavGraph")
+### Error: "Internal compiler error"
+**Solución:** Actualizar Kotlin a 2.2.21 o superior
+
+### Error: "Unresolved reference" en Hilt
+**Solución:** 
+- Sincronizar Gradle: `./gradlew clean build`
+- Verificar que LosSabinosApplication tenga @HiltAndroidApp
+- Verificar que AndroidManifest.xml tenga `android:name=".LosSabinosApplication"`
+
+### Error: "Network request failed"
+**Solución:**
+- Verificar que la URL del backend sea correcta
+- Verificar permisos de internet en AndroidManifest.xml
+- En emulador: verificar que pueda acceder a la red
+- Ver logs en Logcat con filtro "CURL_REQUEST"
+
+### Error: "Gradle sync failed"
+**Solución:**
+```bash
+./gradlew clean
+./gradlew build --refresh-dependencies
 ```
 
-En `SplashViewModel.kt`:
-```kotlin
-val isLogged = getUserPreferencesUseCase.getIsLogged()
-println("Is logged in: $isLogged")
-```
-
-### Debugging Avanzado
-
-Usa Logcat en Android Studio:
-```
-adb logcat | grep "serviceapp"
-```
+### Error: "Splash no valida sesión correctamente"
+**Solución:**
+- Verificar que GetUserPreferencesUseCase tenga método `getIsLogged()`
+- Verificar que el token se guarde correctamente después del login
+- Ver logs de SplashViewModel en Logcat
 
 ---
 
-## 📝 Cambios Recientes (v1.0.0)
+## 👨‍💻 Desarrollo
 
-### ✨ Nuevas Características
+### Convenciones de Código
+- **Variables/Funciones**: `camelCase`
+- **Clases**: `PascalCase`
+- **Constantes**: `UPPER_SNAKE_CASE`
+- **Archivos Composable**: `NombrePantalla.kt`
+- **ViewModels**: `NombrePantallaViewModel.kt`
 
-- ✅ **SplashScreen** - Validación automática de sesión
-- ✅ **HomeViewModel** - Manejo de estado de Home
-- ✅ **ConfirmationDialog** - Modal de confirmación elegante
-- ✅ **Atomic Design Components** - 5 componentes nuevos (3 Atoms, 1 Molecule, 1 Organism)
-- ✅ **GetUserPreferencesUseCase Integration** - Carga datos reales del usuario
-- ✅ **Session Management** - Respeto de sesiones guardadas
-- ✅ **Logout Seguro** - Limpieza completa de datos
+### Commits
+```bash
+git commit -m "feat: nueva funcionalidad"      # Nueva feature
+git commit -m "fix: corregir bug"              # Bug fix
+git commit -m "docs: actualizar readme"        # Documentación
+git commit -m "refactor: optimizar código"     # Refactorización
+git commit -m "test: agregar tests"            # Tests
+git commit -m "chore: actualizar deps"         # Mantenimiento
+```
 
-### 📝 Modificaciones
-
-- 📝 **LoginViewModel** - Método `clearState()` para logout
-- 📝 **NavGraph** - Reestructurado con SPLASH como inicio
-- 📝 **NavigationEvent** - Nuevos eventos para logout
-- 📝 **HomeTemplate** - Parámetros de spacing personalizable
-- 📝 **HomePage** - Observa HomeViewModel con datos reales
-- 📝 **README.md** - Documentación completa (este archivo)
-
-### 🎯 Pantallas Implementadas
-
-1. **SplashScreen** - Validación
-2. **LoginScreen** - Autenticación
-3. **HomePage** - Panel de control
-
-### 💻 Componentes Totales
-
-- **9 Atoms** (elementos básicos)
-- **5 Molecules** (combinaciones simples)
-- **4 Organisms** (componentes complejos)
-- **1 Template** (layout)
-- **Total: 19 componentes UI**
+### Estructura de Archivos
+- 1 archivo = 1 clase principal
+- Composables relacionados pueden estar juntos
+- Data classes antes que funciones
+- Comentarios en métodos complejos
 
 ---
 
-## 🔮 Próximos Features (Roadmap)
+## 📊 Métricas del Proyecto
 
-### Phase 2
-- [ ] **ForgotPasswordScreen** - Recuperar contraseña
-- [ ] **SettingsScreen** - Configuración de usuario
-- [ ] **ProfileScreen** - Editar perfil
-
-### Phase 3
-- [ ] **ScanQRScreen** - Escanear códigos de servicios
-- [ ] **ServiciosScreen** - Listado de servicios
-- [ ] **TareasScreen** - Panel de tareas del servicio
-
-### Phase 4
-- [ ] **EvidenciaScreen** - Captura de fotos
-- [ ] **SyncScreen** - Gestión de sincronización
-- [ ] **OfflineSupport** - Funcionamiento sin internet
+- **Módulos Hilt**: 5 (App, Network, SharedPreferences, Repository, UseCase)
+- **Interceptores**: 2 (HttpLoggingInterceptor, CurlLoggingInterceptor)
+- **Screens**: 3 (Splash ✨, Login, Home ✨)
+- **ViewModels**: 3 (Splash ✨, Login, Home ✨)
+- **Repositories**: 3 (Authentication, UserPreferences ✨, más por venir)
+- **Use Cases**: 2 (EmailPasswordLogin, GetUserPreferences ✨)
+- **Componentes Atomic Design**: 19 (9 Atoms, 5 Molecules, 4 Organisms, 1 Template)
+- **Líneas de código**: ~4000+ (aproximadamente)
 
 ---
 
-## 🤝 Contribuir
+## 🔄 Próximos Pasos (Orden de Prioridad)
 
-1. **Fork** el proyecto
-2. **Crea una rama** para tu feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** tus cambios (`git commit -m 'Add AmazingFeature'`)
-4. **Push** a la rama (`git push origin feature/AmazingFeature`)
-5. **Abre un Pull Request**
+1. ✅ ~~Setup inicial con Clean Architecture~~
+2. ✅ ~~Integración Hilt~~
+3. ✅ ~~Backend authentication con JSON~~
+4. ✅ ~~Debugging con CurlLoggingInterceptor~~
+5. ✅ ~~Navegación entre pantallas~~
+6. ✅ ~~Home Screen con indicadores y datos reales~~
+7. ✅ ~~SplashScreen y validación de sesión~~
+8. ✅ ~~Modal de confirmación para logout~~
+9. ⏳ **Room Database**
+10. ⏳ **Módulo de escaneo QR**
+11. ⏳ **Panel de tareas**
+12. ⏳ **Sincronización offline-first**
+13. ⏳ **Tests unitarios**
+
+---
+
+## 📧 Contacto
+
+Genaro Velázquez - [@genaro-velazquez](https://github.com/genaro-velazquez)
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo licencia **MIT**. Ver `LICENSE` para más detalles.
+MIT License - ver archivo LICENSE para detalles.
 
 ---
 
-## 👨‍💼 Equipo de Desarrollo
-
-- **Desarrollador Principal:** LosabinOS
-- **Arquitectura:** Clean Architecture + MVVM
-- **Diseño UI:** Atomic Design System
-
----
-
-## 📞 Contacto & Soporte
-
-Para reportar bugs o sugerencias:
-- **Issues:** [GitHub Issues](https://github.com/LosabinOS/serviceapp/issues)
-- **Email:** soporte@lossabinos.com
-
----
-
-## 📚 Documentación Adicional
-
-- [CHANGELOG.md](CHANGELOG.md) - Historial de cambios
-- [GUIA_VALIDACION_SESION.md](docs/GUIA_VALIDACION_SESION.md) - Validación automática
-- [GUIA_MODAL_CONFIRMACION.md](docs/GUIA_MODAL_CONFIRMACION.md) - Modal de logout
-- [GUIA_NAVEGACION.md](docs/GUIA_NAVEGACION.md) - Flujo de navegación
-
----
-
-## 🙏 Agradecimientos
-
-- Jetpack Compose Team
-- Clean Architecture Community
-- Atomic Design System
-- Kotlin Community
-
----
-
-## 📊 Estadísticas del Proyecto
-
-```
-Total de archivos:        150+
-Líneas de código:         5000+
-Componentes UI:           19
-Pantallas:                3
-ViewModels:               3
-Use Cases:                10+
-APIs integradas:          3
-```
-
----
-
-**Última actualización:** 25 de Noviembre, 2025
-
-**Versión:** 1.0.0 - Release
-
-**Estado:** ✅ Listo para producción
+**Última actualización:** Noviembre 2025  
+**Versión:** 1.2.0  
+**Estado:** Session management completamente integrado con SplashScreen, Modal de confirmación y datos reales del usuario
