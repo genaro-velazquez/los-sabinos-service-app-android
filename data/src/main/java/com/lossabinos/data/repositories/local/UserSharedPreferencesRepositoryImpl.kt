@@ -20,6 +20,7 @@ class UserSharedPreferencesRepositoryImpl(
     private val userRolIdKey       = "user_rol_id"
     private val userRolNameKey     = "user_rol_name"
     private val refreshTokenKey    = "refresh_token"
+    private val isLoggedKey        = "is_logged"
 
     private fun getStringValue(key: String): String {
         val value = sharedPreferences.getString(key, "")
@@ -79,7 +80,7 @@ class UserSharedPreferencesRepositoryImpl(
 
     override fun setUserFirstName(firstName: String) {
         sharedPreferences.edit {
-            putString(firstName,firstName)
+            putString(userFirstNameKey,firstName)
             apply()
         }
     }
@@ -157,6 +158,17 @@ class UserSharedPreferencesRepositoryImpl(
     override fun setRefreshToken(refreshToken: String) {
         sharedPreferences.edit {
             putString(refreshTokenKey,refreshToken)
+            apply()
+        }
+    }
+
+    override fun getIslogged(): Boolean {
+        return sharedPreferences.getBoolean(isLoggedKey, false)
+    }
+
+    override fun setIsLogged(islogged: Boolean) {
+        sharedPreferences.edit {
+            putBoolean(isLoggedKey,islogged)
             apply()
         }
     }

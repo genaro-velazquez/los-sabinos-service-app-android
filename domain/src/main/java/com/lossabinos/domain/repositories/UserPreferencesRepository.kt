@@ -27,5 +27,7 @@ interface UserPreferencesRepository {
     fun setUserRoleName(rolName: String)
     fun getRefreshToken():String
     fun setRefreshToken(refreshToken:String)
+    fun getIslogged(): Boolean
+    fun setIsLogged(islogged: Boolean)
     fun clear()
 }

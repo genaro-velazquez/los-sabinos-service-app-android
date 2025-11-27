@@ -8,9 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import android.util.Patterns
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
+import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
+import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -41,14 +42,6 @@ sealed class LoginEvent {
     object ClearError : LoginEvent()
 }
 
-/**
- * Eventos de navegación
- */
-sealed class NavigationEvent {
-    object NavigateToHome : NavigationEvent()
-    object NavigateToForgotPassword : NavigationEvent()
-}
-
 // ============================================================================
 // 2. VIEWMODEL - Lógica de Login
 // ============================================================================
@@ -59,12 +52,14 @@ sealed class NavigationEvent {
  * Responsabilidades:
  * - Manejar estado del login
  * - Validar campos
- * - Simular login
- * - Navegar a otras pantallas
+ * - Conectar con UseCase
+ * - Emitir eventos de navegación
+ * - Limpiar sesión al logout
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val emailPasswordLoginUseCase: EmailPasswordLoginUseCase
+    private val emailPasswordLoginUseCase: EmailPasswordLoginUseCase,
+    private val getUserPreferencesUseCase: GetUserPreferencesUseCase  // ✅ NUEVO
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -101,37 +96,41 @@ class LoginViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true, isError = false) }
 
-                val email = _state.value.email.trim()  // ✅ TRIM espacios
+                val email = _state.value.email.trim()
                 val password = _state.value.password
 
-                // ✅ VALIDAR FORMULARIO (nueva función)
+                // ✅ VALIDAR FORMULARIO
                 val validationError = validateForm(email = email, password = password)
                 if (validationError != null) {
                     throw Exception(validationError)
                 }
 
-                // ✅ SIMULAR LLAMADA A API
-                //delay(2000)
+                // ✅ EJECUTAR USE CASE (conecta con backend)
+                val response = emailPasswordLoginUseCase.execute(
+                    email = email,
+                    password = password
+                )
 
-                // ejecuta usecase
-                val response = emailPasswordLoginUseCase.execute(email = email, password = password)
-
-                // ✅ ÉXITO
+                // ✅ ÉXITO: Actualizar estado y navegar
                 _state.update {
                     it.copy(
                         isLoading = false,
                         loginSuccess = true
                     )
                 }
+
+                // 🎯 EMITIR EVENTO DE NAVEGACIÓN
                 _navigationEvent.value = NavigationEvent.NavigateToHome
 
             } catch (e: Exception) {
                 // ❌ ERROR
+                val errorMessage = e.message ?: "Error desconocido"
+
                 _state.update {
                     it.copy(
                         isLoading = false,
                         isError = true,
-                        errorMessage = e.message ?: "Error desconocido"
+                        errorMessage = errorMessage
                     )
                 }
             }
@@ -140,37 +139,25 @@ class LoginViewModel @Inject constructor(
 
     /**
      * Valida todos los campos del formulario
-     * Retorna null si es válido, o el mensaje de error si no lo es
      */
-    private fun validateForm(email: String, password:String): String? {
+    private fun validateForm(email: String, password: String): String? {
 
-        // ✅ Validar email vacío
         if (email.isEmpty()) {
             return "Por favor ingresa un email"
         }
 
-        // ✅ Validar email válido
         if (!isEmailValid(email)) {
             return "Email inválido"
         }
 
-        // ✅ Validar contraseña vacía
         if (password.isEmpty()) {
             return "Por favor ingresa una contraseña"
         }
 
-        // ✅ Validar longitud contraseña
         if (password.length < 6) {
             return "La contraseña debe tener al menos 6 caracteres"
         }
 
-        // ✅ VALIDAR CONEXIÓN A INTERNET (NUEVA - pero sin contexto por ahora)
-        // TODO: Inyectar ConnectivityManager si tienes acceso
-        // if (!isInternetAvailable()) {
-        //     return "Sin conexión a internet"
-        // }
-
-        // ✅ Todo OK
         return null
     }
 
@@ -181,34 +168,46 @@ class LoginViewModel @Inject constructor(
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
+    /**
+     * Limpia el estado del ViewModel cuando se logout
+     *
+     * ✅ NUEVO: Ejecuta getUserPreferencesUseCase.clear()
+     */
     fun clearState() {
+        // ✅ Ejecutar clear() en UseCase para limpiar sesión
+        viewModelScope.launch {
+            try {
+                getUserPreferencesUseCase.clear()  // ← Limpiar sesión
+            } catch (e: Exception) {
+                println("Error al limpiar sesión: ${e.message}")
+            }
+        }
+
+        // Limpiar estado local
         _state.value = LoginState()
         _navigationEvent.value = null
     }
 }
 
-
 /**
  * NOTAS:
  *
- * ✅ Este archivo tiene TODO lo que necesitas:
- * - LoginState (con loginSuccess)
- * - LoginEvent (sealed class)
- * - NavigationEvent (sealed class)
- * - LoginViewModel (ÚNICA definición)
+ * ✅ LoginViewModel ahora:
+ * - Inyecta GetUserPreferencesUseCase
+ * - clearState() ejecuta getUserPreferencesUseCase.clear()
+ * - Se llama al logout (desde NavGraph)
  *
- * ✅ Características:
- * - Validación de email con Patterns
- * - Validación de contraseña (>= 6 caracteres)
- * - Try-catch para manejo de errores
- * - NavigationEvent para navegar
- * - clearState() para limpiar
+ * ✅ Flujo:
+ * 1. Usuario presiona "Cerrar Sesión" en Home
+ * 2. HomeViewModel emite NavigateToLogin
+ * 3. NavGraph navega a Login
+ * 4. NavGraph llama a loginViewModel.clearState()
+ * 5. clearState() ejecuta getUserPreferencesUseCase.clear()
+ * 6. Se limpia la sesión en el backend/caché
+ * 7. Usuario ve LoginScreen
  *
- * ✅ Flujo de login:
- * 1. Usuario presiona botón
- * 2. onLoginClick() → login()
- * 3. Validar campos
- * 4. Si error → mostrar en Snackbar
- * 5. Si OK → mostrar spinner 2s
- * 6. Si OK → navegar a Home
+ * ✅ Ventajas:
+ * - Sesión se limpia correctamente
+ * - No hay datos de usuario restos en caché
+ * - Próxima vez que abre app, irá a Login
  */

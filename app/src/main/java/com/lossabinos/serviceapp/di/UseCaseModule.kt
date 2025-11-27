@@ -3,7 +3,7 @@ package com.lossabinos.serviceapp.di
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
-import com.lossabinos.domain.usecases.preferences.GerUserPreferencesUseCase
+import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,8 +35,8 @@ object UseCaseModule {
     @Provides
     fun provideGetUserPreferencesUseCase(
         userPreferencesRepository: UserPreferencesRepository
-    ): GerUserPreferencesUseCase {
-        return GerUserPreferencesUseCase(userPreferencesRepository)
+    ): GetUserPreferencesUseCase {
+        return GetUserPreferencesUseCase(userPreferencesRepository)
     }
 
 }

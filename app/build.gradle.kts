@@ -85,5 +85,9 @@ dependencies {
     // OkHttp (explícito)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
+    // Navigation Compose
+    implementation(libs.androidx.navigation.compose)
+    // Hilt Navigation (para inyectar ViewModels)
+    implementation(libs.androidx.hilt.navigation.compose)
 
 }

@@ -19,5 +19,6 @@ abstract class SetUserPreferencesOnLogin(
         userPreferencesRepository.setUserRolCode(rolCode = response.client.userRol.code)
         userPreferencesRepository.setUserRoleName(rolName = response.client.userRol.name)
         userPreferencesRepository.setRefreshToken(refreshToken = response.refreshToken)
+        userPreferencesRepository.setIsLogged(islogged = true)
     }
 }
