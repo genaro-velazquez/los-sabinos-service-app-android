@@ -17,24 +17,47 @@ import androidx.compose.ui.unit.dp
 import com.lossabinos.serviceapp.ui.theme.BackgroundLight
 import com.lossabinos.serviceapp.ui.theme.PrimaryBlue
 
+
 /**
  * Template para la pantalla Home
  *
  * Define la estructura/layout sin lógica de datos
  *
+ * Estructura:
+ * ┌───────────────────────────────────┐
+ * │                                    │
+ * │     [HEADER - Usuario]             │
+ * │                                    │
+ * ├───────────────────────────────────┤
+ * │     [SYNC STATUS]                  │
+ * │     [UNSYNC ITEMS]                 │
+ * ├───────────────────────────────────┤
+ * │     [ACTION CARDS - Grid]          │
+ * │  [Cám]  [Rep]  [Ub]               │
+ * ├───────────────────────────────────┤
+ * │     [METRICS - 2x2 Grid]           │
+ * │  [Completadas] [Proceso]          │
+ * │  [Pendientes]  [Eficiencia]        │
+ * │                                    │
+ * └───────────────────────────────────┘
+ *
  * @param headerSection Composable del header (UserHeader)
  * @param syncSection Composable de sincronización (StatusSection + UnsyncSection)
+ * @param actionsSection Composable de acciones (ActionCardsSection) ✅ NUEVO
  * @param metricsSection Composable de métricas (Grid 2x2)
  * @param modifier Modifier para personalización
+ * @param topPadding Padding superior
+ * @param sectionSpacing Espaciado entre secciones
  */
 @Composable
 fun HomeTemplate(
     headerSection: @Composable () -> Unit,
     syncSection: @Composable () -> Unit,
     metricsSection: @Composable () -> Unit,
+    actionsSection: @Composable (() -> Unit)? = null,  // ✅ NUEVO
     modifier: Modifier = Modifier,
-    topPadding: Dp = 20.dp,           // ✅ NUEVO parámetro
-    sectionSpacing: Dp = 20.dp,       // ✅ NUEVO
+    topPadding: Dp = 20.dp,
+    sectionSpacing: Dp = 20.dp,
 ) {
     Box(
         modifier = modifier
@@ -78,6 +101,24 @@ fun HomeTemplate(
             item {
                 metricsSection()
             }
+
+            // ✅ Espaciador al final
+            item {
+                Spacer(modifier = Modifier.height(sectionSpacing))
+            }
+
+            // 4. Tarjetas de acción (ActionCards) ✅ NUEVO
+            if (actionsSection != null) {
+                item {
+                    actionsSection()
+                }
+
+                // ✅ Espaciador entre secciones
+                item {
+                    Spacer(modifier = Modifier.height(sectionSpacing))
+                }
+            }
+
         }
     }
 }

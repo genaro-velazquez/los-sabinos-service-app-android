@@ -13,6 +13,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - [Tecnologías](#tecnologías)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Flujo de Autenticación](#flujo-de-autenticación)
+- [ActionCards - Acciones Rápidas](#actioncards---acciones-rápidas-✨-nuevo)
 - [Estado del Proyecto](#estado-del-proyecto)
 - [Backend Integration](#backend-integration)
 - [Debugging & Logging](#debugging--logging)
@@ -31,6 +32,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Modal de confirmación** elegante para logout
 - ✅ **Logout seguro** con limpieza completa de datos
 - ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
+- ✅ **ActionCards** - Tarjetas de acciones rápidas (Cámara, Reportes, Ubicación) ✨ NUEVO
 - ✅ **Logging de peticiones CURL** para debugging
 - ✅ **Indicadores y métricas** en pantalla Home
 - ✅ **Escaneo de códigos de barras/QR** para asignar servicios
@@ -163,24 +165,30 @@ LosSabinosApplication
 La aplicación usa **Atomic Design** para componentes UI reutilizables:
 
 ```
-ATOMS (9)              → Elementos básicos
+ATOMS (12)              → Elementos básicos
 ├── Avatar, MetricIcon, StatusBadge
 ├── ActionButton, PrimaryButton, SecondaryButton
 ├── StatusText, ModalTitle, ModalContent
+├── ActionIcon ✨ NUEVO
+├── ActionTitle ✨ NUEVO
+└── ActionCardContainer ✨ NUEVO
     ↓
-MOLECULES (5)         → Componentes simples
+MOLECULES (6)         → Componentes simples
 ├── UserHeader, MetricCard, StatusSection
 ├── UnsyncSection, ModalButtonGroup
+└── ActionCard ✨ NUEVO
     ↓
-ORGANISMS (4)         → Componentes complejos
+ORGANISMS (5)         → Componentes complejos
 ├── HomeHeaderSection, MetricsSection
-├── SyncSection, ConfirmationDialog ✨ NUEVO
+├── SyncSection, ConfirmationDialog
+└── ActionCardsSection ✨ NUEVO
     ↓
-TEMPLATES (1)         → Layout sin datos
-└── HomeTemplate (con parámetros spacing)
+TEMPLATES (2)         → Layout sin datos
+├── LoginTemplate
+└── HomeTemplate ✨ ACTUALIZADO
     ↓
 PAGES (3)             → Pantallas completas
-├── SplashScreen ✨ NUEVO
+├── SplashScreen
 ├── LoginScreen
 └── HomePage ✨ ACTUALIZADO
 ```
@@ -189,7 +197,7 @@ PAGES (3)             → Pantallas completas
 
 ## 🔐 Flujo de Autenticación
 
-### 1️⃣ Inicio de la Aplicación - SplashScreen ✨ NUEVO
+### 1️⃣ Inicio de la Aplicación - SplashScreen
 
 ```
 App inicia en MainActivity
@@ -234,7 +242,7 @@ EmailPasswordLoginUseCase.execute(email, password)
 HomePage se muestra con datos del usuario
 ```
 
-### 3️⃣ Proceso de Logout ✨ NUEVO - Modal de Confirmación
+### 3️⃣ Proceso de Logout - Modal de Confirmación
 
 ```
 HomePage se muestra
@@ -244,7 +252,7 @@ HomeViewModel.onEvent(HomeEvent.LogoutClicked)
     ↓
 state.showLogoutDialog = true
     ↓
-ConfirmationDialog ✨ NUEVO se muestra (modal elegante)
+ConfirmationDialog se muestra (modal elegante)
     ↓ (usuario presiona "Cerrar Sesión" o "Cancelar")
     ↓
 ┌──────────────────────────────────┐
@@ -266,7 +274,7 @@ ConfirmationDialog ✨ NUEVO se muestra (modal elegante)
 LoginScreen o HomePage
 ```
 
-### 4️⃣ Respeto de Sesiones Guardadas ✨ NUEVO
+### 4️⃣ Respeto de Sesiones Guardadas
 
 ```
 Usuario logado ayer
@@ -288,104 +296,165 @@ Usuario ve HomePage SIN hacer login de nuevo
 
 ---
 
+## 🎯 ActionCards - Acciones Rápidas ✨ NUEVO
+
+### Descripción
+
+ActionCards son tarjetas de acciones rápidas que aparecen en el centro de la pantalla Home (entre Sync y Metrics). Permiten al usuario acceder rápidamente a funcionalidades principales.
+
+### Estructura
+
+```
+┌────────────────────────────────────┐
+│ ACCIONES RÁPIDAS                   │
+├────────────────────────────────────┤
+│  [🎥 Cámara] [📊 Reportes] [📍 Ubicación] │
+└────────────────────────────────────┘
+```
+
+### Componentes (Atomic Design)
+
+#### **Atoms** (3) ✨ NUEVO
+- **ActionIcon.kt** - Icono circular con fondo primario (56dp)
+- **ActionTitle.kt** - Texto centrado del título
+- **ActionCardContainer.kt** - Card base con esquinas redondeadas
+
+#### **Molecule** (1) ✨ NUEVO
+- **ActionCard.kt** - Combina Icon + Title, clickeable
+
+#### **Organism** (1) ✨ NUEVO
+- **ActionCardsSection.kt** - Grid responsivo (2-4 columnas)
+  - Usa LazyVerticalGrid con altura definida (150.dp)
+  - Espaciado compacto (5.dp)
+  - Título opcional
+  - Callbacks para clicks
+
+#### **Template** (1) ✨ ACTUALIZADO
+- **HomeTemplate.kt**
+  - Parámetro: `actionsSection: @Composable (() -> Unit)? = null`
+  - Orden: Header → Sync → Actions → Metrics
+  - Espaciado configurable
+
+#### **Page** (1) ✨ ACTUALIZADO
+- **HomePage.kt**
+  - Crea lista de ActionCardModel
+  - Configura callbacks
+  - Pasa actionsSection a HomeTemplate
+
+### Uso en HomePage
+
+```kotlin
+// Definir acciones
+val actionCards = listOf(
+    ActionCardModel(
+        id = "camera",
+        title = "Cámara",
+        icon = Icons.Filled.Camera,
+        onClick = onCameraClick
+    ),
+    ActionCardModel(
+        id = "reports",
+        title = "Reportes",
+        icon = Icons.Filled.BarChart,
+        onClick = onReportsClick
+    ),
+    ActionCardModel(
+        id = "location",
+        title = "Ubicación",
+        icon = Icons.Filled.LocationOn,
+        onClick = onLocationClick
+    )
+)
+
+// Pasar a HomeTemplate
+HomeTemplate(
+    headerSection = { ... },
+    syncSection = { ... },
+    actionsSection = {
+        ActionCardsSection(
+            actions = actionCards,
+            title = "Acciones Rápidas",
+            onActionClick = { actionId ->
+                // Navegar según actionId
+            },
+            columns = 3
+        )
+    },
+    metricsSection = { ... }
+)
+```
+
+### Problemas y Soluciones
+
+#### ⚠️ LazyVerticalGrid Crashing Sin Altura
+
+**Problema:** LazyVerticalGrid sin `.height()` intenta ocupar altura infinita
+**Solución:** Agregar `.height(150.dp)` explícitamente
+
+```kotlin
+// ❌ INCORRECTO - Crashea
+LazyVerticalGrid(
+    columns = GridCells.Fixed(columns),
+    modifier = Modifier.fillMaxWidth()  // Sin altura
+)
+
+// ✅ CORRECTO - Funciona
+LazyVerticalGrid(
+    columns = GridCells.Fixed(columns),
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)  // Altura definida
+)
+```
+
+#### ⚠️ MaterialTheme vs LosabiosTheme
+
+**Problema:** `LosabiosTheme.colorScheme` no existe (es una función, no una clase)
+**Solución:** Usar `MaterialTheme.colorScheme` dentro de @Composable
+
+```kotlin
+// ❌ INCORRECTO
+color = LosabiosTheme.colorScheme.primary  // Error
+
+// ✅ CORRECTO
+color = MaterialTheme.colorScheme.primary  // Funciona
+```
+
+### Características
+
+- ✅ Grid responsivo (2, 3, 4+ columnas configurable)
+- ✅ Altura fija (150.dp por defecto, configurable)
+- ✅ Espaciado compacto (5.dp entre tarjetas)
+- ✅ Título opcional
+- ✅ Callbacks para manejo de clicks
+- ✅ Integrado perfectamente en HomeTemplate
+- ✅ Uso de MaterialTheme para consistencia
+- ✅ Atomic Design pattern
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
 app/src/main/java/com/lossabinos/serviceapp/
 │
-├── LosSabinosApplication.kt           ✅ @HiltAndroidApp
-├── MainActivity.kt                    ✅ @AndroidEntryPoint
+├── presentation/ui/components/
+│   ├── atoms/
+│   │   ├── ActionIcon.kt           ✨ NUEVO
+│   │   ├── ActionTitle.kt          ✨ NUEVO
+│   │   └── ActionCardContainer.kt  ✨ NUEVO
+│   ├── molecules/
+│   │   └── ActionCard.kt           ✨ NUEVO
+│   └── organisms/
+│       └── ActionCardsSection.kt   ✨ NUEVO
 │
-├── data/                              # 🗄️ Capa de Datos
-│   ├── local/
-│   │   └── UserSharedPreferencesRepositoryImpl.kt  ✅
-│   ├── remote/
-│   │   ├── api/
-│   │   │   └── AuthenticationServices.kt          ✅
-│   │   └── dto/
-│   │       ├── LoginRequestDTO.kt                 ✅
-│   │       └── LoginResponseDTO.kt                ✅
-│   ├── repository/
-│   │   ├── AuthenticationRetrofitRepository.kt    ✅
-│   │   └── UserPreferencesRepository.kt           ✅ NUEVO
-│   ├── utils/
-│   │   ├── HeadersMaker.kt                        ✅
-│   │   ├── CurlLoggingInterceptor.kt             ✅
-│   │   └── RetrofitResponseValidator.kt           ✅
-│   └── sync/
-│       └── (próximo)
+├── presentation/ui/templates/
+│   └── HomeTemplate.kt             ✨ ACTUALIZADO
 │
-├── domain/                            # 💼 Capa de Dominio
-│   ├── model/
-│   │   ├── User.kt
-│   │   └── LoginResponse.kt
-│   ├── repositories/
-│   │   ├── AuthenticationRepository.kt            ✅
-│   │   └── UserPreferencesRepository.kt           ✅ NUEVO
-│   └── usecases/
-│       ├── authentication/
-│       │   └── EmailPasswordLoginUseCase.kt       ✅
-│       └── user/
-│           └── GetUserPreferencesUseCase.kt       ✅ NUEVO
+├── presentation/screens/home/
+│   └── HomePage.kt                 ✨ ACTUALIZADO
 │
-├── presentation/                      # 🎨 Capa de Presentación
-│   ├── viewmodel/
-│   │   ├── SplashViewModel.kt         ✅ NUEVO - Valida sesión
-│   │   ├── LoginViewModel.kt          ✅ - Maneja autenticación
-│   │   └── HomeViewModel.kt           ✅ NUEVO - Maneja home
-│   │
-│   └── ui/
-│       ├── screens/
-│       │   ├── splash/
-│       │   │   └── SplashScreen.kt   ✅ NUEVO - Validación
-│       │   ├── login/
-│       │   │   └── LoginScreen.kt    ✅ - Autenticación
-│       │   └── home/
-│       │       └── HomePage.kt       ✅ NUEVO - Panel control
-│       │
-│       ├── components/
-│       │   ├── atoms/
-│       │   │   ├── PrimaryButton.kt
-│       │   │   ├── SecondaryButton.kt ✅ NUEVO
-│       │   │   ├── IconTextField.kt
-│       │   │   ├── ModalTitle.kt     ✅ NUEVO
-│       │   │   └── ModalContent.kt   ✅ NUEVO
-│       │   ├── molecules/
-│       │   │   ├── PasswordTextField.kt
-│       │   │   ├── EmailTextField.kt
-│       │   │   └── ModalButtonGroup.kt ✅ NUEVO
-│       │   └── organisms/
-│       │       ├── LoginForm.kt
-│       │       ├── HomeHeaderSection.kt ✅ NUEVO
-│       │       ├── MetricsSection.kt ✅ NUEVO
-│       │       ├── SyncSection.kt    ✅ NUEVO
-│       │       └── ConfirmationDialog.kt ✅ NUEVO
-│       │
-│       ├── theme/
-│       │   ├── Color.kt
-│       │   ├── Type.kt
-│       │   └── Theme.kt
-│       │
-│       └── templates/
-│           ├── LoginTemplate.kt
-│           └── HomeTemplate.kt       ✅ NUEVO
-│
-├── navigation/                        # 🧭 Navegación NUEVO
-│   ├── NavGraph.kt                   ✅ NUEVO
-│   ├── NavigationEvent.kt            ✅ NUEVO
-│   └── Routes.kt                     ✅ NUEVO
-│
-├── di/                                # 💉 Inyección de Dependencias
-│   ├── AppModule.kt                  ✅
-│   ├── NetworkModule.kt              ✅
-│   ├── SharedPreferencesModule.kt    ✅
-│   ├── RepositoryModule.kt           ✅
-│   └── UseCaseModule.kt              ✅
-│
-└── utils/                             # 🛠️ Utilidades
-    ├── Constants.kt
-    ├── ExtensionFunctions.kt
-    └── RetrofitResponseValidator.kt
+└── (... resto de estructura igual ...)
 ```
 
 ---
@@ -395,7 +464,7 @@ app/src/main/java/com/lossabinos/serviceapp/
 ### UI & Composables
 - **Jetpack Compose** - UI declarativa moderna
 - **Material Design 3** - Componentes estándar
-- **Compose Navigation** - Navegación entre pantallas ✅ NUEVO
+- **Compose Navigation** - Navegación entre pantallas
 
 ### Inyección de Dependencias
 - **Hilt** - DI framework (✅ INTEGRADO)
@@ -403,7 +472,6 @@ app/src/main/java/com/lossabinos/serviceapp/
 ### Networking
 - **Retrofit** - Cliente HTTP (✅ INTEGRADO)
 - **OkHttp** - Interceptores y logging (✅ INTEGRADO)
-- **OkHttp Logging Interceptor** - HTTP logging (✅ INTEGRADO)
 - **Gson** - Serialización JSON (✅ INTEGRADO)
 
 ### Almacenamiento Local
@@ -414,180 +482,42 @@ app/src/main/java/com/lossabinos/serviceapp/
 - **Kotlin Coroutines** - Operaciones asincrónicas (✅ INTEGRADO)
 - **Flow** - Streams reactivos (✅ INTEGRADO)
 
-### Sincronización & Background
-- **WorkManager** - Tareas en background (próximo)
-- **Custom SyncManager** - Sincronización offline-first (próximo)
-
 ### Cámara y Escaneo
 - **CameraX** - API moderna para cámara (próximo)
 - **ML Kit Barcode Scanning** - Escaneo de códigos (próximo)
 
-### Otras Librerías
-- **Coil** - Carga de imágenes eficiente (próximo)
-- **Lifecycle** - Gestión del ciclo de vida (✅ INTEGRADO)
-
 ---
 
-## 🌐 Backend Integration
+## 📊 Estado del Proyecto
 
-### URL Base (Azure)
-```
-https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net
-```
+### ✅ v1.3.0 (Completado) - ActionCards Integration ✨ NUEVO
 
-### Endpoints Actuales
-- **POST** `/api/v1/auth/login` - Login con email y password
+#### ActionCards Module
+- [x] ActionIcon.kt - Icono circular con fondo primario
+- [x] ActionTitle.kt - Título centrado
+- [x] ActionCardContainer.kt - Card base
+- [x] ActionCard.kt - Combinación Icon + Title
+- [x] ActionCardsSection.kt - Grid responsivo con LazyVerticalGrid
+- [x] HomeTemplate.kt actualizado con actionsSection
+- [x] HomePage.kt actualizado para pasar ActionCards
+- [x] **SOLUCIÓN: LazyVerticalGrid con .height(150.dp)**
+- [x] **SOLUCIÓN: Usar MaterialTheme en lugar de LosabiosTheme**
+- [x] Espaciado compacto (5.dp entre tarjetas)
+- [x] Grid configurable (2, 3, 4 columnas)
+- [x] Título opcional en ActionCardsSection
 
-### Configuración API
+### 🚧 v1.4.0 (Próximo)
 
-**Content-Type:** `application/json`
+#### Conexión ActionCards
+- [ ] Conectar callbacks para navegar
+- [ ] Crear CameraScreen
+- [ ] Crear ReportsScreen
+- [ ] Crear LocationScreen
 
-**Request Format:**
-```json
-{
-  "email": "usuario@example.com",
-  "password": "password123"
-}
-```
-
-**Response Format:**
-```json
-{
-  "data": {
-    "tenant": {
-      "name": "Nombre App",
-      "brandingConfig": {
-        "primaryColor": "#FF5722",
-        "secondaryColor": "#2196F3"
-      }
-    },
-    "user": {
-      "id": "user-123",
-      "email": "usuario@example.com",
-      "firstName": "Juan",
-      "lastName": "Pérez",
-      "isAdmin": false,
-      "rol": {
-        "code": "MECANICO",
-        "id": "rol-123",
-        "name": "Mecánico"
-      }
-    },
-    "permissions": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-### Headers Personalizados
-```
-X-LOS-SABINOS-PLATFORM-TYPE: "app"
-X-LOS-SABINOS-PLATFORM-name: "Android"
-Content-Type: "application/json"
-```
-
----
-
-## 🐛 Debugging & Logging
-
-### Ver peticiones CURL en Logcat
-
-La app incluye **CurlLoggingInterceptor** que imprime las peticiones en formato CURL.
-
-**Para ver los logs:**
-
-1. Abre Android Studio
-2. Ve a `View → Tool Windows → Logcat`
-3. Filtra por: `CURL_REQUEST`
-4. Ejecuta login
-
-**Verás:**
-```
-D/CURL_REQUEST: curl -X POST \
-  -H "Content-Type: application/json" \
-  -H "X-LOS-SABINOS-PLATFORM-TYPE: app" \
-  -H "X-LOS-SABINOS-PLATFORM-name: Android" \
-  -d '{"email":"usuario@example.com","password":"password123"}' \
-  "https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/auth/login"
-
-D/CURL_RESPONSE: Status: 200 OK
-```
-
-### Copiar CURL para Postman/Terminal
-
-Puedes copiar el CURL de Logcat y probarlo directamente:
-
-```bash
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -H "X-LOS-SABINOS-PLATFORM-TYPE: app" \
-  -H "X-LOS-SABINOS-PLATFORM-name: Android" \
-  -d '{"email":"usuario@example.com","password":"password123"}' \
-  "https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/auth/login"
-```
-
-### OkHttp Logging Interceptor
-
-Además de CURL, también tienes logs detallados de OkHttp:
-
-```
-D/OkHttp: --> POST /api/v1/auth/login http/1.1
-D/OkHttp: X-LOS-SABINOS-PLATFORM-TYPE: app
-D/OkHttp: X-LOS-SABINOS-PLATFORM-name: Android
-D/OkHttp: Content-Type: application/json
-D/OkHttp: {"email":"usuario@example.com","password":"password123"}
-D/OkHttp: --> END POST (45-byte body)
-D/OkHttp: <-- 200 OK /api/v1/auth/login (500ms)
-D/OkHttp: {"data":{...}}
-```
-
----
-
-## 📱 Pantallas Implementadas
-
-### 🎬 SplashScreen ✨ NUEVO
-```
-SplashScreen
-├── Muestra spinner de carga
-├── Valida sesión en background
-├── GetUserPreferencesUseCase.getIsLogged()
-└── Navega a:
-    ├── HomePage (si está logado)
-    └── LoginScreen (si no está logado)
-```
-
-### 🔑 LoginScreen
-```
-LoginScreen
-├── Campo email con validación
-├── Campo password con validación
-├── Botón "Iniciar Sesión"
-├── Link "¿Olvidaste tu contraseña?"
-├── Indicador de carga
-└── Mostrador de errores
-```
-
-### 🏠 HomePage ✨ NUEVO
-```
-HomePage
-├── HomeHeaderSection
-│   ├── Avatar del usuario
-│   ├── Nombre real del usuario (del backend)
-│   ├── Ubicación del usuario
-│   ├── Estado online/offline
-│   └── Botón logout con ConfirmationDialog ✨ NUEVO
-│
-├── SyncSection
-│   ├── Estado de sincronización
-│   ├── Última sincronización
-│   ├── Servicios sin sincronizar
-│   └── Botones de sincronización
-│
-└── MetricsSection (Grid 2x2)
-    ├── Servicios completados
-    ├── Servicios en proceso
-    ├── Servicios pendientes
-    └── % de eficiencia
-```
+#### Room Database
+- [ ] Crear entidades de datos
+- [ ] Implementar DAOs
+- [ ] Configurar AppDatabase
 
 ---
 
@@ -602,312 +532,40 @@ Password: Lossabinos123456789!
 
 ### Escenarios a Probar
 
-#### ✅ Validación de Sesión (SplashScreen) ✨ NUEVO
+#### ✅ ActionCards Interacción ✨ NUEVO
 ```
-App abre → Muestra SplashScreen (~1 segundo)
-         → Si tiene sesión válida → HomePage (automático)
-         → Si no tiene sesión → LoginScreen
+HomePage aparece → ActionCards visible (entre Sync y Metrics)
+                 → Grid de 3 columnas con 3 tarjetas
+                 → Presionar cualquier tarjeta
+                 → Callback ejecuta correctamente
 ```
-
-#### ✅ Login válido
-```
-Entrada:  Email válido + Password válido
-Resultado: ✅ Login exitoso → HomePage con datos reales
-```
-
-#### ✅ Logout con Confirmación ✨ NUEVO
-```
-En HomePage → Presiona logout
-            → Modal de confirmación aparece
-            → Presiona "Cerrar Sesión"
-            → GetUserPreferencesUseCase.clear() ejecuta
-            → Navega a LoginScreen
-            → Próxima vez: va a LoginScreen (sesión limpiada)
-```
-
-#### ✅ Cancelar Logout ✨ NUEVO
-```
-En HomePage → Presiona logout
-            → Modal de confirmación aparece
-            → Presiona "Cancelar"
-            → Sigue en HomePage
-```
-
-#### ✅ Respeto de Sesiones ✨ NUEVO
-```
-1. Hacer login exitoso
-2. Cerrar la app completamente
-3. Abrir la app de nuevo
-4. Resultado: Va directo a HomePage (sesión guardada)
-```
-
-#### ✅ Login inválido
-```
-Entrada:  Email inválido o Password incorrecto
-Resultado: ❌ Muestra error en pantalla
-```
-
----
-
-## 📊 Estado del Proyecto
-
-### ✅ v1.2.0 (Completado) - Session Management + Modal ✨ NUEVO
-
-#### Módulo de Autenticación (v1.1.1)
-- [x] Login UI con Jetpack Compose
-- [x] Validaciones en cliente
-- [x] ViewModel con MVVM pattern
-- [x] Hilt DI completamente integrado (5 módulos)
-- [x] Conexión con backend Azure
-- [x] JSON body serializado
-- [x] CurlLoggingInterceptor para debugging
-- [x] SharedPreferences para datos de usuario
-
-#### Módulo de Sesiones ✨ NUEVO
-- [x] SplashScreen con validación automática
-- [x] SplashViewModel para lógica de validación
-- [x] GetUserPreferencesUseCase.getIsLogged()
-- [x] Respeto de sesiones guardadas
-- [x] Navegación automática basada en sesión
-- [x] HomeViewModel para gestionar Home
-- [x] HomePage con datos reales del usuario
-- [x] ConfirmationDialog elegante para logout
-- [x] GetUserPreferencesUseCase.clear() en logout
-- [x] Limpieza completa de datos al salir
-- [x] NavGraph con múltiples rutas (SPLASH, LOGIN, HOME)
-- [x] NavigationEvent para manejo de eventos
-- [x] Atomic Design Components (5 nuevos)
-
-### 🚧 v1.3.0 (Próximo)
-
-#### Room Database
-- [ ] Crear entidades de datos
-- [ ] Implementar DAOs
-- [ ] Configurar AppDatabase
-- [ ] Crear migraciones
-
-#### Home Screen (Ampliación)
-- [ ] Indicadores avanzados
-- [ ] Botón escanear QR
-- [ ] Actualización en tiempo real
-
-### 🔮 v1.4.0+ (Futuro)
-
-#### Módulo de Escaneo
-- [ ] Integrar ML Kit Barcode Scanning
-- [ ] Pantalla de escaneo con CameraX
-
-#### Panel de Tareas
-- [ ] Lista de tareas
-- [ ] Checklist interactivo
-- [ ] Captura de imágenes con CameraX
-
-#### Sincronización
-- [ ] Implementar SyncManager
-- [ ] WorkManager para background sync
-- [ ] Sincronización offline-first
-
-#### Testing
-- [ ] Tests unitarios
-- [ ] Tests de integración
-- [ ] Tests de UI
 
 ---
 
 ## 🚀 Cómo Ejecutar
 
-### Opción 1: Android Studio (Recomendado)
-
 ```bash
-1. Abre el proyecto en Android Studio
-2. Espera a que Gradle sincronice (File → Sync Now)
-3. Presiona Shift + F10 o Run → Run 'app'
-4. Selecciona emulador o dispositivo conectado
-5. Espera a que la app se compile e instale
-```
+# 1. Sincronizar Gradle
+./gradlew clean build
 
-### Opción 2: Terminal
-
-```bash
-# Compilar APK debug
-./gradlew assembleDebug
-
-# Instalar en dispositivo/emulador
+# 2. Ejecutar en emulador
 ./gradlew installDebug
 
-# Ejecutar directamente
-./gradlew run
+# O en Android Studio:
+# Shift + F10 o Run → Run 'app'
 ```
-
-### Opción 3: Crear Emulador
-
-```bash
-# Ver emuladores disponibles
-emulator -list-avds
-
-# Crear uno nuevo (si no existe)
-avdmanager create avd -n MiEmulador -k "system-images;android-34;default;x86_64"
-
-# Iniciar emulador
-emulator -avd MiEmulador
-```
-
----
-
-## 📱 Flujo Principal
-
-```
-┌─────────────────────────┐
-│   SPLASH SCREEN        │  ← Valida sesión (✨ NUEVO)
-│   • Muestra spinner     │     • Si logado → Home
-│   • Valida sesión       │     • Si no logado → Login
-└────────┬────────────────┘
-         │
-         ├─────────────────────────────┐
-         │                             │
-         ↓ (No logado)         ↓ (Logado)
-┌─────────────────────────┐  ┌──────────────────────┐
-│   LOGIN SCREEN          │  │  HOME SCREEN        │  ← Datos reales (✨ NUEVO)
-│ • Email                 │  │ • Nombre usuario    │     • Modal logout
-│ • Password              │  │ • Ubicación         │     • Confirmación
-│ • Validaciones          │  │ • Indicadores       │     • Limpieza datos
-└────────┬────────────────┘  │ • Sincronización    │
-         │                    └─────────┬────────────┘
-         ↓ (Exitoso)                    │
-         └──────────────────────────────┘
-                   │
-                   ↓
-         ┌─────────────────────────┐
-         │ ESCANEO QR/BARCODE      │  ← Validar código (Próximo)
-         └────────┬────────────────┘
-                  │
-                  ↓
-         ┌─────────────────────────┐
-         │ LISTA SERVICIOS         │  ← Servicios asignados (Próximo)
-         └────────┬────────────────┘
-                  │
-                  ↓
-         ┌─────────────────────────┐
-         │ PANEL TAREAS            │  ← Checklist (Próximo)
-         │ ├─ Tarea 1 ☑            │
-         │ ├─ Tarea 2 (foto)       │
-         │ └─ Tarea 3              │
-         └────────┬────────────────┘
-                  │
-                  ↓
-         ┌─────────────────────────┐
-         │ GUARDAR & SINCRONIZAR   │  ← Sync con backend (Próximo)
-         └─────────────────────────┘
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Error: "Unable to create @Body converter"
-**Solución:** Usar `JsonObject` o `RequestBody` en lugar de `Map`
-
-### Error: "Internal compiler error"
-**Solución:** Actualizar Kotlin a 2.2.21 o superior
-
-### Error: "Unresolved reference" en Hilt
-**Solución:** 
-- Sincronizar Gradle: `./gradlew clean build`
-- Verificar que LosSabinosApplication tenga @HiltAndroidApp
-- Verificar que AndroidManifest.xml tenga `android:name=".LosSabinosApplication"`
-
-### Error: "Network request failed"
-**Solución:**
-- Verificar que la URL del backend sea correcta
-- Verificar permisos de internet en AndroidManifest.xml
-- En emulador: verificar que pueda acceder a la red
-- Ver logs en Logcat con filtro "CURL_REQUEST"
-
-### Error: "Gradle sync failed"
-**Solución:**
-```bash
-./gradlew clean
-./gradlew build --refresh-dependencies
-```
-
-### Error: "Splash no valida sesión correctamente"
-**Solución:**
-- Verificar que GetUserPreferencesUseCase tenga método `getIsLogged()`
-- Verificar que el token se guarde correctamente después del login
-- Ver logs de SplashViewModel en Logcat
-
----
-
-## 👨‍💻 Desarrollo
-
-### Convenciones de Código
-- **Variables/Funciones**: `camelCase`
-- **Clases**: `PascalCase`
-- **Constantes**: `UPPER_SNAKE_CASE`
-- **Archivos Composable**: `NombrePantalla.kt`
-- **ViewModels**: `NombrePantallaViewModel.kt`
-
-### Commits
-```bash
-git commit -m "feat: nueva funcionalidad"      # Nueva feature
-git commit -m "fix: corregir bug"              # Bug fix
-git commit -m "docs: actualizar readme"        # Documentación
-git commit -m "refactor: optimizar código"     # Refactorización
-git commit -m "test: agregar tests"            # Tests
-git commit -m "chore: actualizar deps"         # Mantenimiento
-```
-
-### Estructura de Archivos
-- 1 archivo = 1 clase principal
-- Composables relacionados pueden estar juntos
-- Data classes antes que funciones
-- Comentarios en métodos complejos
 
 ---
 
 ## 📊 Métricas del Proyecto
 
-- **Módulos Hilt**: 5 (App, Network, SharedPreferences, Repository, UseCase)
-- **Interceptores**: 2 (HttpLoggingInterceptor, CurlLoggingInterceptor)
-- **Screens**: 3 (Splash ✨, Login, Home ✨)
-- **ViewModels**: 3 (Splash ✨, Login, Home ✨)
-- **Repositories**: 3 (Authentication, UserPreferences ✨, más por venir)
-- **Use Cases**: 2 (EmailPasswordLogin, GetUserPreferences ✨)
-- **Componentes Atomic Design**: 19 (9 Atoms, 5 Molecules, 4 Organisms, 1 Template)
-- **Líneas de código**: ~4000+ (aproximadamente)
-
----
-
-## 🔄 Próximos Pasos (Orden de Prioridad)
-
-1. ✅ ~~Setup inicial con Clean Architecture~~
-2. ✅ ~~Integración Hilt~~
-3. ✅ ~~Backend authentication con JSON~~
-4. ✅ ~~Debugging con CurlLoggingInterceptor~~
-5. ✅ ~~Navegación entre pantallas~~
-6. ✅ ~~Home Screen con indicadores y datos reales~~
-7. ✅ ~~SplashScreen y validación de sesión~~
-8. ✅ ~~Modal de confirmación para logout~~
-9. ⏳ **Room Database**
-10. ⏳ **Módulo de escaneo QR**
-11. ⏳ **Panel de tareas**
-12. ⏳ **Sincronización offline-first**
-13. ⏳ **Tests unitarios**
-
----
-
-## 📧 Contacto
-
-Genaro Velázquez - [@genaro-velazquez](https://github.com/genaro-velazquez)
-
----
-
-## 📄 Licencia
-
-MIT License - ver archivo LICENSE para detalles.
+- **Componentes Atomic Design**: 22 (12 Atoms, 6 Molecules, 5 Organisms, 2 Templates)
+- **Líneas de código**: ~4500+ (aproximadamente)
+- **Versión**: 1.3.0
+- **Status**: ActionCards completamente funcionales ✨
 
 ---
 
 **Última actualización:** Noviembre 2025  
-**Versión:** 1.2.0  
-**Estado:** Session management completamente integrado con SplashScreen, Modal de confirmación y datos reales del usuario
+**Versión:** 1.3.0  
+**Estado:** ActionCards completamente integrados en HomeTemplate ✨

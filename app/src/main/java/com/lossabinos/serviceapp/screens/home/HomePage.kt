@@ -1,11 +1,19 @@
 // presentation/screens/home/HomePage.kt
 package com.lossabinos.serviceapp.screens.home
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCardModel
+import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCardsSection
+import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCardsSectionPreview2Columns
+import com.lossabinos.serviceapp.ui.components.atoms.ActionButton
 import com.lossabinos.serviceapp.ui.components.organisms.ConfirmationDialog
 import com.lossabinos.serviceapp.ui.components.organisms.HomeHeaderSection
 import com.lossabinos.serviceapp.ui.components.organisms.MetricsSection
@@ -38,11 +46,37 @@ fun HomePage(
     onSettingsClick: () -> Unit = {},
     onSyncClick: () -> Unit = {},
     onSyncNowClick: () -> Unit = {},
+    onCameraClick: () -> Unit = {},
+    onReportsClick: () -> Unit = {},
+    onLocationClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     // ✅ Observar estado (nombre, ubicación, etc.)
     val state = viewModel.state.collectAsState().value
+
+    // ✅ NUEVO: Definir acciones para las tarjetas de ActionCards
+    val actionCards = listOf(
+        ActionCardModel(
+            id = "camera",
+            title = "Cámara",
+            icon = Icons.Filled.Camera,
+            onClick = onCameraClick
+        ),
+        ActionCardModel(
+            id = "reports",
+            title = "Reportes",
+            icon = Icons.Filled.BarChart,
+            onClick = onReportsClick
+        ),
+        ActionCardModel(
+            id = "location",
+            title = "Ubicación",
+            icon = Icons.Filled.LocationOn,
+            onClick = onLocationClick
+        )
+    )
+
 
     // Mostrar modal de confirmación si es necesario
     if (state.showLogoutDialog) {
@@ -88,6 +122,17 @@ fun HomePage(
                 unsyncDetails = "2 Firmas, 8 Fotos, 1 Observación",
                 onSyncClick = onSyncClick,
                 onSyncNowClick = onSyncNowClick
+            )
+        },
+        actionsSection = {
+            ActionCardsSection(
+                actions = actionCards,
+                title = "Acciones Rápidas",
+                onActionClick = { actionId ->
+                    println("Action selected: $actionId")
+                    //viewModel.onActionSelected(actionId)
+                },
+                columns = 3  // Grid de 3 columnas
             )
         },
         metricsSection = {
