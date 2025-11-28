@@ -14,6 +14,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Flujo de Autenticación](#flujo-de-autenticación)
 - [ActionCards - Acciones Rápidas](#actioncards---acciones-rápidas-✨-nuevo)
+- [Service List - Listado de Servicios](#service-list---listado-de-servicios-✨-nuevo)
 - [Estado del Proyecto](#estado-del-proyecto)
 - [Backend Integration](#backend-integration)
 - [Debugging & Logging](#debugging--logging)
@@ -33,6 +34,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Logout seguro** con limpieza completa de datos
 - ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
 - ✅ **ActionCards** - Tarjetas de acciones rápidas (Cámara, Reportes, Ubicación) ✨ NUEVO
+- ✅ **Service List** - Listado de servicios asignados con UI adaptable ✨ NUEVO
 - ✅ **Logging de peticiones CURL** para debugging
 - ✅ **Indicadores y métricas** en pantalla Home
 - ✅ **Escaneo de códigos de barras/QR** para asignar servicios
@@ -165,23 +167,22 @@ LosSabinosApplication
 La aplicación usa **Atomic Design** para componentes UI reutilizables:
 
 ```
-ATOMS (12)              → Elementos básicos
+ATOMS (15)              → Elementos básicos
 ├── Avatar, MetricIcon, StatusBadge
 ├── ActionButton, PrimaryButton, SecondaryButton
 ├── StatusText, ModalTitle, ModalContent
-├── ActionIcon ✨ NUEVO
-├── ActionTitle ✨ NUEVO
-└── ActionCardContainer ✨ NUEVO
+├── ActionIcon, ActionTitle, ActionCardContainer ✨
+├── ServiceIcon, ServiceTitle, ServiceBadge, ServiceSubtitle ✨ MEJORADOS
     ↓
-MOLECULES (6)         → Componentes simples
+MOLECULES (7)         → Componentes simples
 ├── UserHeader, MetricCard, StatusSection
 ├── UnsyncSection, ModalButtonGroup
-└── ActionCard ✨ NUEVO
+├── ActionCard, ServiceHeaderMolecule ✨ MEJORADO
     ↓
-ORGANISMS (5)         → Componentes complejos
+ORGANISMS (6)         → Componentes complejos
 ├── HomeHeaderSection, MetricsSection
 ├── SyncSection, ConfirmationDialog
-└── ActionCardsSection ✨ NUEVO
+├── ActionCardsSection, ServiceListSectionOrganism ✨ NUEVO
     ↓
 TEMPLATES (2)         → Layout sin datos
 ├── LoginTemplate
@@ -329,107 +330,93 @@ ActionCards son tarjetas de acciones rápidas que aparecen en el centro de la pa
   - Título opcional
   - Callbacks para clicks
 
-#### **Template** (1) ✨ ACTUALIZADO
-- **HomeTemplate.kt**
-  - Parámetro: `actionsSection: @Composable (() -> Unit)? = null`
-  - Orden: Header → Sync → Actions → Metrics
-  - Espaciado configurable
+---
 
-#### **Page** (1) ✨ ACTUALIZADO
-- **HomePage.kt**
-  - Crea lista de ActionCardModel
-  - Configura callbacks
-  - Pasa actionsSection a HomeTemplate
+## 📋 Service List - Listado de Servicios ✨ NUEVO
 
-### Uso en HomePage
+### Descripción
 
-```kotlin
-// Definir acciones
-val actionCards = listOf(
-    ActionCardModel(
-        id = "camera",
-        title = "Cámara",
-        icon = Icons.Filled.Camera,
-        onClick = onCameraClick
-    ),
-    ActionCardModel(
-        id = "reports",
-        title = "Reportes",
-        icon = Icons.Filled.BarChart,
-        onClick = onReportsClick
-    ),
-    ActionCardModel(
-        id = "location",
-        title = "Ubicación",
-        icon = Icons.Filled.LocationOn,
-        onClick = onLocationClick
-    )
-)
+Service List es una sección completa para mostrar servicios asignados al mecánico. Incluye tarjetas de servicio con información detallada, acciones rápidas y manejo de estados.
 
-// Pasar a HomeTemplate
-HomeTemplate(
-    headerSection = { ... },
-    syncSection = { ... },
-    actionsSection = {
-        ActionCardsSection(
-            actions = actionCards,
-            title = "Acciones Rápidas",
-            onActionClick = { actionId ->
-                // Navegar según actionId
-            },
-            columns = 3
-        )
-    },
-    metricsSection = { ... }
-)
+### Estructura
+
+```
+┌────────────────────────────────────────────┐
+│ SERVICIOS ASIGNADOS                        │
+├────────────────────────────────────────────┤
+│ ┌──────────────────────────────────────┐  │
+│ │ 🔨 Mantenimiento         Programado  │  │
+│ │    Preventivo                        │  │
+│ │ Cliente: Global Logistics            │  │
+│ │ 13:00 - 14:00 (1 hr)                │  │
+│ │ Calle Falsa 123 • Media              │  │
+│ │ Nota: No olvidar equipo de seguridad │  │
+│ │ [Completar] [Reprogramar]            │  │
+│ └──────────────────────────────────────┘  │
+│ ... (más servicios) ...                    │
+└────────────────────────────────────────────┘
 ```
 
-### Problemas y Soluciones
+### Componentes (Atomic Design) ✨ NUEVO
 
-#### ⚠️ LazyVerticalGrid Crashing Sin Altura
+#### **Atoms** (3) ✨ NUEVO MEJORADOS
+- **ServiceIcon.kt** - Icono circular con fondo primario
+- **ServiceTitle.kt** - Título que soporta múltiples líneas
+- **ServiceBadge.kt** - Badge flexible sin corte de texto
+- **ServiceSubtitle.kt** - Subtítulo del cliente
+- **LocationAtom.kt** - Ubicación con icono
+- **TimeSlotAtom.kt** - Rango horario
+- **PriorityBadgeAtom.kt** - Indicador de prioridad
+- **NoteBoxAtom.kt** - Caja de notas
+- **ActionButtonAtom.kt** - Botones de acción
 
-**Problema:** LazyVerticalGrid sin `.height()` intenta ocupar altura infinita
-**Solución:** Agregar `.height(150.dp)` explícitamente
+#### **Molecules** (3) ✨ NUEVO
+- **ServiceHeaderMolecule.kt** - Encabezado con icono + título + badge (✨ MEJORADO con texto multilinea)
+- **ServiceTimeLineMolecule.kt** - Información horaria
+- **ServiceDetailsMolecule.kt** - Ubicación + prioridad
+- **ServiceInfoRowMolecule.kt** - Tiempo + ubicación
+- **ServiceNoteMolecule.kt** - Notas del servicio
+- **ActionButtonsGroupMolecule.kt** - Grupo de botones
+
+#### **Organism** (1) ✨ NUEVO
+- **ServiceListSectionOrganism.kt** - Sección completa
+  - Column (NO LazyColumn) para evitar anidamiento problemático
+  - Manejo de lista vacía
+  - Tarjetas con formato responsive
+  - Callbacks para completar y reprogramar
+
+#### **Data Model** ✨ NUEVO
+- **ServiceCardData.kt** - Modelo con todos los datos necesarios
+- **ActionCardModel.kt** - Modelo para tarjetas de acción
+
+### Características ✨ NUEVO
+
+- ✅ **Texto Adaptable** - Títulos largos se parten en 2 líneas
+- ✅ **Badges Sin Corte** - "Reprogramado" no se corta a "Progra..."
+- ✅ **Column Normal** - NO usa LazyColumn anidado (evita conflictos)
+- ✅ **Responsive** - Se adapta a diferentes tamaños de pantalla
+- ✅ **Callbacks** - onServiceClick, onCompleteClick, onRescheduleClick
+- ✅ **Estado Vacío** - Mensaje cuando no hay servicios
+- ✅ **Atomic Design** - Componentes reutilizables
+- ✅ **Integrado en HomeTemplate** - Sección opcional configurable
+
+### Mejoras de Texto Multilinea ✨ MEJORADO
 
 ```kotlin
-// ❌ INCORRECTO - Crashea
-LazyVerticalGrid(
-    columns = GridCells.Fixed(columns),
-    modifier = Modifier.fillMaxWidth()  // Sin altura
+// ✅ Cambios realizados:
+Text(
+    text = title,
+    maxLines = 2,                    // Permite 2 líneas
+    overflow = TextOverflow.Ellipsis // ... si muy largo
 )
 
-// ✅ CORRECTO - Funciona
-LazyVerticalGrid(
-    columns = GridCells.Fixed(columns),
+// ✅ Row/Column adaptables
+Row(
     modifier = Modifier
         .fillMaxWidth()
-        .height(150.dp)  // Altura definida
+        .wrapContentHeight()  // Crece en altura
 )
 ```
-
-#### ⚠️ MaterialTheme vs LosabiosTheme
-
-**Problema:** `LosabiosTheme.colorScheme` no existe (es una función, no una clase)
-**Solución:** Usar `MaterialTheme.colorScheme` dentro de @Composable
-
-```kotlin
-// ❌ INCORRECTO
-color = LosabiosTheme.colorScheme.primary  // Error
-
-// ✅ CORRECTO
-color = MaterialTheme.colorScheme.primary  // Funciona
-```
-
-### Características
-
-- ✅ Grid responsivo (2, 3, 4+ columnas configurable)
-- ✅ Altura fija (150.dp por defecto, configurable)
-- ✅ Espaciado compacto (5.dp entre tarjetas)
-- ✅ Título opcional
-- ✅ Callbacks para manejo de clicks
-- ✅ Integrado perfectamente en HomeTemplate
-- ✅ Uso de MaterialTheme para consistencia
-- ✅ Atomic Design pattern
 
 ---
 
@@ -440,13 +427,35 @@ app/src/main/java/com/lossabinos/serviceapp/
 │
 ├── presentation/ui/components/
 │   ├── atoms/
-│   │   ├── ActionIcon.kt           ✨ NUEVO
-│   │   ├── ActionTitle.kt          ✨ NUEVO
-│   │   └── ActionCardContainer.kt  ✨ NUEVO
+│   │   ├── ActionIcon.kt
+│   │   ├── ActionTitle.kt
+│   │   ├── ActionCardContainer.kt
+│   │   ├── ServiceIcon.kt           ✨ MEJORADO
+│   │   ├── ServiceTitle.kt          ✨ MEJORADO
+│   │   ├── ServiceBadge.kt          ✨ MEJORADO
+│   │   ├── ServiceSubtitle.kt       ✨ NUEVO
+│   │   ├── LocationAtom.kt          ✨ NUEVO
+│   │   ├── TimeSlotAtom.kt          ✨ NUEVO
+│   │   ├── PriorityBadgeAtom.kt     ✨ NUEVO
+│   │   ├── NoteBoxAtom.kt           ✨ NUEVO
+│   │   └── ActionButtonAtom.kt      ✨ NUEVO
+│   │
 │   ├── molecules/
-│   │   └── ActionCard.kt           ✨ NUEVO
+│   │   ├── ActionCard.kt
+│   │   ├── ServiceHeaderMolecule.kt ✨ MEJORADO (multilinea)
+│   │   ├── ServiceTimeLineMolecule.kt
+│   │   ├── ServiceDetailsMolecule.kt
+│   │   ├── ServiceInfoRowMolecule.kt
+│   │   ├── ServiceNoteMolecule.kt
+│   │   └── ActionButtonsGroupMolecule.kt
+│   │
 │   └── organisms/
-│       └── ActionCardsSection.kt   ✨ NUEVO
+│       ├── ActionCardsSection.kt
+│       ├── ServiceListSectionOrganism.kt ✨ NUEVO
+│       ├── HomeHeaderSection.kt
+│       ├── MetricsSection.kt
+│       ├── SyncSection.kt
+│       └── ConfirmationDialog.kt
 │
 ├── presentation/ui/templates/
 │   └── HomeTemplate.kt             ✨ ACTUALIZADO
@@ -490,34 +499,59 @@ app/src/main/java/com/lossabinos/serviceapp/
 
 ## 📊 Estado del Proyecto
 
-### ✅ v1.3.0 (Completado) - ActionCards Integration ✨ NUEVO
+### ✅ v1.4.0 (Completado) - Service List Integration ✨ NUEVO
 
-#### ActionCards Module
-- [x] ActionIcon.kt - Icono circular con fondo primario
-- [x] ActionTitle.kt - Título centrado
-- [x] ActionCardContainer.kt - Card base
-- [x] ActionCard.kt - Combinación Icon + Title
-- [x] ActionCardsSection.kt - Grid responsivo con LazyVerticalGrid
-- [x] HomeTemplate.kt actualizado con actionsSection
-- [x] HomePage.kt actualizado para pasar ActionCards
-- [x] **SOLUCIÓN: LazyVerticalGrid con .height(150.dp)**
-- [x] **SOLUCIÓN: Usar MaterialTheme en lugar de LosabiosTheme**
-- [x] Espaciado compacto (5.dp entre tarjetas)
-- [x] Grid configurable (2, 3, 4 columnas)
-- [x] Título opcional en ActionCardsSection
+#### Service List Components
+- [x] ServiceIcon.kt - Icono circular mejorado
+- [x] ServiceTitle.kt - Título con soporte multilinea
+- [x] ServiceBadge.kt - Badge flexible sin corte de texto
+- [x] ServiceSubtitle.kt - Subtítulo del cliente
+- [x] LocationAtom.kt - Ubicación con icono
+- [x] TimeSlotAtom.kt - Rango horario
+- [x] PriorityBadgeAtom.kt - Indicador de prioridad
+- [x] NoteBoxAtom.kt - Caja de notas
+- [x] ActionButtonAtom.kt - Botones de acción
 
-### 🚧 v1.4.0 (Próximo)
+#### Service List Molecules
+- [x] ServiceHeaderMolecule.kt - ✨ MEJORADO con wrapContentHeight() y maxLines
+- [x] ServiceTimeLineMolecule.kt - Timeline de servicio
+- [x] ServiceDetailsMolecule.kt - Detalles completos
+- [x] ServiceInfoRowMolecule.kt - Información resumida
+- [x] ServiceNoteMolecule.kt - Notas del servicio
+- [x] ActionButtonsGroupMolecule.kt - Grupo de botones
 
-#### Conexión ActionCards
-- [ ] Conectar callbacks para navegar
-- [ ] Crear CameraScreen
-- [ ] Crear ReportsScreen
-- [ ] Crear LocationScreen
+#### Service List Organism
+- [x] ServiceListSectionOrganism.kt - Sección completa con Column (NO LazyColumn)
+- [x] **SOLUCIÓN: Column en lugar de LazyColumn anidado**
+- [x] **SOLUCIÓN: wrapContentHeight() para adaptar altura**
+- [x] **SOLUCIÓN: maxLines para texto multilinea**
+- [x] Estado vacío manejado
+- [x] Callbacks completos
+
+#### Integration
+- [x] HomeTemplate.kt actualizado con serviceListSection
+- [x] HomePage.kt actualizado para pasar servicios
+- [x] ServiceCardData.kt - Modelo de datos
+- [x] ActionCardModel.kt - Modelo de tarjetas
+
+#### Mejoras Aplicadas
+- [x] ✨ Texto en múltiples líneas (maxLines = 2)
+- [x] ✨ Badge sin corte de texto
+- [x] ✨ Row/Column adaptables (wrapContentHeight())
+- [x] ✨ Padding para mejor espaciado
+- [x] ✨ overflow = TextOverflow.Ellipsis
+
+### 🚧 v1.5.0 (Próximo)
 
 #### Room Database
 - [ ] Crear entidades de datos
 - [ ] Implementar DAOs
 - [ ] Configurar AppDatabase
+
+#### Integración con Backend
+- [ ] Conectar servicios reales desde API
+- [ ] Sincronización automática
+- [ ] Offline-first caching
 
 ---
 
@@ -532,12 +566,21 @@ Password: Lossabinos123456789!
 
 ### Escenarios a Probar
 
-#### ✅ ActionCards Interacción ✨ NUEVO
+#### ✅ Service List Visualización ✨ NUEVO
 ```
-HomePage aparece → ActionCards visible (entre Sync y Metrics)
-                 → Grid de 3 columnas con 3 tarjetas
-                 → Presionar cualquier tarjeta
-                 → Callback ejecuta correctamente
+HomePage aparece
+    ↓
+Service List visible (entre Metrics y final)
+    ↓
+Título "Servicios Asignados" visible
+    ↓
+3+ tarjetas de servicio mostradas
+    ↓
+Títulos largos (2 líneas) se adaptan
+    ↓
+Badges no cortan "Reprogramado"
+    ↓
+Botones [Completar] [Reprogramar] funcionales
 ```
 
 ---
@@ -559,13 +602,13 @@ HomePage aparece → ActionCards visible (entre Sync y Metrics)
 
 ## 📊 Métricas del Proyecto
 
-- **Componentes Atomic Design**: 22 (12 Atoms, 6 Molecules, 5 Organisms, 2 Templates)
-- **Líneas de código**: ~4500+ (aproximadamente)
-- **Versión**: 1.3.0
-- **Status**: ActionCards completamente funcionales ✨
+- **Componentes Atomic Design**: 28+ (15 Atoms, 7 Molecules, 6 Organisms, 2 Templates)
+- **Líneas de código**: ~6000+ (aproximadamente)
+- **Versión**: 1.4.0
+- **Status**: ServiceList completamente funcional con UI adaptable ✨
 
 ---
 
 **Última actualización:** Noviembre 2025  
-**Versión:** 1.3.0  
-**Estado:** ActionCards completamente integrados en HomeTemplate ✨
+**Versión:** 1.4.0  
+**Estado:** Service List completamente integrado en HomeTemplate ✨

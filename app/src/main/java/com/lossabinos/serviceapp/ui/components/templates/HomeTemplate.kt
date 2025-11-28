@@ -55,6 +55,7 @@ fun HomeTemplate(
     syncSection: @Composable () -> Unit,
     metricsSection: @Composable () -> Unit,
     actionsSection: @Composable (() -> Unit)? = null,  // ✅ NUEVO
+    serviceListSection: @Composable (() -> Unit)? = null,  // ✨ NUEVO
     modifier: Modifier = Modifier,
     topPadding: Dp = 20.dp,
     sectionSpacing: Dp = 20.dp,
@@ -114,6 +115,18 @@ fun HomeTemplate(
                 }
 
                 // ✅ Espaciador entre secciones
+                item {
+                    Spacer(modifier = Modifier.height(sectionSpacing))
+                }
+            }
+
+            // 5. Lista de servicios ✨ NUEVO - OPCIONAL
+            if (serviceListSection != null) {
+                item {
+                    serviceListSection()
+                }
+
+                // ✅ Espaciador al final
                 item {
                     Spacer(modifier = Modifier.height(sectionSpacing))
                 }
