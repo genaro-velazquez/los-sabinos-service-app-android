@@ -29,5 +29,7 @@ interface UserPreferencesRepository {
     fun setRefreshToken(refreshToken:String)
     fun getIslogged(): Boolean
     fun setIsLogged(islogged: Boolean)
+    fun getAccessToken(): String
+    fun setAccessToken(token: String)
     fun clear()
 }

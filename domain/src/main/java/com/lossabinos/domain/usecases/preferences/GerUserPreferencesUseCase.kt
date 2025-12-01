@@ -16,5 +16,6 @@ class GetUserPreferencesUseCase(private val userPreferencesRepository: UserPrefe
     fun getUserRolName()    = userPreferencesRepository.getUserRoleName()
     fun getRefreshToken()   = userPreferencesRepository.getRefreshToken()
     fun getIsLogged()       = userPreferencesRepository.getIslogged()
+    fun getAccessToken()    = userPreferencesRepository.getAccessToken()
     fun clear()             = userPreferencesRepository.clear()
 }

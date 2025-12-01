@@ -1,17 +1,27 @@
 // presentation/screens/home/HomeScreen.kt
 package com.lossabinos.serviceapp.screens.home
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Plumbing
-import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCardModel
 import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCardsSection
@@ -25,6 +35,10 @@ import com.lossabinos.serviceapp.ui.templates.HomeTemplate
 import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 import com.lossabinos.serviceapp.viewmodel.HomeEvent
 import com.lossabinos.serviceapp.viewmodel.HomeViewModel
+import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
+import com.lossabinos.serviceapp.viewmodel.Result
+import kotlin.collections.emptyList
+import kotlin.collections.mapIndexed
 
 /**
  * HomePage - Página principal de la aplicación ✨ ACTUALIZADA
@@ -61,10 +75,19 @@ fun HomePage(
     onServiceComplete: (String) -> Unit = {},      // ✨ NUEVO
     onServiceReschedule: (String) -> Unit = {},    // ✨ NUEVO
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    mechanicsViewModel: MechanicsViewModel = hiltViewModel()
 ) {
     // ✅ Observar estado (nombre, ubicación, etc.)
-    val state = viewModel.state.collectAsState().value
+    val state = homeViewModel.state.collectAsState().value
+
+    // ✨ NUEVO: Observar estado de servicios
+    val servicesState = mechanicsViewModel.assignedServices.collectAsState().value
+
+    // ✨ NUEVO: Cargar servicios al abrir la pantalla
+    LaunchedEffect(Unit) {
+        mechanicsViewModel.loadAssignedServices()
+    }
 
     // ✅ NUEVO: Definir acciones para las tarjetas de ActionCards
     val actionCards = listOf(
@@ -87,7 +110,7 @@ fun HomePage(
             onClick = onLocationClick
         )
     )
-
+/*
     // ✨ NUEVO: Datos de ejemplo para servicios
     // En producción, estos datos vendrían del ViewModel
     val services = listOf(
@@ -137,6 +160,46 @@ fun HomePage(
             onRescheduleClick = { onServiceReschedule("service_3") }
         )
     )
+*/
+
+
+    // ✨ NUEVO: Convertir datos reales a ServiceCardData
+    val services = when (servicesState) {
+        is Result.Loading -> {
+            // Mostrar lista vacía mientras carga
+            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
+        }
+        is Result.Success -> {
+            servicesState.data.workOrder
+                .flatMap { workOrder ->
+                    workOrder.assignedServices.map { service ->
+                        ServiceCardData(
+                            id = service.id,
+                            title = service.serviceType.name,
+                            clientName = workOrder.vehicule.licensePlate,
+                            icon = Icons.Filled.Build,
+                            status = service.status.replaceFirstChar { it.uppercase() },
+                            startTime = service.scheduledStart ?: "N/A",
+                            endTime = service.scheduledEnd ?: "N/A",
+                            duration = "${service.serviceType.estimatedDurationMinutes} min",
+                            address = workOrder.zone.name,
+                            priority = service.priority.replaceFirstChar { it.uppercase() } ?: "Media",
+                            note = service.notes,
+                            onCompleteClick = { onServiceComplete(service.id) },
+                            onRescheduleClick = { onServiceReschedule(service.id) }
+                        )
+                    }
+                }
+        }
+        is Result.Error -> {
+            // En caso de error, mostrar lista vacía (manejaremos el error abajo)
+            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
+        }
+        else -> {
+            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
+        }
+    }
+
 
     // Mostrar modal de confirmación si es necesario
     if (state.showLogoutDialog) {
@@ -147,16 +210,16 @@ fun HomePage(
             secondaryButtonText = "Cancelar",
             onPrimaryClick = {
                 // Confirmar logout
-                viewModel.onEvent(HomeEvent.ConfirmLogout)
+                homeViewModel.onEvent(HomeEvent.ConfirmLogout)
                 onLogoutConfirmed()
             },
             onSecondaryClick = {
                 // Cancelar logout
-                viewModel.onEvent(HomeEvent.CancelLogout)
+                homeViewModel.onEvent(HomeEvent.CancelLogout)
             },
             onDismiss = {
                 // Cerrar dialog
-                viewModel.onEvent(HomeEvent.CancelLogout)
+                homeViewModel.onEvent(HomeEvent.CancelLogout)
             }
         )
     }
@@ -170,7 +233,7 @@ fun HomePage(
                 isOnline = true,
                 onSettingsClick = onSettingsClick,
                 onLogoutClick = {
-                    viewModel.onEvent(HomeEvent.LogoutClicked)
+                    homeViewModel.onEvent(HomeEvent.LogoutClicked)
                 }
             )
         },
@@ -207,21 +270,99 @@ fun HomePage(
         },
         // 5. Lista de servicios ✨ NUEVO
         serviceListSection = {
-            ServiceListSectionOrganism(
-                title = "Servicios Asignados",
-                services = services,
-                onServiceClick = { serviceId ->
-                    println("Service clicked: $serviceId")
-                },
-                onCompleteClick = { serviceId ->
-                    println("Service completed: $serviceId")
-                    onServiceComplete(serviceId)
-                },
-                onRescheduleClick = { serviceId ->
-                    println("Service rescheduled: $serviceId")
-                    onServiceReschedule(serviceId)
+            when (servicesState) {
+                is Result.Loading -> {
+                    // Mostrar loading
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            )
+                is Result.Success -> {
+                    if (services.isEmpty()) {
+                        // Mostrar mensaje si no hay servicios
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No hay servicios asignados")
+                        }
+                    } else {
+                        // Mostrar servicios
+                        ServiceListSectionOrganism(
+                            title = "Servicios Asignados",
+                            services = services,
+                            onServiceClick = { serviceId ->
+                                println("Service clicked: $serviceId")
+                            },
+                            onCompleteClick = { serviceId ->
+                                println("Service completed: $serviceId")
+                                onServiceComplete(serviceId)
+                            },
+                            onRescheduleClick = { serviceId ->
+                                println("Service rescheduled: $serviceId")
+                                onServiceReschedule(serviceId)
+                            }
+                        )
+                    }
+                }
+                is Result.Error -> {
+                    // Mostrar error
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Error al cargar servicios",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = servicesState.exception.message ?: "Error desconocido",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                            )
+                            Button(
+                                onClick = {
+                                    mechanicsViewModel.loadAssignedServices()
+                                },
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text("Reintentar")
+                            }
+                        }
+                    }
+                }
+            }
+
+            /*
+                        ServiceListSectionOrganism(
+                            title = "Servicios Asignados",
+                            services = services,
+                            onServiceClick = { serviceId ->
+                                println("Service clicked: $serviceId")
+                            },
+                            onCompleteClick = { serviceId ->
+                                println("Service completed: $serviceId")
+                                onServiceComplete(serviceId)
+                            },
+                            onRescheduleClick = { serviceId ->
+                                println("Service rescheduled: $serviceId")
+                                onServiceReschedule(serviceId)
+                            }
+                        )
+
+             */
         },
         modifier = modifier
     )

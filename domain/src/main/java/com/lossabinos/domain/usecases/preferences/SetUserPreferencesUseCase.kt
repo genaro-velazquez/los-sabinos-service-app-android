@@ -15,4 +15,5 @@ class SetUserPreferencesUseCase(private val userPreferencesRepository: UserPrefe
     fun setUserRolId(rolId:String)              = userPreferencesRepository.setUserRolId(rolId = rolId)
     fun setUserRolName(rolName:String)          = userPreferencesRepository.setUserRoleName(rolName = rolName)
     fun setRefreshToken(refreshToken:String)    = userPreferencesRepository.setRefreshToken(refreshToken = refreshToken)
+    fun setAccessToken(token: String)           = userPreferencesRepository.setAccessToken(token = token)
 }

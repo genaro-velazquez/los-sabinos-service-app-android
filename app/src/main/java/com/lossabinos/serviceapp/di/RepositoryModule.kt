@@ -5,7 +5,10 @@ import com.lossabinos.data.dto.repositories.retrofit.authentication.Authenticati
 import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
+import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepository
+import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsServices
 import com.lossabinos.domain.repositories.AuthenticationRepository
+import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
 import dagger.Provides
@@ -48,4 +51,18 @@ object RepositoryModule {
             headersMaker = headersMaker
         )
     }
+
+    // ============== MECHANICS REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideMechanicsRepository(
+        mechanicsServices: MechanicsServices,
+        headersMaker: HeadersMaker
+    ): MechanicsRepository{
+        return MechanicsRetrofitRepository(
+            assignedServices = mechanicsServices,
+            headersMaker = headersMaker
+        )
+    }
+
 }

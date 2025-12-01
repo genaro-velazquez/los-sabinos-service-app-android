@@ -156,7 +156,7 @@ fun NavGraph(
                     // TODO: Implementar sincronización
                     println("Sync now clicked")
                 },
-                viewModel = homeViewModel
+                homeViewModel = homeViewModel
             )
         }
     }
