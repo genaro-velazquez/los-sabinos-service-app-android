@@ -4,6 +4,7 @@ import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
+import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import dagger.Module
@@ -49,6 +50,14 @@ object UseCaseModule {
         mechanicsRepository: MechanicsRepository
     ) : GetMechanicsServicesUseCase{
         return GetMechanicsServicesUseCase(mechanicsRepository = mechanicsRepository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetDetailedService(
+        mechanicsRepository: MechanicsRepository
+    ) : GetDetailedServiceUseCase{
+        return GetDetailedServiceUseCase(mechanicsRepository = mechanicsRepository)
     }
 
 }

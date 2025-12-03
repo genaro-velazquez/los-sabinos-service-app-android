@@ -8,7 +8,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.lossabinos.serviceapp.screens.home.HomePage
+import com.lossabinos.serviceapp.screens.home.HomeScreen
 import com.lossabinos.serviceapp.screens.login.LoginScreen
 import com.lossabinos.serviceapp.viewmodel.HomeViewModel
 import com.lossabinos.serviceapp.viewmodel.LoginViewModel
@@ -139,7 +139,7 @@ fun NavGraph(
                 }
             }
 
-            HomePage(
+            HomeScreen(
                 onLogoutConfirmed = {
                     // La navegación se maneja mediante NavigationEvent
                     println("Logout confirmed - navegación manejada por NavGraph")

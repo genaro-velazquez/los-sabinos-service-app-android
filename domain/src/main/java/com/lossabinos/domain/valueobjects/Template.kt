@@ -2,8 +2,8 @@ package com.lossabinos.domain.valueobjects
 
 import com.lossabinos.domain.entities.DomainEntity
 
-class VehiculeVersion(
-    val make:String,
-    val model:String,
-    val year: Int
+class Template(
+    val name: String,
+    val sections: List<Section>,
+    val serviceFields:List<ServiceField>
 ): DomainEntity()

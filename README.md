@@ -13,12 +13,15 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - [Tecnologías](#tecnologías)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Flujo de Autenticación](#flujo-de-autenticación)
-- [ActionCards - Acciones Rápidas](#actioncards---acciones-rápidas-✨-nuevo)
-- [Service List - Listado de Servicios](#service-list---listado-de-servicios-✨-mejorado)
-- [Backend Integration - Carga en Tiempo Real](#backend-integration---carga-en-tiempo-real-✨-nuevo)
+- [ActionCards - Acciones Rápidas](#actioncards---acciones-rápidas)
+- [Service List - Listado de Servicios](#service-list---listado-de-servicios)
+- [Service Detail - Detalles del Servicio](#service-detail---detalles-del-servicio-✨-nuevo)
+- [Backend Integration - Carga en Tiempo Real](#backend-integration---carga-en-tiempo-real)
 - [Estado del Proyecto](#estado-del-proyecto)
 - [Debugging & Logging](#debugging--logging)
 - [Cómo Ejecutar](#cómo-ejecutar)
+- [Conventional Commits](#-conventional-commits---tipos-de-commits-✨-nuevo)
+- [Git Workflow](#git-workflow---subir-cambios-a-github-✨-nuevo)
 - [Testing](#testing)
 - [Flujo Principal](#flujo-principal)
 
@@ -36,18 +39,20 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Logout seguro** con limpieza completa de datos
 - ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
 
-### API & Backend Integration ✨ NUEVO
+### API & Backend Integration
 - ✅ **Carga de servicios en tiempo real** desde API
 - ✅ **Bearer Token Authentication** - Headers con token automático
 - ✅ **WorkOrders & AssignedServices** - Estructura compleja flattened
-- ✅ **Manejo de estados** (Loading, Success, Error) con Flow reactivo
+- ✅ **Manejo de estados** (Loading, Success, Error, Idle) con Flow reactivo
 - ✅ **Reintentos automáticos** en caso de error
 - ✅ **Logging CURL** completo para debugging
 - ✅ **AppVersion & AndroidVersion** en headers
+- ✅ **Detalle de Servicio** - Carga datos específicos con modal ✨ NUEVO
 
 ### UI Components
-- ✅ **ActionCards** - Tarjetas de acciones rápidas (Cámara, Reportes, Ubicación) ✨ NUEVO
-- ✅ **Service List** - Listado de servicios asignados con UI adaptable ✨ MEJORADO
+- ✅ **ActionCards** - Tarjetas de acciones rápidas (Cámara, Reportes, Ubicación)
+- ✅ **Service List** - Listado de servicios asignados con UI adaptable
+- ✅ **Service Detail Modal** - Modal elegante con detalles del servicio ✨ NUEVO
 - ✅ **Indicadores y métricas** en pantalla Home
 - ✅ **Atomic Design** para componentes UI reutilizables
 - ✅ **UI moderna** con Jetpack Compose
@@ -64,170 +69,7 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Clean Architecture + MVVM + Repository Pattern**
 - ✅ **Manejo robusto de errores y reintentos**
 - ✅ **Coroutines + Flow** para operaciones asincrónicas
-
----
-
-## 🔧 Requisitos
-
-### Mínimos del Sistema
-- **Android Studio** 2023.1 o superior
-- **JDK 17** o superior
-- **Kotlin** 2.2.21 o superior
-- **Android SDK** API 26+ (Android 8.0 Oreo)
-- **Gradle** 8.0+
-
-### Recomendado
-- Dispositivo/Emulador con Android 10.0 (API 29) o superior
-- 4GB RAM disponible
-- Git instalado
-- Backend Azure accesible
-
-### Credenciales Backend
-```
-URL Base: https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net
-Endpoint: GET /api/v1/mechanics/me/assigned-services
-Autenticación: Bearer Token (obtenido en login)
-```
-
----
-
-## 📦 Instalación
-
-### 1. Clonar el Repositorio
-
-```bash
-git clone https://github.com/genaro-velazquez/los-sabinos-service-app-android.git
-cd los-sabinos-service-app-android
-```
-
-### 2. Abrir en Android Studio
-
-```bash
-# Opción A: Desde terminal
-android-studio . &
-
-# Opción B: Manualmente
-# 1. Abre Android Studio
-# 2. Selecciona "Open an Existing Project"
-# 3. Navega a la carpeta del proyecto
-# 4. Espera a que Gradle sincronice automáticamente
-```
-
-### 3. Sincronizar Gradle
-
-```bash
-./gradlew clean
-./gradlew build
-```
-
-### 4. Ejecutar en Emulador/Dispositivo
-
-```bash
-# Opción A: Desde Android Studio
-# Presiona Shift + F10 o Run → Run 'app'
-
-# Opción B: Desde terminal
-./gradlew installDebug
-```
-
----
-
-## 🏗️ Arquitectura
-
-### Clean Architecture + MVVM + Repository Pattern + Hilt DI
-
-```
-┌────────────────────────────────────────┐
-│   PRESENTATION (UI/ViewModel)          │  ← Usuario interactúa
-│   (Screens, Components, ViewModels)    │
-└────────────────────────────────────────┘
-                   ↕
-┌────────────────────────────────────────┐
-│   DOMAIN (Lógica de Negocio)           │  ← UseCases, Interfaces
-│   (UseCases, Modelos, Repositorios)    │
-└────────────────────────────────────────┘
-                   ↕
-┌────────────────────────────────────────┐
-│   DATA (Fuentes de Datos)              │  ← API, BD Local
-│   (Repositories, DTOs, Entities)       │
-└────────────────────────────────────────┘
-```
-
-#### **Flujo de Datos:**
-
-```
-User Interaction (Tap, Type)
-        ↓
-   ViewModel (observa State con Flow)
-        ↓
-   UseCase (lógica de negocio)
-        ↓
-   Repository (abstracción de datos)
-        ↓
-   Remote/Local Data Sources (API/DB)
-        ↓
-   Retorna datos → ViewModel → UI se actualiza
-```
-
-#### **Inyección de Dependencias (Hilt):**
-
-```
-@HiltAndroidApp
-LosSabinosApplication
-        ↓
-    Módulos Hilt (6):
-    ├── AppModule (Context)
-    ├── NetworkModule (Retrofit, OkHttp, API Services)
-    ├── SharedPreferencesModule (Storage)
-    ├── RepositoryModule (Repositories + HeadersMaker)
-    ├── UseCaseModule (Use Cases)
-    └── AppInfoModule (Version Info) ✨ NUEVO
-        ↓
-   @HiltViewModel / @AndroidEntryPoint
-        ↓
-   Inyección automática de dependencias
-```
-
----
-
-## 🎨 Atomic Design
-
-La aplicación usa **Atomic Design** para componentes UI reutilizables:
-
-```
-ATOMS (15+)             → Elementos básicos
-├── Avatar, MetricIcon, StatusBadge
-├── ActionButton, PrimaryButton, SecondaryButton
-├── StatusText, ModalTitle, ModalContent
-├── ActionIcon, ActionTitle, ActionCardContainer ✨
-├── ServiceIcon, ServiceTitle, ServiceBadge ✨ MEJORADOS
-├── ServiceSubtitle, LocationAtom, TimeSlotAtom ✨ NUEVO
-├── PriorityBadgeAtom, NoteBoxAtom, ActionButtonAtom ✨ NUEVO
-    ↓
-MOLECULES (7+)        → Componentes simples
-├── UserHeader, MetricCard, StatusSection
-├── UnsyncSection, ModalButtonGroup
-├── ActionCard ✨
-├── ServiceHeaderMolecule ✨ MEJORADO (multilinea)
-├── ServiceTimeLineMolecule, ServiceDetailsMolecule ✨ NUEVO
-├── ServiceInfoRowMolecule, ServiceNoteMolecule ✨ NUEVO
-├── ActionButtonsGroupMolecule ✨ NUEVO
-    ↓
-ORGANISMS (6+)        → Componentes complejos
-├── HomeHeaderSection, MetricsSection
-├── SyncSection, ConfirmationDialog
-├── ActionCardsSection ✨
-├── ServiceListSectionOrganism ✨ NUEVO
-    ↓
-TEMPLATES (2+)        → Layout sin datos
-├── LoginTemplate
-└── HomeTemplate ✨ ACTUALIZADO
-    ↓
-PAGES (3+)            → Pantallas completas
-├── SplashScreen
-├── LoginScreen
-└── HomePage ✨ ACTUALIZADO
-```
+- ✅ **Callbacks en Composables** - No en Data Classes (Clean Architecture) ✨ NUEVO
 
 ---
 
@@ -311,205 +153,173 @@ ConfirmationDialog se muestra (modal elegante)
 LoginScreen o HomePage
 ```
 
-### 4️⃣ Respeto de Sesiones Guardadas
-
-```
-Usuario logado ayer
-Cierra la app (en HomePage)
-    ↓
-Token guardado en SharedPreferences
-    ↓
-Al día siguiente...
-App inicia
-    ↓
-SplashScreen
-    ↓
-GetUserPreferencesUseCase.getIsLogged() 
-    ↓
-Token existe y es válido
-    ↓
-Navega a HomePage (automático)
-    ↓
-Usuario ve HomePage SIN hacer login de nuevo
-```
-
 ---
 
-## 🎯 ActionCards - Acciones Rápidas ✨ NUEVO
+## 📋 Service List - Listado de Servicios
 
 ### Descripción
 
-ActionCards son tarjetas de acciones rápidas que aparecen en el centro de la pantalla Home (entre Sync y Metrics). Permiten al usuario acceder rápidamente a funcionalidades principales.
+Service List es una sección que muestra servicios asignados al mecánico cargados **en tiempo real desde la API**. Cada tarjeta permite ver información detallada e interactuar con botones de acción.
 
-### Estructura
-
-```
-┌────────────────────────────────────┐
-│ ACCIONES RÁPIDAS                   │
-├────────────────────────────────────┤
-│  [🎥 Cámara] [📊 Reportes] [📍 Ubicación] │
-└────────────────────────────────────┘
-```
-
-### Componentes (Atomic Design)
-
-#### **Atoms** (3) ✨ NUEVO
-- **ActionIcon.kt** - Icono circular con fondo primario (56dp)
-- **ActionTitle.kt** - Texto centrado del título
-- **ActionCardContainer.kt** - Card base con esquinas redondeadas
-
-#### **Molecule** (1) ✨ NUEVO
-- **ActionCard.kt** - Combina Icon + Title, clickeable
-
-#### **Organism** (1) ✨ NUEVO
-- **ActionCardsSection.kt** - Grid responsivo (2-4 columnas)
-  - Usa LazyVerticalGrid con altura definida (150.dp)
-  - Espaciado compacto (5.dp)
-  - Título opcional
-  - Callbacks para clicks en acciones
-
----
-
-## 📋 Service List - Listado de Servicios ✨ MEJORADO
-
-### Descripción
-
-Service List es una sección completa para mostrar servicios asignados al mecánico. Ahora carga **datos reales desde la API** con:
-- Tarjetas de servicio con información detallada
-- Estados reactivos (Loading, Success, Error)
-- Acciones rápidas (Completar, Reprogramar)
-- Manejo de null-safety
-
-### Estructura
-
-```
-┌────────────────────────────────────────────┐
-│ SERVICIOS ASIGNADOS (desde API)            │
-├────────────────────────────────────────────┤
-│ [Loading] Cargando servicios...            │
-│                                            │
-│ O después de cargar:                       │
-│                                            │
-│ ┌──────────────────────────────────────┐  │
-│ │ 🔧 Transmisión Freightliner          │  │
-│ │    Preventive                        │  │
-│ │ Vehículo: ABC-BBY (Toyota Camry)     │  │
-│ │ 14:00 - 14:30 (30 min)               │  │
-│ │ Monterrey • Normal                   │  │
-│ │ Nota: Revisar sistema de transmisión │  │
-│ │ [Completar] [Reprogramar]            │  │
-│ └──────────────────────────────────────┘  │
-│ ... (más servicios) ...                    │
-│                                            │
-│ O en error:                                │
-│ ⚠️ Error al cargar servicios               │
-│    [Reintentar]                            │
-└────────────────────────────────────────────┘
-```
-
-### Componentes (Atomic Design) ✨ MEJORADO
-
-#### **Atoms** (9) ✨ MEJORADOS
-- **ServiceIcon.kt** - Icono circular con fondo primario
-- **ServiceTitle.kt** - Título con soporte multilinea
-- **ServiceBadge.kt** - Badge flexible sin corte de texto
-- **ServiceSubtitle.kt** - Subtítulo del cliente/vehículo
-- **LocationAtom.kt** - Ubicación con icono
-- **TimeSlotAtom.kt** - Rango horario (start-end)
-- **PriorityBadgeAtom.kt** - Indicador de prioridad
-- **NoteBoxAtom.kt** - Caja de notas
-- **ActionButtonAtom.kt** - Botones de acción
-
-#### **Molecules** (6) ✨ MEJORADAS
-- **ServiceHeaderMolecule.kt** - Encabezado con icono + título + badge
-  - ✨ Soporte multilinea (maxLines = 2)
-  - ✨ wrapContentHeight() para altura adaptable
-- **ServiceTimeLineMolecule.kt** - Información horaria
-- **ServiceDetailsMolecule.kt** - Ubicación + prioridad
-- **ServiceInfoRowMolecule.kt** - Información resumida
-- **ServiceNoteMolecule.kt** - Notas del servicio
-- **ActionButtonsGroupMolecule.kt** - Grupo de botones (Completar, Reprogramar)
-
-#### **Organism** (1) ✨ NUEVO
-- **ServiceListSectionOrganism.kt** - Sección completa
-  - Column (NO LazyColumn) para evitar anidamiento problemático
-  - Manejo de lista vacía
-  - Tarjetas con formato responsive
-  - Callbacks para completar y reprogramar
-  - Integrado en HomeTemplate
-
-#### **Data Models** ✨ NUEVO
-- **ServiceCardData.kt** - Modelo con todos los datos necesarios
-- **ActionCardModel.kt** - Modelo para tarjetas de acción
-
-### Características ✨ MEJORADO
-
-- ✅ **Texto Adaptable** - Títulos largos se parten en 2 líneas
-- ✅ **Badges Sin Corte** - "Reprogramado" no se corta
-- ✅ **Column Normal** - NO usa LazyColumn anidado (evita conflictos)
-- ✅ **Responsive** - Se adapta a diferentes tamaños de pantalla
-- ✅ **Callbacks Completos** - onServiceClick, onCompleteClick, onRescheduleClick
-- ✅ **Estados Vacíos** - Mensaje cuando no hay servicios
+### Características
+- ✅ **Datos reales desde API** con estados reactivos
+- ✅ **Texto adaptable** - Títulos largos se parten en múltiples líneas
+- ✅ **Botones de acción** - Completar y Reprogramar servicio
+- ✅ **Manejo de estados** - Loading, Success, Error
 - ✅ **Atomic Design** - Componentes reutilizables
-- ✅ **Integrado en HomeTemplate** - Sección configurable
-- ✅ **Datos Reales desde API** - Carga en tiempo real ✨ NUEVO
-
-### Mapeo de Datos: WorkOrder → ServiceCardData ✨ NUEVO
-
-```
-API Response (workOrder array):
-{
-    "work_orders": [
-        {
-            "work_order_id": "...",
-            "vehicle": {
-                "license_plate": "ABC-BBY",
-                "model": { "make": "Toyota", "model": "Camry" }
-            },
-            "zone": { "name": "Monterrey" },
-            "assigned_services": [
-                {
-                    "service_id": "...",
-                    "service_type": {
-                        "name": "Transmisión Freightliner",
-                        "estimated_duration_minutes": 30
-                    },
-                    "status": "pending",
-                    "priority": "normal",
-                    "notes": "Revisar sistema"
-                }
-            ]
-        }
-    ]
-}
-
-↓ flatMap() aplana la estructura ↓
-
-ServiceCardData:
-{
-    id = "service_id",
-    title = "Transmisión Freightliner",
-    clientName = "ABC-BBY (Toyota Camry)",
-    status = "Pending",
-    address = "Monterrey",
-    duration = "30 min",
-    priority = "Normal",
-    note = "Revisar sistema"
-}
-```
+- ✅ **Callbacks en Composables** - NO en Data Classes ✨ NUEVO
 
 ---
 
-## 🌐 Backend Integration - Carga en Tiempo Real ✨ NUEVO
+## 🎯 Service Detail - Detalles del Servicio ✨ NUEVO
 
-### MechanicsViewModel - Gestión de Estado
+### Descripción
+
+Cuando el usuario hace click en "Completar" en una tarjeta de servicio, se cargan los **detalles específicos** del servicio y se muestra en un **modal elegante** con toda la información.
+
+### Flujo Completo
+
+```
+HomePage - Service List
+    ↓
+Usuario hace click en "Completar"
+    ↓
+onCompleteClick callback se ejecuta
+    ↓
+homeScreen.onCompleteClick = { serviceId ->
+    selectedServiceId = serviceId
+    mechanicsViewModel.loadDetailedService(serviceId)  ✨ AQUÍ
+}
+    ↓
+MechanicsViewModel.loadDetailedService(idService)
+    ↓ (_detailedService.value = Result.Loading)
+    ↓
+GetDetailedServiceUseCase.execute(idService)
+    ↓
+MechanicsRepository.detailedService(idService)
+    ↓
+GET /api/v1/mechanics/me/assigned-services/{idService}
+    (Con Bearer Token en headers)
+    ↓
+Backend retorna JSON con detalles
+    ↓
+DetailedServiceResponseDTO mapea la respuesta
+    ↓
+dto.toEntity() convierte a DetailedServiceResponse
+    ↓
+_detailedService.value = Result.Success(response)
+    ↓
+LaunchedEffect detecta cambio
+    ↓
+showDetailModal = true
+    ↓
+ServiceDetailModal se abre ✨
+    ↓
+Usuario ve:
+├─ ID Ejecución
+├─ ID Servicio
+├─ Tipo de Servicio
+├─ Progreso (items completados / total)
+└─ Información del servicio
+```
+
+### Implementación - Backend
+
+#### 1. Interface Retrofit (MechanicsServices.kt)
+
+```kotlin
+@GET("api/v1/mechanics/me/assigned-services/{idService}")
+suspend fun detailedService(
+    @HeaderMap headers: Map<String, String>,
+    @Path("idService") idService: String
+): Response<ResponseBody>
+```
+
+#### 2. Repository Interface (MechanicsRepository.kt)
+
+```kotlin
+interface MechanicsRepository {
+    suspend fun assignedServices(): AssignedServicesResponse
+    suspend fun detailedService(idService: String): DetailedServiceResponse  // ✨ NUEVO
+}
+```
+
+#### 3. Repository Implementation (MechanicsRetrofitRepository.kt)
+
+```kotlin
+override suspend fun detailedService(idService: String): DetailedServiceResponse {
+    val response = assignedServices.detailedService(
+        headers = headersMaker.build(), 
+        idService = idService
+    )
+    val json = RetrofitResponseValidator.validate(response = response)
+    val dto = DetailedServiceResponseDTO(json = json)
+    return dto.toEntity()
+}
+```
+
+#### 4. Data Transfer Object (DetailedServiceResponseDTO.kt)
+
+```kotlin
+open class DetailedServiceResponseDTO(json: JSONObject) : 
+    GetBaseResponseDTO<DetailedServiceResponse>(json = json) {
+    
+    val serviceExecutionId = json.asJSONObject("data").asString("service_execution_id")
+    val serviceId = json.asJSONObject("data").asString("service_id")
+    val serviceType = ServiceTypeDTO(json.asJSONObject("data").asJSONObject("service_type"))
+    val template = TemplateDTO(json.asJSONObject("data").asJSONObject("template"))
+    val currentProgress = CurrentProgressDTO(json.asJSONObject("data").asJSONObject("current_progress"))
+    val serviceInfo = ServiceInfoDTO(json.asJSONObject("data").asJSONObject("service_info"))
+
+    override fun toEntity(): DetailedServiceResponse = DetailedServiceResponse(
+        serviceExecutionId = serviceExecutionId,
+        serviceId = serviceId,
+        serviceType = serviceType.toEntity(),
+        template = template.toEntity(),
+        currentProgress = currentProgress.toEntity(),
+        serviceInfo = serviceInfo.toEntity()
+    )
+}
+```
+
+#### 5. Domain Model (DetailedServiceResponse.kt)
+
+```kotlin
+class DetailedServiceResponse(
+    val serviceExecutionId: String,
+    val serviceId: String,
+    val serviceType: ServiceType,
+    val template: Template,
+    val currentProgress: CurrentProgress,
+    val serviceInfo: ServiceInfo
+): DomainEntity()
+```
+
+### Implementación - Frontend
+
+#### 1. Use Case (GetDetailedServiceUseCase.kt)
+
+```kotlin
+class GetDetailedServiceUseCase(
+    private val mechanicsRepository: MechanicsRepository
+) {
+    suspend fun execute(idService: String) = 
+        mechanicsRepository.detailedService(idService = idService)
+}
+```
+
+#### 2. ViewModel (MechanicsViewModel.kt) ✨ ACTUALIZADO
 
 ```kotlin
 @HiltViewModel
 class MechanicsViewModel @Inject constructor(
-    private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase
+    private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
+    private val getDetailedServiceUseCase: GetDetailedServiceUseCase  // ✨ NUEVO
 ) : ViewModel() {
 
+    // ==========================================
+    // ASSIGNED SERVICES (Lista de servicios)
+    // ==========================================
     private val _assignedServices = MutableStateFlow<Result<AssignedServicesResponse>>(Result.Loading)
     val assignedServices: StateFlow<Result<AssignedServicesResponse>> = _assignedServices.asStateFlow()
 
@@ -524,216 +334,273 @@ class MechanicsViewModel @Inject constructor(
             }
         }
     }
-}
-```
 
-### Flujo Completo: API → ViewModel → UI
+    // ==========================================
+    // DETAILED SERVICE (Detalles de un servicio) ✨ NUEVO
+    // ==========================================
+    /**
+     * StateFlow para almacenar los detalles de un servicio específico
+     * 
+     * Estados posibles:
+     * - Loading: Cargando datos del servicio
+     * - Success: Datos cargados exitosamente
+     * - Error: Error al cargar datos
+     * - Idle: Estado inicial (sin cargar nada aún)
+     */
+    private val _detailedService = MutableStateFlow<Result<DetailedServiceResponse>>(Result.Idle)
+    val detailedService: StateFlow<Result<DetailedServiceResponse>> = _detailedService.asStateFlow()
 
-```
-HomePage inicia
-    ↓
-LaunchedEffect { mechanicsViewModel.loadAssignedServices() }
-    ↓
-MechanicsViewModel expone StateFlow<Result<AssignedServicesResponse>>
-    ↓
-GetMechanicsServicesUseCase.execute()
-    ↓
-MechanicsRepository.assignedServices()
-    ↓
-MechanicsServices (Retrofit)
-    GET /api/v1/mechanics/me/assigned-services
-    Headers:
-        - Authorization: Bearer {token}
-        - X-App-Version: 1.0.0
-        - X-Android-Version: 14
-        - X-LOS-SABINOS-PLATFORM-TYPE: app
-    ↓
-RetrofitResponseValidator.validate(response)
-    ↓
-AssignedServicesResponseDTO (mapea JSON)
-    ↓
-dto.toEntity() (convierte a dominio)
-    ↓
-Retorna AssignedServicesResponse
-    ↓
-ViewModel recibe en Result.Success
-    ↓
-HomePage observa StateFlow
-    ↓
-flatMap() aplana workOrders → ServiceCardData
-    ↓
-ServiceListSectionOrganism renderiza servicios
-```
-
-### Headers de Autenticación ✨ NUEVO
-
-```kotlin
-// HeadersMaker.kt
-class HeadersMaker(
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val versionName: String,
-    private val androidVersion: String,
-    private val language: String
-) {
-    fun build(): Map<String, String> {
-        val map = HashMap<String, String>()
-
-        map["X-LOS-SABINOS-PLATFORM-TYPE"] = "app"
-        map["X-LOS-SABINOS-PLATFORM-name"] = "Android"
-        map["Authorization"] = "Bearer ${userPreferencesRepository.getToken() ?: ""}" // ✨
-        map["X-App-Version"] = versionName // ✨
-        map["X-Android-Version"] = androidVersion // ✨
-
-        return map
+    /**
+     * Carga los detalles de un servicio específico
+     * 
+     * @param idService ID del servicio a cargar
+     * 
+     * Uso en HomeScreen:
+     * ```
+     * onCompleteClick = { serviceId ->
+     *     mechanicsViewModel.loadDetailedService(serviceId)
+     * }
+     * ```
+     */
+    fun loadDetailedService(idService: String) {
+        viewModelScope.launch {
+            try {
+                _detailedService.value = Result.Loading
+                val response = getDetailedServiceUseCase.execute(idService = idService)
+                _detailedService.value = Result.Success(response)
+            } catch (e: Exception) {
+                _detailedService.value = Result.Error(e)
+            }
+        }
     }
 }
 ```
 
-**Headers enviados automáticamente:**
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-X-App-Version: 1.0.0
-X-Android-Version: 14
-X-LOS-SABINOS-PLATFORM-TYPE: app
-X-LOS-SABINOS-PLATFORM-name: Android
-```
-
-### Result Sealed Class ✨ NUEVO
+#### 3. StateFlow Update (Result.kt) ✨ ACTUALIZADO
 
 ```kotlin
-// domain/common/Result.kt
 sealed class Result<out T> {
     data class Success<T>(val data: T) : Result<T>()
     data class Error(val exception: Exception) : Result<Nothing>()
     object Loading : Result<Nothing>()
+    object Idle : Result<Nothing>()  // ✨ NUEVO: Estado inicial
 }
 ```
 
-### HomePage - Integración Completa ✨ MEJORADO
+#### 4. HomeScreen Integration ✨ ACTUALIZADO
 
 ```kotlin
 @Composable
-fun HomePage(
-    // ... callbacks ...
-    homeViewModel: HomeViewModel = hiltViewModel(),
-    mechanicsViewModel: MechanicsViewModel = hiltViewModel() // ✨ NUEVO
+fun HomeScreen(
+    ...
+    mechanicsViewModel: MechanicsViewModel = hiltViewModel()
 ) {
-    val homeState = homeViewModel.state.collectAsState().value
-    val servicesState = mechanicsViewModel.assignedServices.collectAsState().value // ✨
+    // Observar estados
+    val servicesState = mechanicsViewModel.assignedServices.collectAsState().value
+    val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
 
-    // ✨ Cargar servicios al abrir pantalla
+    // Variables de estado local
+    var selectedServiceId by remember { mutableStateOf<String?>(null) }
+    var showDetailModal by remember { mutableStateOf(false) }
+
+    // Cargar servicios al abrir
     LaunchedEffect(Unit) {
         mechanicsViewModel.loadAssignedServices()
     }
 
-    // ✨ Convertir datos reales a ServiceCardData con flatMap
-    val services = when (servicesState) {
-        is Result.Loading -> {
-            emptyList<ServiceCardData>()
+    // Detectar cambios en detailedService
+    LaunchedEffect(detailedServiceState) {
+        when (detailedServiceState) {
+            is Result.Success -> {
+                showDetailModal = true  // Abrir modal
+            }
+            is Result.Error -> {
+                println("Error: ${detailedServiceState.exception.message}")
+            }
+            else -> {}
         }
-        is Result.Success -> {
-            // flatMap: aplana workOrders → servicios
-            servicesState.data.workOrder
-                ?.flatMap { workOrder ->
-                    workOrder.assignedServices?.map { service ->
-                        ServiceCardData(
-                            id = service.serviceId ?: "service_${service.serviceExecutionId}",
-                            title = service.serviceType?.name ?: "Servicio",
-                            clientName = workOrder.vehicle?.licensePlate ?: "Cliente",
-                            status = service.status?.replaceFirstChar { it.uppercase() } ?: "Pendiente",
-                            startTime = service.scheduledStart ?: "N/A",
-                            endTime = service.scheduledEnd ?: "N/A",
-                            duration = "${service.serviceType?.estimatedDurationMinutes ?: 0} min",
-                            address = workOrder.zone?.name ?: "Sin dirección",
-                            priority = service.priority?.replaceFirstChar { it.uppercase() } ?: "Media",
-                            note = service.notes ?: "Sin notas",
-                            onCompleteClick = { onServiceComplete(service.serviceId ?: "") },
-                            onRescheduleClick = { onServiceReschedule(service.serviceId ?: "") }
-                        )
-                    } ?: emptyList()
-                } ?: emptyList<ServiceCardData>()
-        }
-        is Result.Error -> emptyList<ServiceCardData>()
-        else -> emptyList<ServiceCardData>()
     }
 
-    // ✨ Mostrar estados (Loading, Success, Error)
+    // Modal de detalles
+    if (showDetailModal && detailedServiceState is Result.Success) {
+        ServiceDetailModal(
+            detailedService = detailedServiceState.data,
+            onDismiss = {
+                showDetailModal = false
+                selectedServiceId = null
+            }
+        )
+    }
+
+    // HomeTemplate con sección de servicios
     HomeTemplate(
-        // ... otras secciones ...
         serviceListSection = {
             when (servicesState) {
-                is Result.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
+                is Result.Loading -> CircularProgressIndicator()
                 is Result.Success -> {
-                    if (services.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("No hay servicios asignados")
-                        }
-                    } else {
-                        ServiceListSectionOrganism(
-                            title = "Servicios Asignados",
-                            services = services,
-                            onServiceClick = { serviceId ->
-                                println("Service clicked: $serviceId")
-                            },
-                            onCompleteClick = { serviceId ->
-                                println("Service completed: $serviceId")
-                                onServiceComplete(serviceId)
-                            },
-                            onRescheduleClick = { serviceId ->
-                                println("Service rescheduled: $serviceId")
-                                onServiceReschedule(serviceId)
-                            }
-                        )
-                    }
-                }
-                is Result.Error -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Error al cargar servicios",
-                                color = MaterialTheme.colorScheme.error
+                    val services = servicesState.data.workOrder.flatMap { workOrder ->
+                        workOrder.assignedServices.map { service ->
+                            ServiceCardData(
+                                id = service.id,
+                                title = service.serviceType.name,
+                                // ... más datos ...
+                                // ❌ SIN: onCompleteClick, onRescheduleClick (callbacks en composable)
                             )
-                            Text(
-                                text = servicesState.exception.message ?: "Error desconocido",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-                            )
-                            Button(
-                                onClick = {
-                                    mechanicsViewModel.loadAssignedServices()
-                                },
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                Text("Reintentar")
-                            }
                         }
                     }
+                    
+                    ServiceListSectionOrganism(
+                        services = services,
+                        onCompleteClick = { serviceId ->
+                            selectedServiceId = serviceId
+                            mechanicsViewModel.loadDetailedService(serviceId)  // ✨ CARGAR DETALLES
+                        },
+                        onRescheduleClick = { serviceId ->
+                            onServiceReschedule(serviceId)
+                        }
+                    )
                 }
+                is Result.Error -> Text("Error al cargar")
+                else -> {}
             }
         }
     )
 }
+
+// Modal de detalles del servicio ✨ NUEVO
+@Composable
+fun ServiceDetailModal(
+    detailedService: DetailedServiceResponse,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Detalles del Servicio",
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("ID Ejecución: ${detailedService.serviceExecutionId}")
+                Text("ID Servicio: ${detailedService.serviceId}")
+                Text("Tipo: ${detailedService.serviceType.name}")
+                Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
+                
+                Text(
+                    text = "Información",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = detailedService.serviceInfo.status,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
+}
+```
+
+#### 5. Dependency Injection (UseCaseModule.kt) ✨ ACTUALIZADO
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object UseCaseModule {
+
+    @Singleton
+    @Provides
+    fun provideGetMechanicsServicesUseCase(
+        mechanicsRepository: MechanicsRepository
+    ): GetMechanicsServicesUseCase {
+        return GetMechanicsServicesUseCase(mechanicsRepository = mechanicsRepository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetDetailedServiceUseCase(
+        mechanicsRepository: MechanicsRepository
+    ): GetDetailedServiceUseCase {
+        return GetDetailedServiceUseCase(mechanicsRepository = mechanicsRepository)  // ✨ NUEVO
+    }
+}
+```
+
+---
+
+## 🏗️ Arquitectura - Callbacks en Composables ✨ ACTUALIZADO
+
+### Anti-Patrón: Callbacks en Data Class ❌
+
+```kotlin
+// ❌ INCORRECTO - Mezcla datos con lógica
+data class ServiceCardData(
+    val id: String,
+    val title: String,
+    val onCompleteClick: () -> Unit,      // ❌ Lógica aquí
+    val onRescheduleClick: () -> Unit     // ❌ Lógica aquí
+)
+```
+
+### Best Practice: Callbacks en Composables ✅
+
+```kotlin
+// ✅ CORRECTO - Data class solo datos
+data class ServiceCardData(
+    val id: String,
+    val title: String,
+    val clientName: String,
+    // ... más datos sin callbacks
+)
+
+// ✅ CORRECTO - Composable recibe callbacks
+@Composable
+fun ServiceListSectionOrganism(
+    services: List<ServiceCardData>,
+    onCompleteClick: (String) -> Unit = {},      // ✅ Callbacks aquí
+    onRescheduleClick: (String) -> Unit = {}     // ✅ Callbacks aquí
+) {
+    services.forEach { service ->
+        ServiceCardOrganism(
+            service = service,
+            onCompleteClick = { onCompleteClick(service.id) },
+            onRescheduleClick = { onRescheduleClick(service.id) }
+        )
+    }
+}
+```
+
+### Flujo Completo ✨ MEJORADO
+
+```
+HomeScreen (tienes ViewModel y contexto)
+    ↓
+Crea: List<ServiceCardData> (solo datos)
+    ↓
+Pasa callbacks en: ServiceListSectionOrganism(
+    services = services,
+    onCompleteClick = { serviceId ->
+        mechanicsViewModel.loadDetailedService(serviceId)  // ✨
+    }
+)
+    ↓
+ServiceCardOrganism(service, onCompleteClick, ...)
+    ↓
+ActionButtonsGroupMolecule(onCompleteClick, ...)
+    ↓
+ActionButtonAtom(onClick)
+    ↓
+Usuario hace click
+    ↓
+Callback ejecuta: mechanicsViewModel.loadDetailedService() ✨
 ```
 
 ---
@@ -746,49 +613,51 @@ app/src/main/java/com/lossabinos/serviceapp/
 ├── data/
 │   ├── repositories/
 │   │   ├── AuthenticationRetrofitRepository.kt
-│   │   ├── MechanicsRetrofitRepository.kt          ✨ NUEVO
+│   │   ├── MechanicsRetrofitRepository.kt          ✨ ACTUALIZADO
 │   │   └── UserSharedPreferencesRepositoryImpl.kt
 │   │
 │   ├── services/
 │   │   ├── AuthenticationServices.kt
-│   │   └── MechanicsServices.kt                    ✨ NUEVO
+│   │   └── MechanicsServices.kt                    ✨ ACTUALIZADO
 │   │
 │   ├── mappers/
 │   │   ├── LoginResponseDTO.kt
-│   │   └── AssignedServicesResponseDTO.kt          ✨ NUEVO
+│   │   ├── AssignedServicesResponseDTO.kt
+│   │   └── DetailedServiceResponseDTO.kt           ✨ NUEVO
 │   │
 │   └── utils/
-│       ├── HeadersMaker.kt                         ✨ ACTUALIZADO
+│       ├── HeadersMaker.kt
 │       ├── RetrofitResponseValidator.kt
 │       └── CurlLoggingInterceptor.kt
 │
 ├── domain/
 │   ├── repositories/
 │   │   ├── AuthenticationRepository.kt
-│   │   ├── MechanicsRepository.kt                  ✨ NUEVO
+│   │   ├── MechanicsRepository.kt                  ✨ ACTUALIZADO
 │   │   └── UserPreferencesRepository.kt
 │   │
 │   ├── usecases/
 │   │   ├── EmailPasswordLoginUseCase.kt
-│   │   ├── GetAssignedServicesUseCase.kt           ✨ NUEVO
-│   │   ├── GetMechanicsServicesUseCase.kt          ✨ NUEVO
+│   │   ├── GetMechanicsServicesUseCase.kt
+│   │   ├── GetDetailedServiceUseCase.kt            ✨ NUEVO
 │   │   └── GetUserPreferencesUseCase.kt
 │   │
 │   ├── models/
 │   │   ├── LoginResponse.kt
-│   │   ├── AssignedServicesResponse.kt             ✨ NUEVO
+│   │   ├── AssignedServicesResponse.kt
+│   │   ├── DetailedServiceResponse.kt              ✨ NUEVO
 │   │   └── UserData.kt
 │   │
 │   └── common/
 │       ├── Exception.kt
-│       └── Result.kt                               ✨ NUEVO
+│       └── Result.kt                               ✨ ACTUALIZADO (Idle)
 │
 ├── presentation/
 │   ├── viewmodels/
 │   │   ├── LoginViewModel.kt
 │   │   ├── HomeViewModel.kt
 │   │   ├── SplashViewModel.kt
-│   │   ├── MechanicsViewModel.kt                   ✨ NUEVO
+│   │   ├── MechanicsViewModel.kt                   ✨ ACTUALIZADO
 │   │   └── BaseViewModel.kt
 │   │
 │   ├── screens/
@@ -797,7 +666,7 @@ app/src/main/java/com/lossabinos/serviceapp/
 │   │   ├── login/
 │   │   │   └── LoginScreen.kt
 │   │   └── home/
-│   │       └── HomePage.kt                         ✨ ACTUALIZADO
+│   │       └── HomeScreen.kt                       ✨ ACTUALIZADO
 │   │
 │   ├── ui/
 │   │   ├── atoms/ (9+ componentes)
@@ -805,10 +674,10 @@ app/src/main/java/com/lossabinos/serviceapp/
 │   │   ├── organisms/ (6+ componentes)
 │   │   └── templates/
 │   │       ├── LoginTemplate.kt
-│   │       └── HomeTemplate.kt                     ✨ ACTUALIZADO
+│   │       └── HomeTemplate.kt
 │   │
 │   ├── navigation/
-│   │   ├── NavGraph.kt                             ✨ ACTUALIZADO
+│   │   ├── NavGraph.kt
 │   │   ├── NavigationEvent.kt
 │   │   └── Routes.kt
 │   │
@@ -819,11 +688,11 @@ app/src/main/java/com/lossabinos/serviceapp/
 │
 ├── di/
 │   ├── AppModule.kt
-│   ├── NetworkModule.kt                            ✨ ACTUALIZADO
+│   ├── NetworkModule.kt
 │   ├── SharedPreferencesModule.kt
-│   ├── RepositoryModule.kt                         ✨ ACTUALIZADO
+│   ├── RepositoryModule.kt
 │   ├── UseCaseModule.kt                            ✨ ACTUALIZADO
-│   └── AppInfoModule.kt                            ✨ NUEVO
+│   └── AppInfoModule.kt
 │
 └── app/
     ├── LosSabinosApplication.kt
@@ -832,81 +701,48 @@ app/src/main/java/com/lossabinos/serviceapp/
 
 ---
 
-## 🛠️ Tecnologías
+## 📊 Estado del Proyecto - Actualizado ✨
 
-### UI & Composables
-- **Jetpack Compose** 1.5+ - UI declarativa moderna
-- **Material Design 3** - Componentes estándar
-- **Compose Navigation** - Navegación entre pantallas
+### ✅ v1.6.0 (Completado) - Service Detail & Clean Architecture
 
-### Inyección de Dependencias
-- **Hilt** 2.48+ - DI framework (✅ INTEGRADO)
+#### Implementación Backend
+- [x] MechanicsServices.kt - Endpoint GET /api/v1/mechanics/me/assigned-services/{idService}
+- [x] MechanicsRetrofitRepository.kt - Método detailedService(idService)
+- [x] DetailedServiceResponseDTO.kt - Mapeo JSON → Entidades
+- [x] RetrofitResponseValidator - Validación de respuesta
 
-### Networking
-- **Retrofit** 2.9+ - Cliente HTTP (✅ INTEGRADO)
-- **OkHttp** 4.11+ - Interceptores y logging (✅ INTEGRADO)
-- **Gson** 2.10+ - Serialización JSON (✅ INTEGRADO)
+#### Implementación Domain
+- [x] MechanicsRepository.kt - Interfaz con detailedService()
+- [x] GetDetailedServiceUseCase.kt - Caso de uso
+- [x] DetailedServiceResponse.kt - Modelo de dominio
+- [x] Result.kt - Estado Idle agregado
 
-### Almacenamiento Local
-- **SharedPreferences** - Preferencias de usuario (✅ INTEGRADO)
-- **Room** 2.5+ - BD local SQLite (próximo)
+#### Implementación Frontend
+- [x] MechanicsViewModel.kt - StateFlow detailedService + loadDetailedService()
+- [x] HomeScreen.kt - Modal AlertDialog integrado
+- [x] ServiceDetailModal.kt - Componente modal del detalle
+- [x] LaunchedEffect - Detecta cambios en detailedService
 
-### Concurrencia & Reactividad
-- **Kotlin Coroutines** 1.7+ - Operaciones asincrónicas (✅ INTEGRADO)
-- **Flow** - Streams reactivos (✅ INTEGRADO)
-- **StateFlow** - Estado observable (✅ INTEGRADO)
-
-### Cámara y Escaneo
-- **CameraX** - API moderna para cámara (próximo)
-- **ML Kit Barcode Scanning** - Escaneo de códigos (próximo)
-
-### Debugging & Logging
-- **Logcat** - Logging integrado (✅ INTEGRADO)
-- **CURL Interceptor** - Logging de peticiones (✅ INTEGRADO)
-
----
-
-## 📊 Estado del Proyecto
-
-### ✅ v1.5.0 (Completado) - Backend Integration ✨ NUEVO
-
-#### Data Layer - Backend
-- [x] MechanicsServices.kt - Interface Retrofit para API
-- [x] MechanicsRetrofitRepository.kt - Implementación del repositorio
-- [x] AssignedServicesResponseDTO.kt - Mapeo JSON → Entidades
-- [x] Validación de respuesta con RetrofitResponseValidator
-- [x] HeadersMaker actualizado - Bearer token automático
-
-#### Domain Layer
-- [x] MechanicsRepository.kt - Interface de repositorio
-- [x] GetMechanicsServicesUseCase.kt - Caso de uso
-- [x] AssignedServicesResponse.kt - Modelo de dominio
-- [x] Result.kt sealed class - Manejo de estados
-
-#### Presentation Layer
-- [x] MechanicsViewModel.kt - ViewModel con Flow reactivo
-- [x] HomePage actualizado - Integración con MechanicsViewModel
-- [x] NavGraph actualizado - Callbacks completos
-- [x] Manejo de estados (Loading, Success, Error)
-- [x] Botón Reintentar en caso de error
+#### Mejoras de Arquitectura
+- [x] ✨ Callbacks SOLO en Composables (NO en Data Classes)
+- [x] ✨ ServiceCardData solo contiene datos puros
+- [x] ✨ Callbacks se pasan como parámetros en composables
+- [x] ✨ Clean Architecture respetada (Separation of Concerns)
 
 #### Dependency Injection
-- [x] NetworkModule - provideMechanicsServices()
-- [x] RepositoryModule - provideMechanicsRepository()
-- [x] UseCaseModule - provideGetMechanicsServicesUseCase()
-- [x] AppInfoModule - versionName y androidVersion
+- [x] UseCaseModule.kt - provideGetDetailedServiceUseCase()
+- [x] Inyección automática en MechanicsViewModel
 
 #### Características Implementadas
-- [x] ✨ Bearer Token en headers automático
-- [x] ✨ flatMap para aplanar workOrders → servicios
-- [x] ✨ Manejo de null-safety con operadores seguros
-- [x] ✨ LaunchedEffect para cargar servicios al iniciar
-- [x] ✨ Estados reactivos (Loading, Success, Error)
-- [x] ✨ Botón Reintentar para errores
-- [x] ✨ Logging CURL completo en Logcat
-- [x] ✨ AppVersion en headers
+- [x] ✨ Cargar detalles de servicio desde API
+- [x] ✨ Modal elegante con AlertDialog
+- [x] ✨ Manejo de estados (Loading, Success, Error, Idle)
+- [x] ✨ Callbacks sin redefinir en múltiples lugares
+- [x] ✨ Data classes puros sin lógica
+- [x] ✨ Flow reactivo completo
+- [x] ✨ Logging completo en Logcat
 
-### 🚧 v1.6.0 (Próximo)
+### 🚧 v1.7.0 (Próximo)
 
 #### Room Database
 - [ ] Crear entidades de datos
@@ -919,181 +755,443 @@ app/src/main/java/com/lossabinos/serviceapp/
 - [ ] Caching offline-first
 - [ ] Conflicto resolution
 
-#### UI Enhancements
-- [ ] Detalle de servicio (nueva pantalla)
-- [ ] Completar/Reprogramar servicio desde API
-- [ ] Actualización en tiempo real con WebSocket
+#### Task Management
+- [ ] Panel de tareas (checklist)
+- [ ] Captura de evidencia (imágenes)
+- [ ] Completar servicio con datos
 
 ---
 
-## 🧪 Testing
+## 📝 Conventional Commits - Tipos de Commits ✨ NUEVO
 
-### Credenciales de Prueba
+### Estándar de Mensajes de Commit
+
+Usamos **Conventional Commits** para mantener un historial limpio y consistente.
+
+#### **Formato Base**
 
 ```
-Email:    henry@lossabinos.como.mx
-Password: Lossabinos123456789!
+tipo(alcance): descripción breve
 
-Nota: El backend debe estar accesible en:
-https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net
-```
+[cuerpo opcional - descripción detallada]
 
-### Escenarios a Probar - Backend Integration ✨ NUEVO
-
-#### ✅ Carga de Servicios en Tiempo Real
-```
-1. Login con credenciales
-    ↓
-2. HomePage carga automáticamente
-    ↓
-3. LaunchedEffect ejecuta loadAssignedServices()
-    ↓
-4. CircularProgressIndicator aparece (Loading)
-    ↓
-5. API retorna work_orders con servicios
-    ↓
-6. flatMap aplana datos correctamente
-    ↓
-7. ServiceCardData se renderiza en UI
-    ↓
-8. Ver en Logcat:
-   D/OkHttp: --> GET /api/v1/mechanics/me/assigned-services
-   D/OkHttp: Authorization: Bearer eyJhbGc...
-   D/OkHttp: <-- 200 OK
-   D/MechanicsViewModel: ✅ Servicios cargados: X items
+[pie opcional - información adicional, breaking changes, etc]
 ```
 
-#### ✅ Manejo de Errores
+#### **Tipos de Commits**
+
+| Tipo | Descripción | Ejemplo |
+|------|-------------|---------|
+| **feat** | Nueva característica | `feat(auth): Implementar login con Azure` |
+| **fix** | Corrección de bug | `fix(ui): Corregir altura de LazyColumn` |
+| **refactor** | Cambio de código sin características nuevas | `refactor(callbacks): Mover callbacks a Composables` |
+| **docs** | Cambios en documentación | `docs: Actualizar README con v1.6.0` |
+| **test** | Cambios en tests | `test(viewmodel): Agregar pruebas a MechanicsViewModel` |
+| **chore** | Cambios en config, dependencias | `chore(gradle): Actualizar Compose a 1.6.0` |
+| **style** | Cambios de formato y estilos | `style: Formatear código según ktlint` |
+| **perf** | Mejoras de performance | `perf(list): Optimizar renderizado de servicios` |
+| **ci** | Cambios en CI/CD | `ci: Configurar GitHub Actions` |
+
+#### **Alcance (Scope) Recomendado**
+
 ```
-1. Sin conexión a internet
-    ↓
-2. MechanicsViewModel recibe Result.Error
-    ↓
-3. Se muestra mensaje de error
-    ↓
-4. Click en "Reintentar"
-    ↓
-5. Se intenta cargar nuevamente
+Alcances comunes en este proyecto:
+- auth          : Autenticación y login
+- api           : Integración con backend/API
+- ui            : Componentes de UI
+- viewmodel     : ViewModels y lógica
+- database      : Room y persistencia
+- navigation    : Navegación entre pantallas
+- theme         : Temas y estilos
+- callbacks     : Manejo de callbacks
+- service-list  : Listado de servicios
+- service-detail: Detalles del servicio ✨ NUEVO
+- di            : Inyección de dependencias
+- readme        : Documentación
 ```
 
-#### ✅ Datos Reales Mostrados
+#### **Ejemplos Prácticos para Este Proyecto**
+
+##### ✅ **Commits Bien Formados**
+
+```bash
+# Característica nueva
+git commit -m "feat(service-detail): Implementar carga y modal de detalles
+
+- Agregar GetDetailedServiceUseCase
+- Implementar endpoint detailedService() en repositorio
+- Agregar StateFlow detailedService en MechanicsViewModel
+- Crear modal AlertDialog en HomeScreen"
+
+# Corrección de bug
+git commit -m "fix(ui): Corregir texto cortado en ServiceBadge
+
+El badge 'Reprogramado' se cortaba en algunos dispositivos.
+Agregado overflow: TextOverflow.Ellipsis y maxLines = 1"
+
+# Refactorización
+git commit -m "refactor(callbacks): Mover callbacks de Data Class a Composable
+
+BREAKING CHANGE: ServiceCardData ahora no contiene onCompleteClick
+Los callbacks ahora son parámetros en ServiceListSectionOrganism"
+
+# Documentación
+git commit -m "docs(readme): Actualizar documentación para v1.6.0
+
+- Agregar sección Service Detail
+- Agregar Git Workflow con pasos detallados
+- Actualizar estructura del proyecto
+- Agregar checklist de cambios"
+
+# Optimización de dependencias
+git commit -m "chore(deps): Actualizar Compose a 1.6.0"
+
+# Mejora de performance
+git commit -m "perf(service-list): Reducir recomposiciones en LazyColumn
+
+Usar remember para prevenir recomposiciones innecesarias
+Resultó en reducción de 40% en CPU"
+
+# Cambio de estilos
+git commit -m "style: Formatear código con ktlint
+
+Aplicar reglas de linting a todas las clases"
+
+# Cambios en pruebas
+git commit -m "test(viewmodel): Agregar pruebas a MechanicsViewModel
+
+- Test para loadAssignedServices()
+- Test para loadDetailedService()
+- Mock de API responses"
 ```
-Verificar que ServiceCardData contiene:
-- ✅ ID del servicio (service_id)
-- ✅ Nombre del tipo (service_type.name)
-- ✅ Placa del vehículo (vehicle.license_plate)
-- ✅ Zona (zone.name)
-- ✅ Duración estimada (estimated_duration_minutes)
-- ✅ Estado (status)
-- ✅ Prioridad (priority)
-- ✅ Notas (notes)
+
+##### ❌ **Commits Mal Formados (evitar)**
+
+```bash
+# ❌ Sin tipo
+git commit -m "Agregar feature"
+
+# ❌ Demasiado genérico
+git commit -m "fix: arreglar cosas"
+
+# ❌ Muy largo sin saltos
+git commit -m "feat: implementar login con azure integracion..."
+
+# ❌ Mayúsculas excesivas
+git commit -m "FEAT: IMPLEMENTAR NUEVA CARACTERISTICA"
+
+# ❌ Sin descripción clara
+git commit -m "update"
+
+# ❌ Sin alcance cuando es necesario
+git commit -m "feat: cambios varios"
+```
+
+#### **BREAKING CHANGES**
+
+Si tu cambio rompe compatibilidad con versiones anteriores:
+
+```bash
+# Opción 1: Con ! después del tipo
+git commit -m "refactor(callbacks)!: Mover callbacks a Composables
+
+Detalles: ServiceCardData ya no contiene callbacks.
+Los callbacks ahora son parámetros en el Composable.
+
+BREAKING CHANGE: onCompleteClick removido de ServiceCardData"
+
+# Opción 2: En pie de página
+git commit -m "refactor: Cambiar estructura de ServiceCardData
+
+BREAKING CHANGE: onCompleteClick y onRescheduleClick removidos"
+```
+
+#### **Tips para Mejores Commits**
+
+1. **Sé específico** - Describe QUÉ cambió, no solo CÓMO
+   ```bash
+   ❌ git commit -m "feat: cambios"
+   ✅ git commit -m "feat(service-detail): Agregar modal con detalles"
+   ```
+
+2. **Usa imperativo** - "Agregar" no "Agregado" o "Agregué"
+   ```bash
+   ❌ git commit -m "Agregué la función loadDetailedService"
+   ✅ git commit -m "feat: Agregar función loadDetailedService"
+   ```
+
+3. **Limita primera línea a 50 caracteres**
+   ```bash
+   ❌ git commit -m "feat(service-detail): Implementar carga de detalles del servicio con modal y manejo de errores completo"
+   ✅ git commit -m "feat(service-detail): Implementar carga y modal de detalles"
+   ```
+
+4. **Agrupa cambios relacionados**
+   ```bash
+   ✅ Un commit por feature/fix pequeño
+   ❌ Mezclar auth + ui + database en un solo commit
+   ```
+
+5. **Revisa antes de commitear**
+   ```bash
+   git diff --staged  # Ver exactamente qué va en el commit
+   ```
+
+---
+
+## 🚀 Git Workflow - Subir Cambios a GitHub ✨ NUEVO
+
+### Pasos Paso a Paso para Subir a GitHub
+
+#### **Paso 1: Verificar Estado de Cambios**
+
+```bash
+# Ver archivos modificados
+git status
+
+# Ver diferencias detalladas
+git diff
+
+# Ver diferencias de archivos específicos
+git diff app/src/main/java/com/lossabinos/serviceapp/presentation/
+```
+
+#### **Paso 2: Agregar Cambios al Stage**
+
+```bash
+# Opción A: Agregar todos los cambios
+git add .
+
+# Opción B: Agregar archivos específicos
+git add app/src/main/java/com/lossabinos/serviceapp/viewmodel/MechanicsViewModel.kt
+git add app/src/main/java/com/lossabinos/serviceapp/screens/home/HomeScreen.kt
+git add README.md
+
+# Opción C: Agregar directorios específicos
+git add app/src/main/java/com/lossabinos/serviceapp/domain/usecases/
+git add app/src/main/java/com/lossabinos/serviceapp/data/mappers/
+```
+
+#### **Paso 3: Ver Cambios en Stage**
+
+```bash
+# Ver archivos que serán commiteados
+git status
+
+# Ver diferencias en staging
+git diff --staged
+```
+
+#### **Paso 4: Crear Commit con Mensaje Descriptivo**
+
+```bash
+# Commit simple
+git commit -m "Agregar servicio de detalles del servicio"
+
+# Commit con descripción detallada (recomendado)
+git commit -m "feat: Implementar Service Detail con modal
+
+- Agregar endpoint GET /api/v1/mechanics/me/assigned-services/{idService}
+- Crear GetDetailedServiceUseCase
+- Implementar DetailedServiceResponseDTO
+- Agregar StateFlow detailedService en MechanicsViewModel
+- Crear modal AlertDialog en HomeScreen
+- Agregar estado Idle a Result sealed class
+- Mejorar callbacks: solo en Composables (Clean Architecture)
+- Actualizar DI con provideGetDetailedServiceUseCase()
+
+BREAKING CHANGE: ServiceCardData ahora no contiene callbacks (callbacks en Composable)"
+```
+
+#### **Paso 5: Verificar Log de Commits**
+
+```bash
+# Ver últimos commits
+git log --oneline -10
+
+# Ver commit específico
+git log -1
+git show HEAD
+```
+
+#### **Paso 6: Subir a GitHub**
+
+```bash
+# Opción A: Push a rama actual (main/develop)
+git push
+
+# Opción B: Push explícito
+git push origin main
+
+# Opción C: Si es la primera vez en esa rama
+git push -u origin main
+
+# Opción D: Forzar push (⚠️ cuidado)
+git push --force
+```
+
+#### **Paso 7: Verificar en GitHub**
+
+```bash
+# Abrir en navegador
+https://github.com/genaro-velazquez/los-sabinos-service-app-android
+
+# Ver commits
+https://github.com/genaro-velazquez/los-sabinos-service-app-android/commits
+
+# Ver cambios en rama
+https://github.com/genaro-velazquez/los-sabinos-service-app-android/tree/main
+```
+
+---
+
+### 📋 Flujo Completo Recomendado
+
+```bash
+# 1. Verificar cambios
+git status
+
+# 2. Agregar cambios
+git add .
+
+# 3. Revisar staging
+git status
+
+# 4. Crear commit con mensaje descriptivo
+git commit -m "feat: Implementar Service Detail con modal
+
+Agregar funcionalidad para cargar detalles específicos de un servicio
+y mostrarlos en un modal elegante con AlertDialog."
+
+# 5. Ver log
+git log --oneline -5
+
+# 6. Subir a GitHub
+git push
+
+# 7. Verificar en GitHub (abrir navegador)
+```
+
+---
+
+### 🔄 Comandos Útiles Adicionales
+
+```bash
+# Ver ramas disponibles
+git branch -a
+
+# Cambiar de rama
+git checkout develop
+git checkout -b feature/new-feature
+
+# Ver cambios no commiteados
+git diff HEAD
+
+# Revertir cambios de un archivo
+git checkout -- app/src/main/java/...
+
+# Eliminar cambios no staged
+git restore app/src/main/java/...
+
+# Ver historial detallado
+git log --oneline --graph --all
+
+# Comparar ramas
+git diff main develop
+
+# Ver quién cambió qué
+git blame app/src/main/java/...
+
+# Ver cambios de un archivo específico
+git log --oneline -- app/src/main/java/...
+```
+
+---
+
+### 📝 Ejemplo Completo: Tu Caso
+
+```bash
+# 1. Verificar estado
+git status
+# On branch main
+# Changes not staged for commit:
+#   modified:   README.md
+#   modified:   app/src/.../MechanicsViewModel.kt
+#   modified:   app/src/.../HomeScreen.kt
+#   new file:   app/src/.../GetDetailedServiceUseCase.kt
+#   new file:   app/src/.../DetailedServiceResponseDTO.kt
+
+# 2. Agregar cambios
+git add .
+
+# 3. Commit
+git commit -m "feat(service-detail): Implementar carga y modal de detalles del servicio
+
+- Agregar GetDetailedServiceUseCase para cargar detalles
+- Implementar detailedService() en repositorio
+- Agregar StateFlow detailedService en MechanicsViewModel
+- Crear modal AlertDialog en HomeScreen
+- Mejorar callbacks: solo en Composables
+- Actualizar README con documentación completa"
+
+# 4. Push
+git push
+
+# 5. Ver en GitHub (abrir en navegador)
+open "https://github.com/genaro-velazquez/los-sabinos-service-app-android"
 ```
 
 ---
 
 ## 🔍 Debugging & Logging
 
-### CURL Logging Interceptor
-
-Toda petición a la API se loguea como CURL:
+### CURL Logging para Service Detail
 
 ```bash
-# Ejemplo en Logcat:
-curl -X GET 'https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/mechanics/me/assigned-services' \
+# En Logcat buscar:
+curl -X GET 'https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/mechanics/me/assigned-services/SERVICE_ID_HERE' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
   -H 'X-App-Version: 1.0.0' \
   -H 'X-Android-Version: 14' \
-  -H 'X-LOS-SABINOS-PLATFORM-TYPE: app' \
-  -H 'X-LOS-SABINOS-PLATFORM-name: Android'
+  -H 'X-LOS-SABINOS-PLATFORM-TYPE: app'
 ```
 
 ### ViewModel Logging
 
 ```kotlin
 // MechanicsViewModel.kt
-fun loadAssignedServices() {
+fun loadDetailedService(idService: String) {
     viewModelScope.launch {
         try {
-            _assignedServices.value = Result.Loading
-            println("🔄 Iniciando carga de servicios...")
-            val response = getMechanicsServicesUseCase.execute()
-            println("✅ Servicios cargados: ${response.workOrder?.size} items")
-            _assignedServices.value = Result.Success(response)
+            _detailedService.value = Result.Loading
+            println("🔄 Cargando detalles del servicio: $idService")
+            val response = getDetailedServiceUseCase.execute(idService = idService)
+            println("✅ Detalles cargados: ${response.serviceExecutionId}")
+            _detailedService.value = Result.Success(response)
         } catch (e: Exception) {
-            println("❌ Error al cargar servicios: ${e.message}")
-            e.printStackTrace()
-            _assignedServices.value = Result.Error(e)
+            println("❌ Error: ${e.message}")
+            _detailedService.value = Result.Error(e)
         }
     }
 }
 ```
 
-### LogCat Filters
-
-```bash
-# Ver solo logs de la app
-adb logcat | grep "lossabinos"
-
-# Ver solo errores
-adb logcat | grep "Error"
-
-# Ver OkHttp requests/responses
-adb logcat | grep "OkHttp"
-```
-
 ---
 
-## 🚀 Cómo Ejecutar
-
-### 1. Clona el repositorio
-```bash
-git clone https://github.com/genaro-velazquez/los-sabinos-service-app-android.git
-cd los-sabinos-service-app-android
-```
-
-### 2. Sincroniza Gradle
-```bash
-./gradlew clean build
-```
-
-### 3. Ejecuta en emulador o dispositivo
-```bash
-# Opción A: Android Studio
-Shift + F10 o Run → Run 'app'
-
-# Opción B: Terminal
-./gradlew installDebug
-```
-
-### 4. Login
-```
-Email: henry@lossabinos.como.mx
-Password: Lossabinos123456789!
-```
-
-### 5. Verifica en HomePage
-```
-- Debe cargar servicios automáticamente
-- Ver CircularProgressIndicator mientras carga
-- Ver servicios en Service List después
-- Verificar CURL logs en Logcat
-```
-
----
-
-## 📊 Métricas del Proyecto
+## 📊 Métricas del Proyecto - Actualizado ✨
 
 - **ViewModels**: 4 (Splash, Login, Home, Mechanics)
-- **UseCases**: 4+ (Authentication, Preferences, Mechanics)
+- **UseCases**: 5+ (Authentication, Preferences, Mechanics Services, Detailed Service)
 - **Repositories**: 4 (Authentication, UserPreferences, Mechanics, Local)
 - **Componentes Atomic Design**: 28+ (9 Atoms, 6 Molecules, 6+ Organisms)
 - **Servicios Retrofit**: 2 (Authentication, Mechanics)
-- **Líneas de código**: ~8000+ 
-- **Versión**: 1.5.0
-- **Status**: Integración Backend completada con flow reactivo ✨
+- **Endpoints Implementados**: 3 (Login, AssignedServices, DetailedService)
+- **Líneas de código**: ~9000+ 
+- **Versión**: 1.6.0
+- **Status**: Service Detail implementado con arquitectura limpia ✨
 
 ---
 
 **Última actualización:** Noviembre 30, 2025  
-**Versión:** 1.5.0  
-**Estado:** Servicios cargándose en tiempo real desde API con manejo de estados ✨
+**Versión:** 1.6.0  
+**Estado:** Service Detail implementado con modal y callbacks en Composables ✨

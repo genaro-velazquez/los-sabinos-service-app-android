@@ -46,6 +46,7 @@ import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 // ==========================================
 data class ServiceCardData(
     val id: String,
+    val excecutionId:String,
     val title: String,
     val clientName: String,
     val icon: ImageVector,
@@ -280,8 +281,8 @@ fun ServiceListSectionOrganism(
                 services.forEach { service ->
                     ServiceCardOrganism(
                         service = service.copy(
-                            onCompleteClick = { onCompleteClick(service.id) },
-                            onRescheduleClick = { onRescheduleClick(service.id) }
+                            onCompleteClick = { onCompleteClick(service.excecutionId) },
+                            onRescheduleClick = { onRescheduleClick(service.excecutionId) }
                         )
                     )
                 }
@@ -301,6 +302,7 @@ fun ServiceListSectionOrganismPreview(){
         val services = listOf(
             ServiceCardData(
                 id = "service_1",
+                excecutionId = "execution_service_1",
                 title = "Mantenimiento Preventivo",
                 clientName = "Global Logistics",
                 icon = Icons.Filled.Build,
@@ -316,6 +318,7 @@ fun ServiceListSectionOrganismPreview(){
             ),
             ServiceCardData(
                 id = "service_2",
+                excecutionId = "execution_service_2",
                 title = "Reparación de Tubería",
                 clientName = "Tech Solutions Inc.",
                 icon = Icons.Filled.Plumbing,
@@ -331,6 +334,7 @@ fun ServiceListSectionOrganismPreview(){
             ),
             ServiceCardData(
                 id = "service_3",
+                excecutionId = "execution_service_3",
                 title = "Inspección General",
                 clientName = "Manufacturing Corp",
                 icon = Icons.Filled.Speed,

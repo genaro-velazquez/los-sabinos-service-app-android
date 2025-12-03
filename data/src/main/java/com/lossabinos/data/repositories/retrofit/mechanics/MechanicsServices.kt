@@ -3,11 +3,18 @@ package com.lossabinos.data.repositories.retrofit.mechanics
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.HeaderMap
+import retrofit2.http.Path
 
 interface MechanicsServices {
     @GET("/api/v1/mechanics/me/assigned-services")
     suspend fun assignedServices(
         @HeaderMap headers: Map<String, String>
     ):  Response<String>
+
+    @GET("/api/v1/mechanics/services/{id_service}/template")
+    suspend fun detailedService(
+        @HeaderMap headers: Map<String, String>,
+        @Path("id_service") idService: String
+    ): Response<String>
 
 }

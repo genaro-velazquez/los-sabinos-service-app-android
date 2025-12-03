@@ -1,6 +1,7 @@
 // presentation/screens/home/HomeScreen.kt
 package com.lossabinos.serviceapp.screens.home
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +42,9 @@ import com.lossabinos.serviceapp.viewmodel.HomeViewModel
 import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
 import com.lossabinos.serviceapp.viewmodel.Result
 import kotlin.collections.emptyList
-import kotlin.collections.mapIndexed
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.lossabinos.domain.responses.DetailedServiceResponse
 
 /**
  * HomePage - Página principal de la aplicación ✨ ACTUALIZADA
@@ -64,7 +70,7 @@ import kotlin.collections.mapIndexed
  * @param viewModel ViewModel del Home (inyectado por Hilt)
  */
 @Composable
-fun HomePage(
+fun HomeScreen(
     onLogoutConfirmed: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onSyncClick: () -> Unit = {},
@@ -78,18 +84,57 @@ fun HomePage(
     homeViewModel: HomeViewModel = hiltViewModel(),
     mechanicsViewModel: MechanicsViewModel = hiltViewModel()
 ) {
-    // ✅ Observar estado (nombre, ubicación, etc.)
+
+    // ==========================================
+    // OBSERVAR ESTADOS
+    // ==========================================
+
+    // Observar estado (nombre, ubicación, etc.)
     val state = homeViewModel.state.collectAsState().value
 
-    // ✨ NUEVO: Observar estado de servicios
+    // Estado de servicios asignados (lista)
     val servicesState = mechanicsViewModel.assignedServices.collectAsState().value
 
-    // ✨ NUEVO: Cargar servicios al abrir la pantalla
+    // Estado de servicio detallado
+    val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
+
+    // ==========================================
+    // EFECTOS LATERALES
+    // ==========================================
+
+    // Cargar servicios asignados al abrir la pantalla
     LaunchedEffect(Unit) {
         mechanicsViewModel.loadAssignedServices()
     }
 
-    // ✅ NUEVO: Definir acciones para las tarjetas de ActionCards
+    // ==========================================
+    // STATE PARA CONTROLAR MODAL DE DETALLES
+    // ==========================================
+
+    var selectedServiceId by  remember { mutableStateOf<String?>(null) }
+    var showDetailModal by remember { mutableStateOf(false) }
+
+    // Observar cambios en detailedService
+    LaunchedEffect(detailedServiceState) {
+        when (detailedServiceState) {
+            is Result.Success -> {
+                // Mostrar modal cuando se cargue el servicio detallado
+                showDetailModal = true
+            }
+            is Result.Error -> {
+                // Manejar error
+                println("Error al cargar detalles del servicio: ${detailedServiceState.exception.message}")
+            }
+            else -> {
+                // Loading o Idle
+            }
+        }
+    }
+
+    // ==========================================
+    // DEFINIR ACCIONES RÁPIDAS
+    // ==========================================
+    // Definir acciones para las tarjetas de ActionCards
     val actionCards = listOf(
         ActionCardModel(
             id = "camera",
@@ -110,60 +155,12 @@ fun HomePage(
             onClick = onLocationClick
         )
     )
-/*
-    // ✨ NUEVO: Datos de ejemplo para servicios
-    // En producción, estos datos vendrían del ViewModel
-    val services = listOf(
-        ServiceCardData(
-            id = "service_1",
-            title = "Mantenimiento Preventivo",
-            clientName = "Global Logistics",
-            icon = Icons.Filled.Build,
-            status = "Programado",
-            startTime = "13:00",
-            endTime = "14:00",
-            duration = "1 hr",
-            address = "Calle Falsa 123",
-            priority = "Media",
-            note = "No olvidar llevar equipo de seguridad adicional solicitado por el cliente.",
-            onCompleteClick = { onServiceComplete("service_1") },
-            onRescheduleClick = { onServiceReschedule("service_1") }
-        ),
-        ServiceCardData(
-            id = "service_2",
-            title = "Reparación de Tubería",
-            clientName = "Tech Solutions Inc.",
-            icon = Icons.Filled.Plumbing,
-            status = "En Progreso",
-            startTime = "15:00",
-            endTime = "16:30",
-            duration = "1.5 hrs",
-            address = "Avenida Principal 456",
-            priority = "Alta",
-            note = "Cliente requiere atención especial al sistema de refrigeración.",
-            onCompleteClick = { onServiceComplete("service_2") },
-            onRescheduleClick = { onServiceReschedule("service_2") }
-        ),
-        ServiceCardData(
-            id = "service_3",
-            title = "Inspección General",
-            clientName = "Manufacturing Corp",
-            icon = Icons.Filled.Speed,
-            status = "Pendiente",
-            startTime = "10:00",
-            endTime = "11:00",
-            duration = "1 hr",
-            address = "Calle Industrial 789",
-            priority = "Baja",
-            note = "Realizar revisión completa del sistema.",
-            onCompleteClick = { onServiceComplete("service_3") },
-            onRescheduleClick = { onServiceReschedule("service_3") }
-        )
-    )
-*/
 
-
-    // ✨ NUEVO: Convertir datos reales a ServiceCardData
+    // ==========================================
+    // CONVERTIR RESPUESTA A SERVICECARD DATA
+    // ==========================================
+    // Convertir datos reales a ServiceCardData
+    /*
     val services = when (servicesState) {
         is Result.Loading -> {
             // Mostrar lista vacía mientras carga
@@ -175,8 +172,9 @@ fun HomePage(
                     workOrder.assignedServices.map { service ->
                         ServiceCardData(
                             id = service.id,
+                            excecutionId = service.executionId,
                             title = service.serviceType.name,
-                            clientName = workOrder.vehicule.licensePlate,
+                            clientName = workOrder.vehicle.licensePlate,
                             icon = Icons.Filled.Build,
                             status = service.status.replaceFirstChar { it.uppercase() },
                             startTime = service.scheduledStart ?: "N/A",
@@ -185,7 +183,7 @@ fun HomePage(
                             address = workOrder.zone.name,
                             priority = service.priority.replaceFirstChar { it.uppercase() } ?: "Media",
                             note = service.notes,
-                            onCompleteClick = { onServiceComplete(service.id) },
+                            onCompleteClick = { onServiceComplete(service.executionId) },
                             onRescheduleClick = { onServiceReschedule(service.id) }
                         )
                     }
@@ -199,7 +197,11 @@ fun HomePage(
             emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
         }
     }
+    */
 
+    // ==========================================
+    // MODAL DE CONFIRMACIÓN (LOGOUT)
+    // ==========================================
 
     // Mostrar modal de confirmación si es necesario
     if (state.showLogoutDialog) {
@@ -223,6 +225,24 @@ fun HomePage(
             }
         )
     }
+
+    // ==========================================
+    // MODAL DE DETALLES DE SERVICIO
+    // ==========================================
+
+    if (showDetailModal && detailedServiceState is Result.Success) {
+        ServiceDetailModal(
+            detailedService = detailedServiceState.data,
+            onDismiss = {
+                showDetailModal = false
+                selectedServiceId = null
+            }
+        )
+    }
+
+    // ==========================================
+    // HOME TEMPLATE
+    // ==========================================
 
     HomeTemplate(
         // 1. Header del usuario
@@ -283,6 +303,28 @@ fun HomePage(
                     }
                 }
                 is Result.Success -> {
+
+                    // Convertir datos reales a ServiceCardData
+                    val services = servicesState.data.workOrder
+                        .flatMap { workOrder ->
+                            workOrder.assignedServices.map { service ->
+                                ServiceCardData(
+                                    id              = service.id,
+                                    excecutionId    = service.executionId,
+                                    title           = service.serviceType.name,
+                                    clientName      = workOrder.vehicle.licensePlate,
+                                    icon            = Icons.Filled.Build,
+                                    status          = service.status.replaceFirstChar { it.uppercase() },
+                                    startTime       = service.scheduledStart ?: "N/A",
+                                    endTime         = service.scheduledEnd ?: "N/A",
+                                    duration        = "${service.serviceType.estimatedDurationMinutes} min",
+                                    address         = workOrder.zone.name,
+                                    priority        = service.priority.replaceFirstChar { it.uppercase() } ?: "Media",
+                                    note            = service.notes
+                                )
+                            }
+                        }
+
                     if (services.isEmpty()) {
                         // Mostrar mensaje si no hay servicios
                         Box(
@@ -303,7 +345,9 @@ fun HomePage(
                             },
                             onCompleteClick = { serviceId ->
                                 println("Service completed: $serviceId")
-                                onServiceComplete(serviceId)
+                                selectedServiceId = serviceId
+                                mechanicsViewModel.loadDetailedService(serviceId)
+                                //onServiceComplete(serviceId)
                             },
                             onRescheduleClick = { serviceId ->
                                 println("Service rescheduled: $serviceId")
@@ -343,30 +387,61 @@ fun HomePage(
                         }
                     }
                 }
+
+                else -> {}
             }
-
-            /*
-                        ServiceListSectionOrganism(
-                            title = "Servicios Asignados",
-                            services = services,
-                            onServiceClick = { serviceId ->
-                                println("Service clicked: $serviceId")
-                            },
-                            onCompleteClick = { serviceId ->
-                                println("Service completed: $serviceId")
-                                onServiceComplete(serviceId)
-                            },
-                            onRescheduleClick = { serviceId ->
-                                println("Service rescheduled: $serviceId")
-                                onServiceReschedule(serviceId)
-                            }
-                        )
-
-             */
         },
         modifier = modifier
     )
 }
+
+/**
+* Modal para mostrar detalles de un servicio ✨ NUEVO
+*
+* @param detailedService Datos detallados del servicio
+* @param onDismiss Callback cuando se cierra el modal
+*/
+@Composable
+fun ServiceDetailModal(
+    detailedService: DetailedServiceResponse,
+    onDismiss: () -> Unit
+) {
+        AlertDialog(
+                    onDismissRequest = onDismiss,
+            title = {
+                    Text(
+                                text = "Detalles del Servicio",
+                        style = MaterialTheme.typography.headlineSmall
+                            )
+                },
+            text = {
+                    Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("ID Ejecución: ${detailedService.serviceExecutionId}")
+                        Text("ID Servicio: ${detailedService.serviceId}")
+                        Text("Tipo: ${detailedService.serviceType.name}")
+                        Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
+
+                        // Mostrar información del servicio
+                        Text(
+                                    text = "Información",
+                            style = MaterialTheme.typography.labelMedium
+                                )
+                        Text(
+                                    text = detailedService.serviceInfo.status,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
+            confirmButton = {
+                    Button(onClick = onDismiss) {
+                            Text("Cerrar")
+                        }
+                }
+        )
+    }
+
 
 /**
  * Preview de HomePage
@@ -375,7 +450,7 @@ fun HomePage(
 @Composable
 fun HomePagePreview() {
     LosabosTheme {
-        HomePage()
+        HomeScreen()
     }
 }
 

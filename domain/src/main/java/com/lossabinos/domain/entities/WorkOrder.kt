@@ -5,7 +5,7 @@ class WorkOrder(
     val orderNumber: String,
     val orderStatus:String,
     val priority:String,
-    val vehicule: Vehicule,
+    val vehicle: Vehicle,
     val zone: Zone,
     val scheduledDate:String,
     val scheduledEnd: String,

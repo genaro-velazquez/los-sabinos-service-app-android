@@ -3,31 +3,31 @@ package com.lossabinos.data.dto.entities
 import com.lossabinos.data.dto.utilities.asInt
 import com.lossabinos.data.dto.utilities.asJSONObject
 import com.lossabinos.data.dto.utilities.asString
-import com.lossabinos.data.dto.valueobjects.VehiculeVersionDTO
-import com.lossabinos.domain.entities.Vehicule
+import com.lossabinos.data.dto.valueobjects.VehicleVersionDTO
+import com.lossabinos.domain.entities.Vehicle
 import org.json.JSONObject
 
-class VehiculeDTO(
+class VehicleDTO(
     val id:String,
-    val vehiculeNumber:String,
+    val vehicleNumber:String,
     val licensePlate:String,
-    val vehiculeVersion: VehiculeVersionDTO,
+    val vehicleVersion: VehicleVersionDTO,
     val currentOdometerKm: Int
-) : DTO<Vehicule>(){
+) : DTO<Vehicle>(){
 
     constructor(json: JSONObject) : this (
         id                  = json.asString("id"),
-        vehiculeNumber      = json.asString("vehicle_number"),
+        vehicleNumber       = json.asString("vehicle_number"),
         licensePlate        = json.asString("license_plate"),
-        vehiculeVersion     = VehiculeVersionDTO(json = json.asJSONObject("model")),
+        vehicleVersion      = VehicleVersionDTO(json = json.asJSONObject("model")),
         currentOdometerKm   = json.asInt("current_odometer_km")
     )
 
-    override fun toEntity(): Vehicule = Vehicule(
+    override fun toEntity(): Vehicle = Vehicle(
         id                  = id,
-        vehiculeNumber      = vehiculeNumber,
+        vehicleNumber      = vehicleNumber,
         licensePlate        = licensePlate,
-        vehiculeVersion     = vehiculeVersion.toEntity(),
+        vehicleVersion      = vehicleVersion.toEntity(),
         currentOdometerKm   = currentOdometerKm
     )
 }

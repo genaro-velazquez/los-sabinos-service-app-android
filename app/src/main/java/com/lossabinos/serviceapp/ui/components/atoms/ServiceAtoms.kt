@@ -3,6 +3,7 @@
 package com.lossabinos.serviceapp.ui.components.atoms
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -306,6 +307,10 @@ fun ActionButtonAtom(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
+            .clickable(enabled = true) {  // ✨ AGREGA ESTO
+                println("🔵 ActionButtonAtom: '$text' clicked")  // Debug
+                onClick()
+            }
             .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
