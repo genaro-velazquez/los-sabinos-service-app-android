@@ -7,34 +7,23 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 ## 📋 Tabla de Contenidos
 
 - [Características](#características)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
+- [Room Database - Offline-First](#-room-database---offline-first-✨-nuevo)
 - [Arquitectura](#arquitectura)
-- [Tecnologías](#tecnologías)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Flujo de Autenticación](#flujo-de-autenticación)
-- [ActionCards - Acciones Rápidas](#actioncards---acciones-rápidas)
-- [Service List - Listado de Servicios](#service-list---listado-de-servicios)
 - [Service Detail - Detalles del Servicio](#service-detail---detalles-del-servicio-✨-nuevo)
-- [Backend Integration - Carga en Tiempo Real](#backend-integration---carga-en-tiempo-real)
 - [Estado del Proyecto](#estado-del-proyecto)
-- [Debugging & Logging](#debugging--logging)
-- [Cómo Ejecutar](#cómo-ejecutar)
-- [Conventional Commits](#-conventional-commits---tipos-de-commits-✨-nuevo)
-- [Git Workflow](#git-workflow---subir-cambios-a-github-✨-nuevo)
-- [Testing](#testing)
-- [Flujo Principal](#flujo-principal)
+- [Git Workflow](#git-workflow---subir-cambios-a-github)
+- [Conventional Commits](#conventional-commits---tipos-de-commits)
 
 ---
 
 ## ✨ Características
 
 ### Core Features
-- ✅ **Autenticación** con correo y contraseña (validaciones cliente y servidor)
+- ✅ **Autenticación** con correo y contraseña
 - ✅ **Integración con backend Azure** para autenticación
-- ✅ **JSON API** con body serializado (Content-Type: application/json)
 - ✅ **Validación automática de sesión** con SplashScreen
-- ✅ **Respeto de sesiones guardadas** - Si usuario logado, va directo a Home
 - ✅ **Modal de confirmación** elegante para logout
 - ✅ **Logout seguro** con limpieza completa de datos
 - ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
@@ -42,566 +31,270 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 ### API & Backend Integration
 - ✅ **Carga de servicios en tiempo real** desde API
 - ✅ **Bearer Token Authentication** - Headers con token automático
-- ✅ **WorkOrders & AssignedServices** - Estructura compleja flattened
 - ✅ **Manejo de estados** (Loading, Success, Error, Idle) con Flow reactivo
-- ✅ **Reintentos automáticos** en caso de error
 - ✅ **Logging CURL** completo para debugging
-- ✅ **AppVersion & AndroidVersion** en headers
 - ✅ **Detalle de Servicio** - Carga datos específicos con modal ✨ NUEVO
 
+### Room Database & Offline-First ✨ NUEVO v1.7.0
+- ✅ **Room Database** - Persistencia local con SQLite
+- ✅ **6 Entidades** - Mecánico, Servicio, Tipo, Zona, Vehículo, Órdenes
+- ✅ **Sincronización automática** - API → Room al hacer login
+- ✅ **Lectura offline** - HomeScreen lee datos de Room (sin conexión)
+- ✅ **Mappers automáticos** - DTO → Entity → Domain Model
+- ✅ **Migrations transparentes** - fallbackToDestructiveMigration para desarrollo
+- ✅ **UseCase consolidado** - GetLocalInitialDataUseCase para traer todo
+- ✅ **Estados de sincronización** - SYNCED, PENDING, ERROR
+- ✅ **Arquitectura offline-first** - App funciona sin internet
+
 ### UI Components
-- ✅ **ActionCards** - Tarjetas de acciones rápidas (Cámara, Reportes, Ubicación)
+- ✅ **ActionCards** - Tarjetas de acciones rápidas
 - ✅ **Service List** - Listado de servicios asignados con UI adaptable
 - ✅ **Service Detail Modal** - Modal elegante con detalles del servicio ✨ NUEVO
 - ✅ **Indicadores y métricas** en pantalla Home
 - ✅ **Atomic Design** para componentes UI reutilizables
-- ✅ **UI moderna** con Jetpack Compose
-
-### Future Features
-- ⏳ **Escaneo de códigos de barras/QR** para asignar servicios
-- ⏳ **Panel de tareas** con checklist interactivo
-- ⏳ **Captura de evidencia** (imágenes con cámara)
-- ⏳ **Offline-First** con sincronización automática
-- ⏳ **Room Database** para caching local
 
 ### Foundation
 - ✅ **Inyección de dependencias con Hilt**
 - ✅ **Clean Architecture + MVVM + Repository Pattern**
-- ✅ **Manejo robusto de errores y reintentos**
 - ✅ **Coroutines + Flow** para operaciones asincrónicas
-- ✅ **Callbacks en Composables** - No en Data Classes (Clean Architecture) ✨ NUEVO
+- ✅ **Callbacks en Composables** - No en Data Classes ✨ NUEVO
 
 ---
 
-## 🔐 Flujo de Autenticación
-
-### 1️⃣ Inicio de la Aplicación - SplashScreen
-
-```
-App inicia en MainActivity
-    ↓
-NavGraph inicia con startDestination = Routes.SPLASH
-    ↓
-SplashScreen se muestra (spinner de carga)
-    ↓
-SplashViewModel ejecuta validateSession()
-    ↓
-GetUserPreferencesUseCase.getIsLogged() 
-    ↓ (valida sesión guardada)
-    ↓
-┌─────────────────────────────┐
-│ ¿Usuario está logado?       │
-├─────────────────────────────┤
-│ SÍ  → Navega a HomePage     │
-│ NO  → Navega a LoginScreen  │
-└─────────────────────────────┘
-```
-
-### 2️⃣ Proceso de Login
-
-```
-LoginScreen aparece
-    ↓ (usuario ingresa credenciales)
-    ↓
-LoginViewModel.onEvent(LoginEvent.LoginClicked)
-    ↓
-validateForm() → Valida campos (email, password)
-    ↓
-EmailPasswordLoginUseCase.execute(email, password)
-    ↓
-┌──────────────────────────────┐
-│ ¿Credenciales son válidas?   │
-├──────────────────────────────┤
-│ SÍ  → Guardar token/sesión   │
-│       Guardar en SharedPrefs │
-│       NavigateToHome         │
-│ NO  → Mostrar errorMessage   │
-└──────────────────────────────┘
-    ↓
-HomePage se muestra con datos del usuario
-```
-
-### 3️⃣ Proceso de Logout - Modal de Confirmación
-
-```
-HomePage se muestra
-    ↓ (usuario presiona botón logout)
-    ↓
-HomeViewModel.onEvent(HomeEvent.LogoutClicked)
-    ↓
-state.showLogoutDialog = true
-    ↓
-ConfirmationDialog se muestra (modal elegante)
-    ↓ (usuario presiona "Cerrar Sesión" o "Cancelar")
-    ↓
-┌──────────────────────────────────┐
-│ ¿Qué presionó?                   │
-├──────────────────────────────────┤
-│ Cerrar Sesión:                   │
-│ → ConfirmLogout event            │
-│ → GetUserPreferencesUseCase      │
-│    .clear() (limpia sesión)      │
-│ → Limpiar token de SharedPrefs   │
-│ → NavigateToLogin                │
-│                                  │
-│ Cancelar:                        │
-│ → CancelLogout event             │
-│ → Cerrar modal                   │
-│ → Seguir en HomePage             │
-└──────────────────────────────────┘
-    ↓
-LoginScreen o HomePage
-```
-
----
-
-## 📋 Service List - Listado de Servicios
+## 🗄️ Room Database - Offline-First ✨ NUEVO
 
 ### Descripción
 
-Service List es una sección que muestra servicios asignados al mecánico cargados **en tiempo real desde la API**. Cada tarjeta permite ver información detallada e interactuar con botones de acción.
+**Room Database** implementa una arquitectura **offline-first** que permite a la aplicación funcionar sin conexión a internet. Los datos se sincronizan automáticamente cuando hay conexión.
 
-### Características
-- ✅ **Datos reales desde API** con estados reactivos
-- ✅ **Texto adaptable** - Títulos largos se parten en múltiples líneas
-- ✅ **Botones de acción** - Completar y Reprogramar servicio
-- ✅ **Manejo de estados** - Loading, Success, Error
-- ✅ **Atomic Design** - Componentes reutilizables
-- ✅ **Callbacks en Composables** - NO en Data Classes ✨ NUEVO
-
----
-
-## 🎯 Service Detail - Detalles del Servicio ✨ NUEVO
-
-### Descripción
-
-Cuando el usuario hace click en "Completar" en una tarjeta de servicio, se cargan los **detalles específicos** del servicio y se muestra en un **modal elegante** con toda la información.
-
-### Flujo Completo
+### Flujo de Sincronización
 
 ```
-HomePage - Service List
-    ↓
-Usuario hace click en "Completar"
-    ↓
-onCompleteClick callback se ejecuta
-    ↓
-homeScreen.onCompleteClick = { serviceId ->
-    selectedServiceId = serviceId
-    mechanicsViewModel.loadDetailedService(serviceId)  ✨ AQUÍ
-}
-    ↓
-MechanicsViewModel.loadDetailedService(idService)
-    ↓ (_detailedService.value = Result.Loading)
-    ↓
-GetDetailedServiceUseCase.execute(idService)
-    ↓
-MechanicsRepository.detailedService(idService)
-    ↓
-GET /api/v1/mechanics/me/assigned-services/{idService}
-    (Con Bearer Token en headers)
-    ↓
-Backend retorna JSON con detalles
-    ↓
-DetailedServiceResponseDTO mapea la respuesta
-    ↓
-dto.toEntity() convierte a DetailedServiceResponse
-    ↓
-_detailedService.value = Result.Success(response)
-    ↓
-LaunchedEffect detecta cambio
-    ↓
-showDetailModal = true
-    ↓
-ServiceDetailModal se abre ✨
-    ↓
-Usuario ve:
-├─ ID Ejecución
-├─ ID Servicio
-├─ Tipo de Servicio
-├─ Progreso (items completados / total)
-└─ Información del servicio
+┌─────────────────────────────────────────────────────────────┐
+│                    ARQUITECTURA OFFLINE-FIRST               │
+└─────────────────────────────────────────────────────────────┘
+
+1. LOGIN EXITOSO
+   ├─ loadInitialData() ejecuta
+   ├─ GET /api/v1/mechanics/me/initial-data (API)
+   ├─ Response → InitialDataResponse
+   └─ Guardar en Room (Database)
+      ├─ mechanics tabla
+      ├─ assigned_services tabla
+      ├─ service_types tabla
+      ├─ zones tabla
+      ├─ vehicles tabla
+      └─ work_orders tabla
+
+2. HOMEPAGE ABIERTO (SIN CONEXIÓN ✨)
+   ├─ loadLocalData() ejecuta
+   ├─ Leer desde Room (Database)
+   │  ├─ SELECT * FROM assigned_services
+   │  ├─ SELECT * FROM service_types
+   │  └─ SELECT * FROM mechanics
+   ├─ Mapear Room Entities → Domain Models
+   └─ Mostrar datos offline
+
+3. SINCRONIZACIÓN MANUAL (OPCIONAL)
+   ├─ Usuario presiona "Sincronizar"
+   ├─ loadInitialData() → API
+   └─ Actualizar Room con datos nuevos
 ```
 
-### Implementación - Backend
+### 6 Entidades (Tablas)
 
-#### 1. Interface Retrofit (MechanicsServices.kt)
+| Tabla | Campos | Relación |
+|-------|--------|----------|
+| **Mechanic** | id, name, email, company_id | 1 a N con Servicios |
+| **AssignedService** | id, work_order_id, service_type_id, status, priority, scheduled_start/end | N a 1 con WorkOrder, ServiceType |
+| **ServiceType** | id, name, estimated_duration | 1 a N con Servicios |
+| **WorkOrder** | id, mechanic_id, status, priority | 1 a N con Servicios |
+| **Zone** | id, name, code, region | Referencia en WorkOrder |
+| **Vehicle** | id, plate, model, mechanic_id | 1 a N con Mecánico |
 
+### Implementación - Archivos Principales
+
+#### 1. Room Entities (data/local/database/entity/)
 ```kotlin
-@GET("api/v1/mechanics/me/assigned-services/{idService}")
-suspend fun detailedService(
-    @HeaderMap headers: Map<String, String>,
-    @Path("idService") idService: String
-): Response<ResponseBody>
+@Entity(tableName = "mechanics")
+data class MechanicEntity(id: String, name: String, email: String, companyId: String)
+
+@Entity(tableName = "assigned_services")
+data class AssignedServiceEntity(id: String, workOrderId: String, serviceTypeId: String, 
+    status: String, priority: String, scheduledStart: String?, scheduledEnd: String?)
+
+// ServiceTypeEntity, ZoneEntity, VehicleEntity, WorkOrderEntity...
 ```
 
-#### 2. Repository Interface (MechanicsRepository.kt)
-
+#### 2. DAOs (data/local/database/dao/InitialDataDao.kt)
 ```kotlin
-interface MechanicsRepository {
-    suspend fun assignedServices(): AssignedServicesResponse
-    suspend fun detailedService(idService: String): DetailedServiceResponse  // ✨ NUEVO
-}
-```
-
-#### 3. Repository Implementation (MechanicsRetrofitRepository.kt)
-
-```kotlin
-override suspend fun detailedService(idService: String): DetailedServiceResponse {
-    val response = assignedServices.detailedService(
-        headers = headersMaker.build(), 
-        idService = idService
-    )
-    val json = RetrofitResponseValidator.validate(response = response)
-    val dto = DetailedServiceResponseDTO(json = json)
-    return dto.toEntity()
-}
-```
-
-#### 4. Data Transfer Object (DetailedServiceResponseDTO.kt)
-
-```kotlin
-open class DetailedServiceResponseDTO(json: JSONObject) : 
-    GetBaseResponseDTO<DetailedServiceResponse>(json = json) {
+@Dao
+interface InitialDataDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMechanic(mechanic: MechanicEntity)
     
-    val serviceExecutionId = json.asJSONObject("data").asString("service_execution_id")
-    val serviceId = json.asJSONObject("data").asString("service_id")
-    val serviceType = ServiceTypeDTO(json.asJSONObject("data").asJSONObject("service_type"))
-    val template = TemplateDTO(json.asJSONObject("data").asJSONObject("template"))
-    val currentProgress = CurrentProgressDTO(json.asJSONObject("data").asJSONObject("current_progress"))
-    val serviceInfo = ServiceInfoDTO(json.asJSONObject("data").asJSONObject("service_info"))
-
-    override fun toEntity(): DetailedServiceResponse = DetailedServiceResponse(
-        serviceExecutionId = serviceExecutionId,
-        serviceId = serviceId,
-        serviceType = serviceType.toEntity(),
-        template = template.toEntity(),
-        currentProgress = currentProgress.toEntity(),
-        serviceInfo = serviceInfo.toEntity()
-    )
+    @Query("SELECT * FROM assigned_services")
+    suspend fun getAllAssignedServices(): List<AssignedServiceEntity>
+    
+    @Query("SELECT * FROM mechanics LIMIT 1")
+    suspend fun getMechanic(): MechanicEntity?
+    
+    @Query("SELECT * FROM service_types")
+    suspend fun getAllServiceTypes(): List<ServiceTypeEntity>
 }
 ```
 
-#### 5. Domain Model (DetailedServiceResponse.kt)
-
+#### 3. AppDatabase (data/local/database/AppDatabase.kt)
 ```kotlin
-class DetailedServiceResponse(
-    val serviceExecutionId: String,
-    val serviceId: String,
-    val serviceType: ServiceType,
-    val template: Template,
-    val currentProgress: CurrentProgress,
-    val serviceInfo: ServiceInfo
-): DomainEntity()
-```
-
-### Implementación - Frontend
-
-#### 1. Use Case (GetDetailedServiceUseCase.kt)
-
-```kotlin
-class GetDetailedServiceUseCase(
-    private val mechanicsRepository: MechanicsRepository
-) {
-    suspend fun execute(idService: String) = 
-        mechanicsRepository.detailedService(idService = idService)
+@Database(
+    entities = [MechanicEntity::class, AssignedServiceEntity::class, 
+        ServiceTypeEntity::class, ZoneEntity::class, VehicleEntity::class, WorkOrderEntity::class],
+    version = 2  // ✨ Incrementada para migration
+)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun initialDataDao(): InitialDataDao
 }
 ```
 
-#### 2. ViewModel (MechanicsViewModel.kt) ✨ ACTUALIZADO
+#### 4. Repository - Guardar en Room (MechanicsRetrofitRepository.kt)
+```kotlin
+override suspend fun saveToRoom(response: InitialDataResponse) {
+    val mechanicEntity = response.mechanic.toEntity()
+    val serviceEntities = response.assignedServices.map { it.toEntity() }
+    val typeEntities = response.serviceTypes.map { it.toEntity() }
+    
+    initialDataDao.insertMechanic(mechanicEntity)
+    initialDataDao.insertAssignedServices(serviceEntities)
+    // ... guardar más datos
+    println("✅ Datos guardados en Room")
+}
+```
 
+#### 5. Repository - Leer desde Room (MechanicsRetrofitRepository.kt)
+```kotlin
+override suspend fun getLocalInitialData(): InitialDataResponse {
+    val mechanic = initialDataDao.getMechanic()?.let { Mechanic(id = it.id, ...) }
+    val assignedServices = initialDataDao.getAllAssignedServices().map { it.toDomain() }
+    val serviceTypes = initialDataDao.getAllServiceTypes().map { it.toDomain() }
+    
+    return InitialDataResponse(mechanic, assignedServices, serviceTypes, syncMetadata)
+}
+```
+
+#### 6. Use Case (GetLocalInitialDataUseCase.kt)
+```kotlin
+class GetLocalInitialDataUseCase(private val repository: MechanicsRepository) {
+    suspend operator fun invoke(): InitialDataResponse? {
+        return try {
+            repository.getLocalInitialData()
+        } catch (e: Exception) {
+            println("❌ Error: ${e.message}")
+            null
+        }
+    }
+}
+```
+
+#### 7. ViewModel (MechanicsViewModel.kt) ✨ ACTUALIZADO
 ```kotlin
 @HiltViewModel
 class MechanicsViewModel @Inject constructor(
     private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
-    private val getDetailedServiceUseCase: GetDetailedServiceUseCase  // ✨ NUEVO
+    private val getLocalInitialDataUseCase: GetLocalInitialDataUseCase
 ) : ViewModel() {
-
-    // ==========================================
-    // ASSIGNED SERVICES (Lista de servicios)
-    // ==========================================
-    private val _assignedServices = MutableStateFlow<Result<AssignedServicesResponse>>(Result.Loading)
-    val assignedServices: StateFlow<Result<AssignedServicesResponse>> = _assignedServices.asStateFlow()
-
-    fun loadAssignedServices() {
+    
+    private val _localInitialData = MutableStateFlow<Result<InitialDataResponse>>(Result.Idle)
+    val localInitialData: StateFlow<Result<InitialDataResponse>> = _localInitialData.asStateFlow()
+    
+    fun loadLocalData() {
         viewModelScope.launch {
             try {
-                _assignedServices.value = Result.Loading
-                val response = getMechanicsServicesUseCase.execute()
-                _assignedServices.value = Result.Success(response)
+                _localInitialData.value = Result.Loading
+                val response = getLocalInitialDataUseCase()
+                _localInitialData.value = Result.Success(data = response!!)
+                println("✅ Datos de Room cargados")
             } catch (e: Exception) {
-                _assignedServices.value = Result.Error(e)
-            }
-        }
-    }
-
-    // ==========================================
-    // DETAILED SERVICE (Detalles de un servicio) ✨ NUEVO
-    // ==========================================
-    /**
-     * StateFlow para almacenar los detalles de un servicio específico
-     * 
-     * Estados posibles:
-     * - Loading: Cargando datos del servicio
-     * - Success: Datos cargados exitosamente
-     * - Error: Error al cargar datos
-     * - Idle: Estado inicial (sin cargar nada aún)
-     */
-    private val _detailedService = MutableStateFlow<Result<DetailedServiceResponse>>(Result.Idle)
-    val detailedService: StateFlow<Result<DetailedServiceResponse>> = _detailedService.asStateFlow()
-
-    /**
-     * Carga los detalles de un servicio específico
-     * 
-     * @param idService ID del servicio a cargar
-     * 
-     * Uso en HomeScreen:
-     * ```
-     * onCompleteClick = { serviceId ->
-     *     mechanicsViewModel.loadDetailedService(serviceId)
-     * }
-     * ```
-     */
-    fun loadDetailedService(idService: String) {
-        viewModelScope.launch {
-            try {
-                _detailedService.value = Result.Loading
-                val response = getDetailedServiceUseCase.execute(idService = idService)
-                _detailedService.value = Result.Success(response)
-            } catch (e: Exception) {
-                _detailedService.value = Result.Error(e)
+                _localInitialData.value = Result.Error(exception = e)
             }
         }
     }
 }
 ```
 
-#### 3. StateFlow Update (Result.kt) ✨ ACTUALIZADO
-
-```kotlin
-sealed class Result<out T> {
-    data class Success<T>(val data: T) : Result<T>()
-    data class Error(val exception: Exception) : Result<Nothing>()
-    object Loading : Result<Nothing>()
-    object Idle : Result<Nothing>()  // ✨ NUEVO: Estado inicial
-}
-```
-
-#### 4. HomeScreen Integration ✨ ACTUALIZADO
-
+#### 8. HomeScreen (Lectura Offline) ✨ ACTUALIZADO
 ```kotlin
 @Composable
-fun HomeScreen(
-    ...
-    mechanicsViewModel: MechanicsViewModel = hiltViewModel()
-) {
-    // Observar estados
-    val servicesState = mechanicsViewModel.assignedServices.collectAsState().value
-    val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
-
-    // Variables de estado local
-    var selectedServiceId by remember { mutableStateOf<String?>(null) }
-    var showDetailModal by remember { mutableStateOf(false) }
-
-    // Cargar servicios al abrir
+fun HomeScreen(mechanicsViewModel: MechanicsViewModel = hiltViewModel()) {
+    val localInitialDataState = mechanicsViewModel.localInitialData.collectAsState().value
+    
     LaunchedEffect(Unit) {
-        mechanicsViewModel.loadAssignedServices()
+        mechanicsViewModel.loadLocalData()  // ✨ Lee de Room
     }
-
-    // Detectar cambios en detailedService
-    LaunchedEffect(detailedServiceState) {
-        when (detailedServiceState) {
-            is Result.Success -> {
-                showDetailModal = true  // Abrir modal
-            }
-            is Result.Error -> {
-                println("Error: ${detailedServiceState.exception.message}")
-            }
-            else -> {}
+    
+    when {
+        localInitialDataState is Result.Success -> {
+            val data = (localInitialDataState as Result.Success).data
+            HomeHeaderSection(userName = data.mechanic.name)
+            MetricsSection(inProgressCount = data.syncMetadata.inProgressServices.toString())
+            // ... mostrar servicios...
         }
+        localInitialDataState is Result.Loading -> CircularProgressIndicator()
+        localInitialDataState is Result.Error -> Text("Error cargando datos")
     }
-
-    // Modal de detalles
-    if (showDetailModal && detailedServiceState is Result.Success) {
-        ServiceDetailModal(
-            detailedService = detailedServiceState.data,
-            onDismiss = {
-                showDetailModal = false
-                selectedServiceId = null
-            }
-        )
-    }
-
-    // HomeTemplate con sección de servicios
-    HomeTemplate(
-        serviceListSection = {
-            when (servicesState) {
-                is Result.Loading -> CircularProgressIndicator()
-                is Result.Success -> {
-                    val services = servicesState.data.workOrder.flatMap { workOrder ->
-                        workOrder.assignedServices.map { service ->
-                            ServiceCardData(
-                                id = service.id,
-                                title = service.serviceType.name,
-                                // ... más datos ...
-                                // ❌ SIN: onCompleteClick, onRescheduleClick (callbacks en composable)
-                            )
-                        }
-                    }
-                    
-                    ServiceListSectionOrganism(
-                        services = services,
-                        onCompleteClick = { serviceId ->
-                            selectedServiceId = serviceId
-                            mechanicsViewModel.loadDetailedService(serviceId)  // ✨ CARGAR DETALLES
-                        },
-                        onRescheduleClick = { serviceId ->
-                            onServiceReschedule(serviceId)
-                        }
-                    )
-                }
-                is Result.Error -> Text("Error al cargar")
-                else -> {}
-            }
-        }
-    )
-}
-
-// Modal de detalles del servicio ✨ NUEVO
-@Composable
-fun ServiceDetailModal(
-    detailedService: DetailedServiceResponse,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Detalles del Servicio",
-                style = MaterialTheme.typography.headlineSmall
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("ID Ejecución: ${detailedService.serviceExecutionId}")
-                Text("ID Servicio: ${detailedService.serviceId}")
-                Text("Tipo: ${detailedService.serviceType.name}")
-                Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
-                
-                Text(
-                    text = "Información",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = detailedService.serviceInfo.status,
-                    fontSize = 12.sp
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Cerrar")
-            }
-        }
-    )
 }
 ```
 
-#### 5. Dependency Injection (UseCaseModule.kt) ✨ ACTUALIZADO
-
+#### 9. DI (DatabaseModule.kt) ✨ NUEVO
 ```kotlin
 @Module
 @InstallIn(SingletonComponent::class)
-object UseCaseModule {
-
+object DatabaseModule {
+    
     @Singleton
     @Provides
-    fun provideGetMechanicsServicesUseCase(
-        mechanicsRepository: MechanicsRepository
-    ): GetMechanicsServicesUseCase {
-        return GetMechanicsServicesUseCase(mechanicsRepository = mechanicsRepository)
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "los_sabinos.db")
+            .fallbackToDestructiveMigration(true)  // ✨ Migrations automáticas
+            .build()
     }
-
+    
     @Singleton
     @Provides
-    fun provideGetDetailedServiceUseCase(
-        mechanicsRepository: MechanicsRepository
-    ): GetDetailedServiceUseCase {
-        return GetDetailedServiceUseCase(mechanicsRepository = mechanicsRepository)  // ✨ NUEVO
+    fun provideInitialDataDao(database: AppDatabase): InitialDataDao {
+        return database.initialDataDao()
     }
 }
 ```
 
 ---
 
-## 🏗️ Arquitectura - Callbacks en Composables ✨ ACTUALIZADO
+## 🏗️ Arquitectura
 
-### Anti-Patrón: Callbacks en Data Class ❌
-
-```kotlin
-// ❌ INCORRECTO - Mezcla datos con lógica
-data class ServiceCardData(
-    val id: String,
-    val title: String,
-    val onCompleteClick: () -> Unit,      // ❌ Lógica aquí
-    val onRescheduleClick: () -> Unit     // ❌ Lógica aquí
-)
-```
-
-### Best Practice: Callbacks en Composables ✅
-
-```kotlin
-// ✅ CORRECTO - Data class solo datos
-data class ServiceCardData(
-    val id: String,
-    val title: String,
-    val clientName: String,
-    // ... más datos sin callbacks
-)
-
-// ✅ CORRECTO - Composable recibe callbacks
-@Composable
-fun ServiceListSectionOrganism(
-    services: List<ServiceCardData>,
-    onCompleteClick: (String) -> Unit = {},      // ✅ Callbacks aquí
-    onRescheduleClick: (String) -> Unit = {}     // ✅ Callbacks aquí
-) {
-    services.forEach { service ->
-        ServiceCardOrganism(
-            service = service,
-            onCompleteClick = { onCompleteClick(service.id) },
-            onRescheduleClick = { onRescheduleClick(service.id) }
-        )
-    }
-}
-```
-
-### Flujo Completo ✨ MEJORADO
+**Clean Architecture + MVVM + Repository Pattern + Offline-First**
 
 ```
-HomeScreen (tienes ViewModel y contexto)
+Presentation Layer (UI)
+    ↓ (observa estados)
     ↓
-Crea: List<ServiceCardData> (solo datos)
+ViewModel (MechanicsViewModel)
+    ↓ (ejecuta casos de uso)
     ↓
-Pasa callbacks en: ServiceListSectionOrganism(
-    services = services,
-    onCompleteClick = { serviceId ->
-        mechanicsViewModel.loadDetailedService(serviceId)  // ✨
-    }
-)
+Domain Layer (UseCases)
+    ↓ (abstracción)
     ↓
-ServiceCardOrganism(service, onCompleteClick, ...)
+Repository Interface (IMechanicsRepository)
+    ↓ (implementación)
     ↓
-ActionButtonsGroupMolecule(onCompleteClick, ...)
-    ↓
-ActionButtonAtom(onClick)
-    ↓
-Usuario hace click
-    ↓
-Callback ejecuta: mechanicsViewModel.loadDetailedService() ✨
+Data Layer
+├─ Remote (Retrofit API)
+└─ Local (Room Database)
 ```
+
+### Características de Arquitectura
+- **Offline-First**: Datos se guardan localmente primero
+- **Reactive**: Flow y StateFlow para estados reactivos
+- **Clean**: Separación clara de capas
+- **Testeable**: Inyección de dependencias con Hilt
 
 ---
 
@@ -611,164 +304,205 @@ Callback ejecuta: mechanicsViewModel.loadDetailedService() ✨
 app/src/main/java/com/lossabinos/serviceapp/
 │
 ├── data/
+│   ├── local/                              ✨ NUEVO
+│   │   ├── database/
+│   │   │   ├── AppDatabase.kt
+│   │   │   ├── dao/
+│   │   │   │   └── InitialDataDao.kt
+│   │   │   └── entity/ (6 entities)
+│   │   └── mappers/
+│   │       └── InitialDataMappers.kt
+│   │
+│   ├── remote/
+│   │   ├── services/ (Retrofit)
+│   │   └── dto/ (Data Transfer Objects)
+│   │
 │   ├── repositories/
-│   │   ├── AuthenticationRetrofitRepository.kt
-│   │   ├── MechanicsRetrofitRepository.kt          ✨ ACTUALIZADO
-│   │   └── UserSharedPreferencesRepositoryImpl.kt
-│   │
-│   ├── services/
-│   │   ├── AuthenticationServices.kt
-│   │   └── MechanicsServices.kt                    ✨ ACTUALIZADO
-│   │
-│   ├── mappers/
-│   │   ├── LoginResponseDTO.kt
-│   │   ├── AssignedServicesResponseDTO.kt
-│   │   └── DetailedServiceResponseDTO.kt           ✨ NUEVO
+│   │   └── MechanicsRetrofitRepository.kt  ✨ ACTUALIZADO
 │   │
 │   └── utils/
 │       ├── HeadersMaker.kt
-│       ├── RetrofitResponseValidator.kt
-│       └── CurlLoggingInterceptor.kt
+│       └── RetrofitResponseValidator.kt
 │
 ├── domain/
 │   ├── repositories/
-│   │   ├── AuthenticationRepository.kt
-│   │   ├── MechanicsRepository.kt                  ✨ ACTUALIZADO
-│   │   └── UserPreferencesRepository.kt
+│   │   └── MechanicsRepository.kt          ✨ ACTUALIZADO
 │   │
 │   ├── usecases/
-│   │   ├── EmailPasswordLoginUseCase.kt
 │   │   ├── GetMechanicsServicesUseCase.kt
-│   │   ├── GetDetailedServiceUseCase.kt            ✨ NUEVO
-│   │   └── GetUserPreferencesUseCase.kt
+│   │   ├── GetDetailedServiceUseCase.kt
+│   │   └── GetLocalInitialDataUseCase.kt   ✨ NUEVO
 │   │
-│   ├── models/
-│   │   ├── LoginResponse.kt
-│   │   ├── AssignedServicesResponse.kt
-│   │   ├── DetailedServiceResponse.kt              ✨ NUEVO
-│   │   └── UserData.kt
+│   ├── models/ (Domain entities)
+│   │   └── InitialDataResponse.kt          ✨ NUEVO
 │   │
 │   └── common/
-│       ├── Exception.kt
-│       └── Result.kt                               ✨ ACTUALIZADO (Idle)
+│       └── Result.kt (sealed class con Idle)
 │
 ├── presentation/
 │   ├── viewmodels/
-│   │   ├── LoginViewModel.kt
-│   │   ├── HomeViewModel.kt
-│   │   ├── SplashViewModel.kt
-│   │   ├── MechanicsViewModel.kt                   ✨ ACTUALIZADO
-│   │   └── BaseViewModel.kt
+│   │   └── MechanicsViewModel.kt           ✨ ACTUALIZADO
 │   │
 │   ├── screens/
-│   │   ├── splash/
-│   │   │   └── SplashScreen.kt
-│   │   ├── login/
-│   │   │   └── LoginScreen.kt
 │   │   └── home/
-│   │       └── HomeScreen.kt                       ✨ ACTUALIZADO
+│   │       └── HomeScreen.kt               ✨ ACTUALIZADO
 │   │
-│   ├── ui/
-│   │   ├── atoms/ (9+ componentes)
-│   │   ├── molecules/ (6+ componentes)
-│   │   ├── organisms/ (6+ componentes)
-│   │   └── templates/
-│   │       ├── LoginTemplate.kt
-│   │       └── HomeTemplate.kt
-│   │
-│   ├── navigation/
-│   │   ├── NavGraph.kt
-│   │   ├── NavigationEvent.kt
-│   │   └── Routes.kt
-│   │
-│   └── theme/
-│       ├── Color.kt
-│       ├── Typography.kt
-│       └── Theme.kt
+│   └── ui/
+│       ├── atoms, molecules, organisms
+│       └── templates
 │
 ├── di/
-│   ├── AppModule.kt
-│   ├── NetworkModule.kt
-│   ├── SharedPreferencesModule.kt
-│   ├── RepositoryModule.kt
-│   ├── UseCaseModule.kt                            ✨ ACTUALIZADO
-│   └── AppInfoModule.kt
+│   ├── DatabaseModule.kt                   ✨ NUEVO
+│   ├── UseCaseModule.kt                    ✨ ACTUALIZADO
+│   └── ... otros modules
 │
 └── app/
-    ├── LosSabinosApplication.kt
-    └── MainActivity.kt
+    └── LosSabinosApplication.kt
+```
+
+---
+
+## 🔐 Flujo de Autenticación - Actualizado ✨
+
+### Login con Sincronización Automática
+
+```
+LoginScreen
+    ↓
+Usuario ingresa credenciales
+    ↓
+LoginViewModel.onEvent(LoginEvent.LoginClicked)
+    ↓
+validateForm() ✓
+    ↓
+EmailPasswordLoginUseCase.execute()
+    ↓
+API validación ✓
+    ↓
+Token guardado en SharedPrefs
+    ↓
+loadInitialData() ejecuta  ✨ SINCRONIZACIÓN
+│  ├─ GET /api/v1/mechanics/me/initial-data
+│  ├─ Response → InitialDataResponse
+│  └─ saveToRoom(response)
+│     ├─ Insert mechanics
+│     ├─ Insert assigned_services
+│     └─ Insert service_types
+│
+✅ Todos los datos en Room
+    ↓
+NavigateToHome
+```
+
+### HomeScreen con Lectura Offline ✨ NUEVO
+
+```
+HomeScreen abierto
+    ↓
+LaunchedEffect detecta inicio
+    ↓
+loadLocalData() ejecuta  ✨ LECTURA OFFLINE
+│  ├─ GetLocalInitialDataUseCase()
+│  └─ initialDataDao.getMechanic()
+│     initialDataDao.getAllAssignedServices()
+│     initialDataDao.getAllServiceTypes()
+│
+✅ Datos de Room cargados
+    ↓
+UI muestra datos (CON O SIN CONEXIÓN)
+```
+
+---
+
+## 🎯 Service Detail - Detalles del Servicio ✨ NUEVO
+
+### Flujo Completo
+
+```
+HomePage - Service List
+    ↓
+Usuario hace click en "Completar"
+    ↓
+onCompleteClick callback
+    ↓
+mechanicsViewModel.loadDetailedService(serviceId)
+    ↓
+GetDetailedServiceUseCase.execute()
+    ↓
+GET /api/v1/mechanics/me/assigned-services/{idService}
+    ↓
+DetailedServiceResponseDTO mapea JSON
+    ↓
+_detailedService.value = Result.Success(response)
+    ↓
+LaunchedEffect abre modal
+    ↓
+ServiceDetailModal se muestra ✨
 ```
 
 ---
 
 ## 📊 Estado del Proyecto - Actualizado ✨
 
+### ✅ v1.7.0 (Completado) - Room Database & Offline-First
+
+#### Implementación Database
+- [x] Room Database configurado (SQLite)
+- [x] 6 Entities (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
+- [x] InitialDataDao - CRUD operations
+- [x] AppDatabase version = 2
+- [x] fallbackToDestructiveMigration (migrations automáticas)
+
+#### Implementación Data Layer
+- [x] InitialDataMappers (Entity → Domain)
+- [x] saveToRoom() - Guardar API response en Room
+- [x] getLocalInitialData() - Lectura offline
+- [x] Repository con métodos locales
+
+#### Implementación Domain Layer
+- [x] GetLocalInitialDataUseCase
+- [x] InitialDataResponse modelo consolidado
+- [x] Repository interface actualizada
+
+#### Implementación Presentation Layer
+- [x] MechanicsViewModel.loadLocalData()
+- [x] HomeScreen lee de Room
+- [x] Estados separados (API vs Local)
+- [x] LaunchedEffect para cargar datos
+
+#### DI & Configuration
+- [x] DatabaseModule.kt (provideAppDatabase)
+- [x] UseCaseModule actualizado
+- [x] RepositoryModule ligado a Room
+
+#### Features Implementadas
+- [x] Sincronización automática (API → Room) al login
+- [x] Lectura offline (Room → UI) en HomeScreen
+- [x] Mappers automáticos (DTO → Entity → Domain)
+- [x] Migrations transparentes
+- [x] Estados de sincronización
+- [x] App funciona sin conexión ✨
+
 ### ✅ v1.6.0 (Completado) - Service Detail & Clean Architecture
 
-#### Implementación Backend
-- [x] MechanicsServices.kt - Endpoint GET /api/v1/mechanics/me/assigned-services/{idService}
-- [x] MechanicsRetrofitRepository.kt - Método detailedService(idService)
-- [x] DetailedServiceResponseDTO.kt - Mapeo JSON → Entidades
-- [x] RetrofitResponseValidator - Validación de respuesta
+- [x] DetailedServiceResponseDTO
+- [x] GetDetailedServiceUseCase
+- [x] ServiceDetailModal con AlertDialog
+- [x] MechanicsViewModel.loadDetailedService()
+- [x] Callbacks en Composables (Clean Architecture)
 
-#### Implementación Domain
-- [x] MechanicsRepository.kt - Interfaz con detailedService()
-- [x] GetDetailedServiceUseCase.kt - Caso de uso
-- [x] DetailedServiceResponse.kt - Modelo de dominio
-- [x] Result.kt - Estado Idle agregado
+### 🚧 v1.8.0 (Próximo)
 
-#### Implementación Frontend
-- [x] MechanicsViewModel.kt - StateFlow detailedService + loadDetailedService()
-- [x] HomeScreen.kt - Modal AlertDialog integrado
-- [x] ServiceDetailModal.kt - Componente modal del detalle
-- [x] LaunchedEffect - Detecta cambios en detailedService
-
-#### Mejoras de Arquitectura
-- [x] ✨ Callbacks SOLO en Composables (NO en Data Classes)
-- [x] ✨ ServiceCardData solo contiene datos puros
-- [x] ✨ Callbacks se pasan como parámetros en composables
-- [x] ✨ Clean Architecture respetada (Separation of Concerns)
-
-#### Dependency Injection
-- [x] UseCaseModule.kt - provideGetDetailedServiceUseCase()
-- [x] Inyección automática en MechanicsViewModel
-
-#### Características Implementadas
-- [x] ✨ Cargar detalles de servicio desde API
-- [x] ✨ Modal elegante con AlertDialog
-- [x] ✨ Manejo de estados (Loading, Success, Error, Idle)
-- [x] ✨ Callbacks sin redefinir en múltiples lugares
-- [x] ✨ Data classes puros sin lógica
-- [x] ✨ Flow reactivo completo
-- [x] ✨ Logging completo en Logcat
-
-### 🚧 v1.7.0 (Próximo)
-
-#### Room Database
-- [ ] Crear entidades de datos
-- [ ] Implementar DAOs para servicios
-- [ ] Configurar AppDatabase
-- [ ] Migrations automáticas
-
-#### Sincronización
-- [ ] Sincronización automática de servicios
-- [ ] Caching offline-first
-- [ ] Conflicto resolution
-
-#### Task Management
-- [ ] Panel de tareas (checklist)
+- [ ] Panel de tareas (checklist) con progreso
 - [ ] Captura de evidencia (imágenes)
-- [ ] Completar servicio con datos
+- [ ] Sincronización de imágenes
+- [ ] Escaneo QR/Barcode
 
 ---
 
-## 📝 Conventional Commits - Tipos de Commits ✨ NUEVO
+## 📝 Conventional Commits - Tipos de Commits
 
-### Estándar de Mensajes de Commit
-
-Usamos **Conventional Commits** para mantener un historial limpio y consistente.
-
-#### **Formato Base**
+### Formato Base
 
 ```
 tipo(alcance): descripción breve
@@ -778,278 +512,39 @@ tipo(alcance): descripción breve
 [pie opcional - información adicional, breaking changes, etc]
 ```
 
-#### **Tipos de Commits**
+### Tipos Principales
 
 | Tipo | Descripción | Ejemplo |
 |------|-------------|---------|
-| **feat** | Nueva característica | `feat(auth): Implementar login con Azure` |
-| **fix** | Corrección de bug | `fix(ui): Corregir altura de LazyColumn` |
-| **refactor** | Cambio de código sin características nuevas | `refactor(callbacks): Mover callbacks a Composables` |
-| **docs** | Cambios en documentación | `docs: Actualizar README con v1.6.0` |
-| **test** | Cambios en tests | `test(viewmodel): Agregar pruebas a MechanicsViewModel` |
-| **chore** | Cambios en config, dependencias | `chore(gradle): Actualizar Compose a 1.6.0` |
-| **style** | Cambios de formato y estilos | `style: Formatear código según ktlint` |
-| **perf** | Mejoras de performance | `perf(list): Optimizar renderizado de servicios` |
-| **ci** | Cambios en CI/CD | `ci: Configurar GitHub Actions` |
+| **feat** | Nueva característica | `feat(database): Implementar Room Database` |
+| **fix** | Corrección de bug | `fix(ui): Corregir altura de componente` |
+| **refactor** | Cambio sin nuevas características | `refactor(callbacks): Mover a Composables` |
+| **docs** | Cambios en documentación | `docs: Actualizar README` |
+| **chore** | Cambios en config/deps | `chore(gradle): Actualizar dependencias` |
 
-#### **Alcance (Scope) Recomendado**
-
+### Alcances Recomendados
 ```
-Alcances comunes en este proyecto:
-- auth          : Autenticación y login
-- api           : Integración con backend/API
-- ui            : Componentes de UI
-- viewmodel     : ViewModels y lógica
-- database      : Room y persistencia
-- navigation    : Navegación entre pantallas
-- theme         : Temas y estilos
-- callbacks     : Manejo de callbacks
-- service-list  : Listado de servicios
-- service-detail: Detalles del servicio ✨ NUEVO
-- di            : Inyección de dependencias
-- readme        : Documentación
+- auth           : Autenticación
+- api            : Backend integration
+- database       : Room & persistencia        ✨ NUEVO
+- sync           : Sincronización de datos   ✨ NUEVO
+- ui             : Componentes UI
+- viewmodel      : ViewModels
+- service-detail : Detalles del servicio
+- di             : Inyección de dependencias
+- readme         : Documentación
 ```
-
-#### **Ejemplos Prácticos para Este Proyecto**
-
-##### ✅ **Commits Bien Formados**
-
-```bash
-# Característica nueva
-git commit -m "feat(service-detail): Implementar carga y modal de detalles
-
-- Agregar GetDetailedServiceUseCase
-- Implementar endpoint detailedService() en repositorio
-- Agregar StateFlow detailedService en MechanicsViewModel
-- Crear modal AlertDialog en HomeScreen"
-
-# Corrección de bug
-git commit -m "fix(ui): Corregir texto cortado en ServiceBadge
-
-El badge 'Reprogramado' se cortaba en algunos dispositivos.
-Agregado overflow: TextOverflow.Ellipsis y maxLines = 1"
-
-# Refactorización
-git commit -m "refactor(callbacks): Mover callbacks de Data Class a Composable
-
-BREAKING CHANGE: ServiceCardData ahora no contiene onCompleteClick
-Los callbacks ahora son parámetros en ServiceListSectionOrganism"
-
-# Documentación
-git commit -m "docs(readme): Actualizar documentación para v1.6.0
-
-- Agregar sección Service Detail
-- Agregar Git Workflow con pasos detallados
-- Actualizar estructura del proyecto
-- Agregar checklist de cambios"
-
-# Optimización de dependencias
-git commit -m "chore(deps): Actualizar Compose a 1.6.0"
-
-# Mejora de performance
-git commit -m "perf(service-list): Reducir recomposiciones en LazyColumn
-
-Usar remember para prevenir recomposiciones innecesarias
-Resultó en reducción de 40% en CPU"
-
-# Cambio de estilos
-git commit -m "style: Formatear código con ktlint
-
-Aplicar reglas de linting a todas las clases"
-
-# Cambios en pruebas
-git commit -m "test(viewmodel): Agregar pruebas a MechanicsViewModel
-
-- Test para loadAssignedServices()
-- Test para loadDetailedService()
-- Mock de API responses"
-```
-
-##### ❌ **Commits Mal Formados (evitar)**
-
-```bash
-# ❌ Sin tipo
-git commit -m "Agregar feature"
-
-# ❌ Demasiado genérico
-git commit -m "fix: arreglar cosas"
-
-# ❌ Muy largo sin saltos
-git commit -m "feat: implementar login con azure integracion..."
-
-# ❌ Mayúsculas excesivas
-git commit -m "FEAT: IMPLEMENTAR NUEVA CARACTERISTICA"
-
-# ❌ Sin descripción clara
-git commit -m "update"
-
-# ❌ Sin alcance cuando es necesario
-git commit -m "feat: cambios varios"
-```
-
-#### **BREAKING CHANGES**
-
-Si tu cambio rompe compatibilidad con versiones anteriores:
-
-```bash
-# Opción 1: Con ! después del tipo
-git commit -m "refactor(callbacks)!: Mover callbacks a Composables
-
-Detalles: ServiceCardData ya no contiene callbacks.
-Los callbacks ahora son parámetros en el Composable.
-
-BREAKING CHANGE: onCompleteClick removido de ServiceCardData"
-
-# Opción 2: En pie de página
-git commit -m "refactor: Cambiar estructura de ServiceCardData
-
-BREAKING CHANGE: onCompleteClick y onRescheduleClick removidos"
-```
-
-#### **Tips para Mejores Commits**
-
-1. **Sé específico** - Describe QUÉ cambió, no solo CÓMO
-   ```bash
-   ❌ git commit -m "feat: cambios"
-   ✅ git commit -m "feat(service-detail): Agregar modal con detalles"
-   ```
-
-2. **Usa imperativo** - "Agregar" no "Agregado" o "Agregué"
-   ```bash
-   ❌ git commit -m "Agregué la función loadDetailedService"
-   ✅ git commit -m "feat: Agregar función loadDetailedService"
-   ```
-
-3. **Limita primera línea a 50 caracteres**
-   ```bash
-   ❌ git commit -m "feat(service-detail): Implementar carga de detalles del servicio con modal y manejo de errores completo"
-   ✅ git commit -m "feat(service-detail): Implementar carga y modal de detalles"
-   ```
-
-4. **Agrupa cambios relacionados**
-   ```bash
-   ✅ Un commit por feature/fix pequeño
-   ❌ Mezclar auth + ui + database en un solo commit
-   ```
-
-5. **Revisa antes de commitear**
-   ```bash
-   git diff --staged  # Ver exactamente qué va en el commit
-   ```
 
 ---
 
-## 🚀 Git Workflow - Subir Cambios a GitHub ✨ NUEVO
+## 🚀 Git Workflow - Subir Cambios a GitHub
 
-### Pasos Paso a Paso para Subir a GitHub
-
-#### **Paso 1: Verificar Estado de Cambios**
+### Pasos Completos
 
 ```bash
-# Ver archivos modificados
+# 1. Ver cambios
 git status
-
-# Ver diferencias detalladas
 git diff
-
-# Ver diferencias de archivos específicos
-git diff app/src/main/java/com/lossabinos/serviceapp/presentation/
-```
-
-#### **Paso 2: Agregar Cambios al Stage**
-
-```bash
-# Opción A: Agregar todos los cambios
-git add .
-
-# Opción B: Agregar archivos específicos
-git add app/src/main/java/com/lossabinos/serviceapp/viewmodel/MechanicsViewModel.kt
-git add app/src/main/java/com/lossabinos/serviceapp/screens/home/HomeScreen.kt
-git add README.md
-
-# Opción C: Agregar directorios específicos
-git add app/src/main/java/com/lossabinos/serviceapp/domain/usecases/
-git add app/src/main/java/com/lossabinos/serviceapp/data/mappers/
-```
-
-#### **Paso 3: Ver Cambios en Stage**
-
-```bash
-# Ver archivos que serán commiteados
-git status
-
-# Ver diferencias en staging
-git diff --staged
-```
-
-#### **Paso 4: Crear Commit con Mensaje Descriptivo**
-
-```bash
-# Commit simple
-git commit -m "Agregar servicio de detalles del servicio"
-
-# Commit con descripción detallada (recomendado)
-git commit -m "feat: Implementar Service Detail con modal
-
-- Agregar endpoint GET /api/v1/mechanics/me/assigned-services/{idService}
-- Crear GetDetailedServiceUseCase
-- Implementar DetailedServiceResponseDTO
-- Agregar StateFlow detailedService en MechanicsViewModel
-- Crear modal AlertDialog en HomeScreen
-- Agregar estado Idle a Result sealed class
-- Mejorar callbacks: solo en Composables (Clean Architecture)
-- Actualizar DI con provideGetDetailedServiceUseCase()
-
-BREAKING CHANGE: ServiceCardData ahora no contiene callbacks (callbacks en Composable)"
-```
-
-#### **Paso 5: Verificar Log de Commits**
-
-```bash
-# Ver últimos commits
-git log --oneline -10
-
-# Ver commit específico
-git log -1
-git show HEAD
-```
-
-#### **Paso 6: Subir a GitHub**
-
-```bash
-# Opción A: Push a rama actual (main/develop)
-git push
-
-# Opción B: Push explícito
-git push origin main
-
-# Opción C: Si es la primera vez en esa rama
-git push -u origin main
-
-# Opción D: Forzar push (⚠️ cuidado)
-git push --force
-```
-
-#### **Paso 7: Verificar en GitHub**
-
-```bash
-# Abrir en navegador
-https://github.com/genaro-velazquez/los-sabinos-service-app-android
-
-# Ver commits
-https://github.com/genaro-velazquez/los-sabinos-service-app-android/commits
-
-# Ver cambios en rama
-https://github.com/genaro-velazquez/los-sabinos-service-app-android/tree/main
-```
-
----
-
-### 📋 Flujo Completo Recomendado
-
-```bash
-# 1. Verificar cambios
-git status
 
 # 2. Agregar cambios
 git add .
@@ -1057,11 +552,22 @@ git add .
 # 3. Revisar staging
 git status
 
-# 4. Crear commit con mensaje descriptivo
-git commit -m "feat: Implementar Service Detail con modal
+# 4. Crear commit
+git commit -m "feat(database): Implementar Room Database offline-first
 
-Agregar funcionalidad para cargar detalles específicos de un servicio
-y mostrarlos en un modal elegante con AlertDialog."
+Cambios principales:
+- Agregar 6 entities (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
+- Implementar InitialDataDao con operaciones CRUD
+- Crear AppDatabase con version = 2
+- Agregar InitialDataMappers (Entity → Domain)
+- Implementar saveToRoom() en MechanicsRepository
+- Implementar getLocalInitialData() para lectura offline
+- Crear GetLocalInitialDataUseCase consolidado
+- Agregar loadLocalData() en MechanicsViewModel
+- Actualizar HomeScreen para leer de Room
+- Configurar DatabaseModule con fallbackToDestructiveMigration
+- Sincronización automática (API → Room) al login
+- App ahora funciona sin conexión a internet ✨"
 
 # 5. Ver log
 git log --oneline -5
@@ -1069,129 +575,46 @@ git log --oneline -5
 # 6. Subir a GitHub
 git push
 
-# 7. Verificar en GitHub (abrir navegador)
+# 7. Verificar en GitHub
 ```
 
----
-
-### 🔄 Comandos Útiles Adicionales
+### Comandos Útiles
 
 ```bash
-# Ver ramas disponibles
+# Ver ramas
 git branch -a
 
-# Cambiar de rama
-git checkout develop
-git checkout -b feature/new-feature
+# Ver cambios específicos
+git diff app/src/main/java/com/lossabinos/serviceapp/data/
 
-# Ver cambios no commiteados
-git diff HEAD
+# Revertir cambios
+git checkout -- archivo.kt
 
-# Revertir cambios de un archivo
-git checkout -- app/src/main/java/...
-
-# Eliminar cambios no staged
-git restore app/src/main/java/...
-
-# Ver historial detallado
+# Ver histórico
 git log --oneline --graph --all
 
-# Comparar ramas
+# Comparar con rama anterior
 git diff main develop
-
-# Ver quién cambió qué
-git blame app/src/main/java/...
-
-# Ver cambios de un archivo específico
-git log --oneline -- app/src/main/java/...
 ```
 
 ---
 
-### 📝 Ejemplo Completo: Tu Caso
-
-```bash
-# 1. Verificar estado
-git status
-# On branch main
-# Changes not staged for commit:
-#   modified:   README.md
-#   modified:   app/src/.../MechanicsViewModel.kt
-#   modified:   app/src/.../HomeScreen.kt
-#   new file:   app/src/.../GetDetailedServiceUseCase.kt
-#   new file:   app/src/.../DetailedServiceResponseDTO.kt
-
-# 2. Agregar cambios
-git add .
-
-# 3. Commit
-git commit -m "feat(service-detail): Implementar carga y modal de detalles del servicio
-
-- Agregar GetDetailedServiceUseCase para cargar detalles
-- Implementar detailedService() en repositorio
-- Agregar StateFlow detailedService en MechanicsViewModel
-- Crear modal AlertDialog en HomeScreen
-- Mejorar callbacks: solo en Composables
-- Actualizar README con documentación completa"
-
-# 4. Push
-git push
-
-# 5. Ver en GitHub (abrir en navegador)
-open "https://github.com/genaro-velazquez/los-sabinos-service-app-android"
-```
-
----
-
-## 🔍 Debugging & Logging
-
-### CURL Logging para Service Detail
-
-```bash
-# En Logcat buscar:
-curl -X GET 'https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net/api/v1/mechanics/me/assigned-services/SERVICE_ID_HERE' \
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
-  -H 'X-App-Version: 1.0.0' \
-  -H 'X-Android-Version: 14' \
-  -H 'X-LOS-SABINOS-PLATFORM-TYPE: app'
-```
-
-### ViewModel Logging
-
-```kotlin
-// MechanicsViewModel.kt
-fun loadDetailedService(idService: String) {
-    viewModelScope.launch {
-        try {
-            _detailedService.value = Result.Loading
-            println("🔄 Cargando detalles del servicio: $idService")
-            val response = getDetailedServiceUseCase.execute(idService = idService)
-            println("✅ Detalles cargados: ${response.serviceExecutionId}")
-            _detailedService.value = Result.Success(response)
-        } catch (e: Exception) {
-            println("❌ Error: ${e.message}")
-            _detailedService.value = Result.Error(e)
-        }
-    }
-}
-```
-
----
-
-## 📊 Métricas del Proyecto - Actualizado ✨
+## 📊 Métricas del Proyecto
 
 - **ViewModels**: 4 (Splash, Login, Home, Mechanics)
-- **UseCases**: 5+ (Authentication, Preferences, Mechanics Services, Detailed Service)
-- **Repositories**: 4 (Authentication, UserPreferences, Mechanics, Local)
-- **Componentes Atomic Design**: 28+ (9 Atoms, 6 Molecules, 6+ Organisms)
+- **UseCases**: 6+ (Auth, Preferences, Services, DetailedService, LocalData)
+- **Room Entities**: 6 (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
+- **DAOs**: 1+ (InitialDataDao)
 - **Servicios Retrofit**: 2 (Authentication, Mechanics)
-- **Endpoints Implementados**: 3 (Login, AssignedServices, DetailedService)
-- **Líneas de código**: ~9000+ 
-- **Versión**: 1.6.0
-- **Status**: Service Detail implementado con arquitectura limpia ✨
+- **Endpoints**: 3 (Login, AssignedServices, DetailedService)
+- **UI Componentes**: 28+ (Atomic Design)
+- **Líneas de código**: ~12000+
+- **Versión**: 1.7.0
+- **Status**: Room Database + Offline-First completo ✨
 
 ---
 
-**Última actualización:** Noviembre 30, 2025  
-**Versión:** 1.6.0  
-**Estado:** Service Detail implementado con modal y callbacks en Composables ✨
+**Última actualización:** Diciembre 5, 2025  
+**Versión:** 1.7.0  
+**Estado:** Room Database & Offline-First implementado ✨  
+**Arquitectura:** Clean Architecture + MVVM + Repository + Offline-First

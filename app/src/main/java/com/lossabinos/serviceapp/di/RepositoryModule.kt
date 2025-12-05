@@ -3,6 +3,7 @@ package com.lossabinos.serviceapp.di
 import android.content.SharedPreferences
 import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
 import com.lossabinos.data.dto.utilities.HeadersMaker
+import com.lossabinos.data.local.database.dao.InitialDataDao
 import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
 import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepository
@@ -57,11 +58,13 @@ object RepositoryModule {
     @Provides
     fun provideMechanicsRepository(
         mechanicsServices: MechanicsServices,
-        headersMaker: HeadersMaker
+        headersMaker: HeadersMaker,
+        initialDataDao: InitialDataDao
     ): MechanicsRepository{
         return MechanicsRetrofitRepository(
             assignedServices = mechanicsServices,
-            headersMaker = headersMaker
+            headersMaker = headersMaker,
+            initialDataDao = initialDataDao
         )
     }
 

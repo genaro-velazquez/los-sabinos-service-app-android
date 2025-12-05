@@ -46,16 +46,33 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.lossabinos.domain.responses.DetailedServiceResponse
 
+
+
+
+
+
+
+
+
+
+
+
 /**
- * HomePage - Página principal de la aplicación ✨ ACTUALIZADA
+ * HomePage - Página principal de la aplicación ✨ ACTUALIZADA CON ROOM
  *
  * Estructura Atomic Design:
  * - Atoms: Avatar, MetricIcon, StatusBadge, ActionButton, PrimaryButton, StatusText
  * - Molecules: UserHeader, MetricCard, StatusSection, UnsyncSection, ModalButtonGroup
  * - Organisms: HomeHeaderSection, MetricsSection, SyncSection, ConfirmationDialog
- *             ActionCardsSection, ServiceListSectionOrganism ✨ NUEVO
- * - Template: HomeTemplate (estructura sin datos) ✨ ACTUALIZADO
- * - Page: HomePage (pantalla completa con datos) ✨ ACTUALIZADO
+ *             ActionCardsSection, ServiceListSectionOrganism
+ * - Template: HomeTemplate (estructura sin datos)
+ * - Page: HomePage (pantalla completa con datos)
+ *
+ * Flujo de datos:
+ * 1. loadInitialData() → API → syncInitialDataState
+ * 2. loadLocalData() → Room → localInitialDataState
+ * 3. dataToDisplay selecciona: API primero, Room como fallback
+ * 4. UI muestra dataToDisplay
  *
  * @param onLogoutConfirmed Callback cuando confirma logout
  * @param onSettingsClick Callback para settings
@@ -64,10 +81,11 @@ import com.lossabinos.domain.responses.DetailedServiceResponse
  * @param onCameraClick Callback para cámara
  * @param onReportsClick Callback para reportes
  * @param onLocationClick Callback para ubicación
- * @param onServiceComplete Callback para completar servicio ✨ NUEVO
- * @param onServiceReschedule Callback para reprogramar servicio ✨ NUEVO
+ * @param onServiceComplete Callback para completar servicio
+ * @param onServiceReschedule Callback para reprogramar servicio
  * @param modifier Modifier para personalización
- * @param viewModel ViewModel del Home (inyectado por Hilt)
+ * @param homeViewModel ViewModel del Home (inyectado por Hilt)
+ * @param mechanicsViewModel ViewModel de Mecánicos (inyectado por Hilt)
  */
 @Composable
 fun HomeScreen(
@@ -78,8 +96,8 @@ fun HomeScreen(
     onCameraClick: () -> Unit = {},
     onReportsClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
-    onServiceComplete: (String) -> Unit = {},      // ✨ NUEVO
-    onServiceReschedule: (String) -> Unit = {},    // ✨ NUEVO
+    onServiceComplete: (String) -> Unit = {},
+    onServiceReschedule: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = hiltViewModel(),
     mechanicsViewModel: MechanicsViewModel = hiltViewModel()
@@ -92,30 +110,40 @@ fun HomeScreen(
     // Observar estado (nombre, ubicación, etc.)
     val state = homeViewModel.state.collectAsState().value
 
-    // Estado de servicios asignados (lista)
-    val servicesState = mechanicsViewModel.assignedServices.collectAsState().value
+    // Estado de la carga inicial desde API
+    val syncInitialDataState = mechanicsViewModel.syncInitialData.collectAsState().value
+
+    // Estado de la carga inicial desde Room (NUEVO)
+    val localInitialDataState = mechanicsViewModel.localInitialData.collectAsState().value
 
     // Estado de servicio detallado
     val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
 
-    // Estado de la carga inicial
-    val syncInitialDataState = mechanicsViewModel.syncInitialData.collectAsState().value
+    // ==========================================
+    // LÓGICA: DECIDIR QUÉ DATOS MOSTRAR
+    // ==========================================
+    // Preferencia: API primero, luego Room como fallback
+    val dataToDisplay = when {
+        syncInitialDataState is Result.Success -> (syncInitialDataState as Result.Success).data
+        localInitialDataState is Result.Success -> (localInitialDataState as Result.Success).data
+        else -> null
+    }
 
     // ==========================================
     // EFECTOS LATERALES
     // ==========================================
 
-    // Cargar servicios asignados al abrir la pantalla
+    // Cargar datos al abrir la pantalla
     LaunchedEffect(Unit) {
-        //mechanicsViewModel.loadAssignedServices()
-        mechanicsViewModel.loadInitialData()
+        mechanicsViewModel.loadInitialData()   // Intenta desde API
+        mechanicsViewModel.loadLocalData()     // Carga fallback desde Room
     }
 
     // ==========================================
     // STATE PARA CONTROLAR MODAL DE DETALLES
     // ==========================================
 
-    var selectedServiceId by  remember { mutableStateOf<String?>(null) }
+    var selectedServiceId by remember { mutableStateOf<String?>(null) }
     var showDetailModal by remember { mutableStateOf(false) }
 
     // Observar cambios en detailedService
@@ -127,7 +155,7 @@ fun HomeScreen(
             }
             is Result.Error -> {
                 // Manejar error
-                println("Error al cargar detalles del servicio: ${detailedServiceState.exception.message}")
+                println("❌ Error al cargar detalles del servicio: ${detailedServiceState.exception.message}")
             }
             else -> {
                 // Loading o Idle
@@ -138,7 +166,6 @@ fun HomeScreen(
     // ==========================================
     // DEFINIR ACCIONES RÁPIDAS
     // ==========================================
-    // Definir acciones para las tarjetas de ActionCards
     val actionCards = listOf(
         ActionCardModel(
             id = "camera",
@@ -161,53 +188,9 @@ fun HomeScreen(
     )
 
     // ==========================================
-    // CONVERTIR RESPUESTA A SERVICECARD DATA
-    // ==========================================
-    // Convertir datos reales a ServiceCardData
-    /*
-    val services = when (servicesState) {
-        is Result.Loading -> {
-            // Mostrar lista vacía mientras carga
-            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
-        }
-        is Result.Success -> {
-            servicesState.data.workOrder
-                .flatMap { workOrder ->
-                    workOrder.assignedServices.map { service ->
-                        ServiceCardData(
-                            id = service.id,
-                            excecutionId = service.executionId,
-                            title = service.serviceType.name,
-                            clientName = workOrder.vehicle.licensePlate,
-                            icon = Icons.Filled.Build,
-                            status = service.status.replaceFirstChar { it.uppercase() },
-                            startTime = service.scheduledStart ?: "N/A",
-                            endTime = service.scheduledEnd ?: "N/A",
-                            duration = "${service.serviceType.estimatedDurationMinutes} min",
-                            address = workOrder.zone.name,
-                            priority = service.priority.replaceFirstChar { it.uppercase() } ?: "Media",
-                            note = service.notes,
-                            onCompleteClick = { onServiceComplete(service.executionId) },
-                            onRescheduleClick = { onServiceReschedule(service.id) }
-                        )
-                    }
-                }
-        }
-        is Result.Error -> {
-            // En caso de error, mostrar lista vacía (manejaremos el error abajo)
-            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
-        }
-        else -> {
-            emptyList<ServiceCardData>()  // ✨ ESPECIFICAR TIPO
-        }
-    }
-    */
-
-    // ==========================================
     // MODAL DE CONFIRMACIÓN (LOGOUT)
     // ==========================================
 
-    // Mostrar modal de confirmación si es necesario
     if (state.showLogoutDialog) {
         ConfirmationDialog(
             title = "Cerrar Sesión",
@@ -215,16 +198,13 @@ fun HomeScreen(
             primaryButtonText = "Cerrar Sesión",
             secondaryButtonText = "Cancelar",
             onPrimaryClick = {
-                // Confirmar logout
                 homeViewModel.onEvent(HomeEvent.ConfirmLogout)
                 onLogoutConfirmed()
             },
             onSecondaryClick = {
-                // Cancelar logout
                 homeViewModel.onEvent(HomeEvent.CancelLogout)
             },
             onDismiss = {
-                // Cerrar dialog
                 homeViewModel.onEvent(HomeEvent.CancelLogout)
             }
         )
@@ -252,7 +232,7 @@ fun HomeScreen(
         // 1. Header del usuario
         headerSection = {
             HomeHeaderSection(
-                userName = state.userName,
+                userName = dataToDisplay?.mechanic?.name ?: state.userName,
                 userLocation = state.userLocation,
                 isOnline = true,
                 onSettingsClick = onSettingsClick,
@@ -266,8 +246,8 @@ fun HomeScreen(
             SyncSection(
                 statusText = "Estás en línea",
                 lastSyncText = "Última sincronización: Hoy 10:45 AM",
-                unsyncTitle = "4 Servicios",
-                unsyncDetails = "2 Firmas, 8 Fotos, 1 Observación",
+                unsyncTitle = "${dataToDisplay?.syncMetadata?.totalServices ?: 0} Servicios",
+                unsyncDetails = "${dataToDisplay?.syncMetadata?.pendingServices ?: 0} Pendientes, ${dataToDisplay?.syncMetadata?.inProgressServices ?: 0} En Progreso",
                 onSyncClick = onSyncClick,
                 onSyncNowClick = onSyncNowClick
             )
@@ -278,7 +258,7 @@ fun HomeScreen(
                 actions = actionCards,
                 title = "Acciones Rápidas",
                 onActionClick = { actionId ->
-                    println("Action selected: $actionId")
+                    println("✅ Action selected: $actionId")
                 },
                 columns = 3
             )
@@ -286,17 +266,17 @@ fun HomeScreen(
         // 4. Métricas
         metricsSection = {
             MetricsSection(
-                completedCount = "12",
-                inProgressCount = "3",
-                pendingCount = "5",
+                completedCount = "0",
+                inProgressCount = (dataToDisplay?.syncMetadata?.inProgressServices ?: 0).toString(),
+                pendingCount = (dataToDisplay?.syncMetadata?.pendingServices ?: 0).toString(),
                 efficiencyPercentage = "92%"
             )
         },
-        // 5. Lista de servicios ✨ NUEVO
+        // 5. Lista de servicios
         serviceListSection = {
-            when (servicesState) {
-                is Result.Loading -> {
-                    // Mostrar loading
+            when {
+                // Estado LOADING
+                syncInitialDataState is Result.Loading || localInitialDataState is Result.Loading -> {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -306,62 +286,61 @@ fun HomeScreen(
                         CircularProgressIndicator()
                     }
                 }
-                is Result.Success -> {
+                // Estado SUCCESS - Datos disponibles
+                dataToDisplay != null -> {
+                    // Convertir AssignedService a ServiceCardData
+                    val services = dataToDisplay.assignedServices.map { service ->
+                        // Buscar tipo de servicio en la lista
+                        val serviceTypeName = dataToDisplay.serviceTypes
+                            .find { it.id == service.serviceTypeId }?.name
+                            ?: "Servicio"
 
-                    // Convertir datos reales a ServiceCardData
-                    val services = servicesState.data.workOrder
-                        .flatMap { workOrder ->
-                            workOrder.assignedServices.map { service ->
-                                ServiceCardData(
-                                    id              = service.id,
-                                    excecutionId    = service.executionId,
-                                    title           = service.serviceType.name,
-                                    clientName      = workOrder.vehicle.licensePlate,
-                                    icon            = Icons.Filled.Build,
-                                    status          = service.status.replaceFirstChar { it.uppercase() },
-                                    startTime       = service.scheduledStart ?: "N/A",
-                                    endTime         = service.scheduledEnd ?: "N/A",
-                                    duration        = "${service.serviceType.estimatedDurationMinutes} min",
-                                    address         = workOrder.zone.name,
-                                    priority        = service.priority.replaceFirstChar { it.uppercase() } ?: "Media",
-                                    note            = service.notes
-                                )
-                            }
-                        }
+                        ServiceCardData(
+                            id = service.id,
+                            excecutionId = service.id,
+                            title = serviceTypeName,
+                            clientName = "Cliente",  // Falta en AssignedService
+                            icon = Icons.Filled.Build,
+                            status = service.status.replaceFirstChar { it.uppercase() },
+                            startTime = service.scheduledStart,
+                            endTime = service.scheduledEnd,
+                            duration = "N/A",
+                            address = "N/A",
+                            priority = service.priority.replaceFirstChar { it.uppercase() },
+                            note = ""
+                        )
+                    }
 
                     if (services.isEmpty()) {
-                        // Mostrar mensaje si no hay servicios
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No hay servicios asignados")
+                            Text("✅ No hay servicios asignados")
                         }
                     } else {
-                        // Mostrar servicios
                         ServiceListSectionOrganism(
                             title = "Servicios Asignados",
                             services = services,
                             onServiceClick = { serviceId ->
-                                println("Service clicked: $serviceId")
+                                println("✅ Service clicked: $serviceId")
                             },
                             onCompleteClick = { serviceId ->
-                                println("Service completed: $serviceId")
+                                println("✅ Service completed: $serviceId")
                                 selectedServiceId = serviceId
                                 mechanicsViewModel.loadDetailedService(serviceId)
-                                //onServiceComplete(serviceId)
                             },
                             onRescheduleClick = { serviceId ->
-                                println("Service rescheduled: $serviceId")
+                                println("✅ Service rescheduled: $serviceId")
                                 onServiceReschedule(serviceId)
                             }
                         )
                     }
                 }
-                is Result.Error -> {
-                    // Mostrar error
+                // Estado ERROR
+                syncInitialDataState is Result.Error && localInitialDataState is Result.Error -> {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -372,17 +351,21 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Error al cargar servicios",
+                                text = "❌ Error al cargar servicios",
                                 color = MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = servicesState.exception.message ?: "Error desconocido",
+                                text = syncInitialDataState.let {
+                                    if (it is Result.Error) it.exception.message ?: "Error desconocido"
+                                    else "Error desconocido"
+                                },
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Button(
                                 onClick = {
-                                    mechanicsViewModel.loadAssignedServices()
+                                    mechanicsViewModel.loadInitialData()
+                                    mechanicsViewModel.loadLocalData()
                                 },
                                 modifier = Modifier.padding(top = 8.dp)
                             ) {
@@ -391,8 +374,17 @@ fun HomeScreen(
                         }
                     }
                 }
-
-                else -> {}
+                // Estado por defecto
+                else -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Cargando servicios...")
+                    }
+                }
             }
         },
         modifier = modifier
@@ -400,229 +392,59 @@ fun HomeScreen(
 }
 
 /**
-* Modal para mostrar detalles de un servicio ✨ NUEVO
-*
-* @param detailedService Datos detallados del servicio
-* @param onDismiss Callback cuando se cierra el modal
-*/
+ * Modal para mostrar detalles de un servicio
+ *
+ * @param detailedService Datos detallados del servicio
+ * @param onDismiss Callback cuando se cierra el modal
+ */
 @Composable
 fun ServiceDetailModal(
     detailedService: DetailedServiceResponse,
     onDismiss: () -> Unit
 ) {
-        AlertDialog(
-                    onDismissRequest = onDismiss,
-            title = {
-                    Text(
-                                text = "Detalles del Servicio",
-                        style = MaterialTheme.typography.headlineSmall
-                            )
-                },
-            text = {
-                    Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("ID Ejecución: ${detailedService.serviceExecutionId}")
-                        Text("ID Servicio: ${detailedService.serviceId}")
-                        Text("Tipo: ${detailedService.serviceType.name}")
-                        Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Detalles del Servicio",
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("ID Ejecución: ${detailedService.serviceExecutionId}")
+                Text("ID Servicio: ${detailedService.serviceId}")
+                Text("Tipo: ${detailedService.serviceType.name}")
+                Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
 
-                        // Mostrar información del servicio
-                        Text(
-                                    text = "Información",
-                            style = MaterialTheme.typography.labelMedium
-                                )
-                        Text(
-                                    text = detailedService.serviceInfo.status,
-                            fontSize = 12.sp
-                        )
-                    }
-                },
-            confirmButton = {
-                    Button(onClick = onDismiss) {
-                            Text("Cerrar")
-                        }
-                }
-        )
-    }
-
+                // Mostrar información del servicio
+                Text(
+                    text = "Información",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = detailedService.serviceInfo.status,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
+}
 
 /**
- * Preview de HomePage
+ * Preview de HomeScreen
  */
 @Preview(showSystemUi = true)
 @Composable
-fun HomePagePreview() {
+fun HomeScreenPreview() {
     LosabosTheme {
         HomeScreen()
     }
 }
-
-/**
- * NOTAS DE ACTUALIZACIÓN:
- *
- * ✨ CAMBIOS REALIZADOS:
- *
- * 1. Agregado parámetro serviceListSection a HomeTemplate
- *    - Integra la lista de servicios
- *    - Posicionada después de Metrics
- *
- * 2. Creado listado de ejemplo de servicios
- *    - 3 servicios de ejemplo con datos realistas
- *    - Diferentes tipos (Mantenimiento, Reparación, Inspección)
- *    - Estados variados (Programado, En Progreso, Pendiente)
- *    - Prioridades diferentes (Alta, Media, Baja)
- *
- * 3. Callbacks para acciones de servicios
- *    - onServiceComplete: cuando se completa un servicio
- *    - onServiceReschedule: cuando se reprograma un servicio
- *
- * 4. ServiceListSectionOrganism integrado
- *    - Muestra la lista de servicios
- *    - Maneja clicks en servicios
- *    - Maneja clicks en botones de acción
- *
- * PRÓXIMOS PASOS:
- *
- * 1. Conectar con ViewModel para obtener servicios reales
- * 2. Implementar lógica para completar/reprogramar servicios
- * 3. Agregar navegación a detalles de servicio
- * 4. Implementar escaneo de QR
- * 5. Agregar panel de tareas dentro de cada servicio
- */
-
-/*
-/**
- * HomePage - Página principal de la aplicación
- *
- * Estructura Atomic Design:
- * - Atoms: Avatar, MetricIcon, StatusBadge, ActionButton, PrimaryButton, StatusText
- * - Molecules: UserHeader, MetricCard, StatusSection, UnsyncSection, ModalButtonGroup
- * - Organisms: HomeHeaderSection, MetricsSection, SyncSection, ConfirmationDialog
- * - Template: HomeTemplate (estructura sin datos)
- * - Page: HomePage (pantalla completa con datos)
- *
- * @param onLogoutConfirmed Callback cuando confirma logout (debería navegar a Login)
- * @param onSettingsClick Callback para settings
- * @param onSyncClick Callback para sincronizar
- * @param onSyncNowClick Callback para sincronizar ahora
- * @param modifier Modifier para personalización
- * @param viewModel ViewModel del Home (inyectado por Hilt)
- */
-@Composable
-fun HomePage(
-    onLogoutConfirmed: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onSyncClick: () -> Unit = {},
-    onSyncNowClick: () -> Unit = {},
-    onCameraClick: () -> Unit = {},
-    onReportsClick: () -> Unit = {},
-    onLocationClick: () -> Unit = {},
-    onServiceComplete: (String) -> Unit = {},      // ✨ NUEVO
-    onServiceReschedule: (String) -> Unit = {},    // ✨ NUEVO
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
-) {
-    // ✅ Observar estado (nombre, ubicación, etc.)
-    val state = viewModel.state.collectAsState().value
-
-    // ✅ NUEVO: Definir acciones para las tarjetas de ActionCards
-    val actionCards = listOf(
-        ActionCardModel(
-            id = "camera",
-            title = "Cámara",
-            icon = Icons.Filled.Camera,
-            onClick = onCameraClick
-        ),
-        ActionCardModel(
-            id = "reports",
-            title = "Reportes",
-            icon = Icons.Filled.BarChart,
-            onClick = onReportsClick
-        ),
-        ActionCardModel(
-            id = "location",
-            title = "Ubicación",
-            icon = Icons.Filled.LocationOn,
-            onClick = onLocationClick
-        )
-    )
-
-
-    // Mostrar modal de confirmación si es necesario
-    if (state.showLogoutDialog) {
-        ConfirmationDialog(
-            title = "Cerrar Sesión",
-            content = "¿Estás seguro de que deseas cerrar sesión?",
-            primaryButtonText = "Cerrar Sesión",
-            secondaryButtonText = "Cancelar",
-            onPrimaryClick = {
-                // Confirmar logout
-                viewModel.onEvent(HomeEvent.ConfirmLogout)
-                onLogoutConfirmed()
-            },
-            onSecondaryClick = {
-                // Cancelar logout
-                viewModel.onEvent(HomeEvent.CancelLogout)
-            },
-            onDismiss = {
-                // Cerrar dialog
-                viewModel.onEvent(HomeEvent.CancelLogout)
-            }
-        )
-    }
-
-    HomeTemplate(
-        headerSection = {
-            HomeHeaderSection(
-                userName = state.userName,//"Isabella Rodriguez",
-                userLocation = state.userLocation ,//"Mexico City",
-                isOnline = true,
-                onSettingsClick = onSettingsClick,
-                onLogoutClick = {
-                    // Mostrar dialog de confirmación
-                    viewModel.onEvent(HomeEvent.LogoutClicked)
-                }
-            )
-        },
-        syncSection = {
-            SyncSection(
-                statusText = "Estás en línea",
-                lastSyncText = "Última sincronización: Hoy 10:45 AM",
-                unsyncTitle = "4 Servicios",
-                unsyncDetails = "2 Firmas, 8 Fotos, 1 Observación",
-                onSyncClick = onSyncClick,
-                onSyncNowClick = onSyncNowClick
-            )
-        },
-        actionsSection = {
-            ActionCardsSection(
-                actions = actionCards,
-                title = "Acciones Rápidas",
-                onActionClick = { actionId ->
-                    println("Action selected: $actionId")
-                    //viewModel.onActionSelected(actionId)
-                },
-                columns = 3  // Grid de 3 columnas
-            )
-        },
-        metricsSection = {
-            MetricsSection(
-                completedCount = "12",
-                inProgressCount = "3",
-                pendingCount = "5",
-                efficiencyPercentage = "92%"
-            )
-        },
-        modifier = modifier
-    )
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun HomePagePreview() {
-    LosabosTheme {
-        HomePage()
-    }
-}
-*/

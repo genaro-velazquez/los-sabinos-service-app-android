@@ -89,5 +89,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     // Hilt Navigation (para inyectar ViewModels)
     implementation(libs.androidx.hilt.navigation.compose)
-
+    // room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
 }

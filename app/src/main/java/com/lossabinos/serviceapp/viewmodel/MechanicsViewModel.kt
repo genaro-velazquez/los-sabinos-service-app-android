@@ -6,6 +6,7 @@ import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
+import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class MechanicsViewModel @Inject constructor(
     private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
     private val getDetailedServiceUseCase: GetDetailedServiceUseCase,
-    private val getInitialDataUseCase: GetSyncInitialDataUseCase
+    private val getInitialDataUseCase: GetSyncInitialDataUseCase,
+    private val getLocalInitialDataUseCase: GetLocalInitialDataUseCase
 ) : ViewModel(){
 
     // ==============
@@ -92,6 +94,31 @@ class MechanicsViewModel @Inject constructor(
             }
         }
     }
+
+    // ============== ← NUEVO
+    // DATOS LOCALES (desde Room)
+    // ==============
+    private val _localInitialData = MutableStateFlow<Result<InitialDataResponse>>(Result.Idle)
+    val localInitialData: StateFlow<Result<InitialDataResponse>> = _localInitialData.asStateFlow()
+
+    fun loadLocalData(){
+        viewModelScope.launch {
+            try {
+                _localInitialData.value = Result.Loading
+                val response = getLocalInitialDataUseCase()
+                if (response != null) {
+                    _localInitialData.value = Result.Success(data = response)
+                    println("✅ Datos cargados de Room: ${response.mechanic.name}")
+                } else {
+                    _localInitialData.value = Result.Error(exception = Exception("No hay datos locales"))
+                }
+            } catch (e: Exception) {
+                _localInitialData.value = Result.Error(exception = e)
+                println("❌ Error cargando datos locales: ${e.message}")
+            }
+        }
+    }
+
 }
 
 /**
