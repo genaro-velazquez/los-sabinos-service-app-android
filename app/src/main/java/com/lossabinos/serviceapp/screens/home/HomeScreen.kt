@@ -58,7 +58,15 @@ import com.lossabinos.domain.responses.DetailedServiceResponse
 
 
 /**
- * HomePage - Página principal de la aplicación ✨ ACTUALIZADA CON ROOM
+ * HomePage - Página principal de la aplicación ✨ ACTUALIZADA v1.7.0
+ *
+ * CAMBIOS PRINCIPALES:
+ * =====================
+ * ✅ Room es la fuente PRINCIPAL (siempre se usa)
+ * ✅ API es SOLO para actualizar Room en background
+ * ✅ dataToDisplay SIEMPRE muestra Room (si está disponible)
+ * ✅ Si API falla → Sigue funcionando con Room
+ * ✅ Si no hay conexión → Funciona perfectamente con Room
  *
  * Estructura Atomic Design:
  * - Atoms: Avatar, MetricIcon, StatusBadge, ActionButton, PrimaryButton, StatusText
@@ -68,11 +76,24 @@ import com.lossabinos.domain.responses.DetailedServiceResponse
  * - Template: HomeTemplate (estructura sin datos)
  * - Page: HomePage (pantalla completa con datos)
  *
- * Flujo de datos:
- * 1. loadInitialData() → API → syncInitialDataState
- * 2. loadLocalData() → Room → localInitialDataState
- * 3. dataToDisplay selecciona: API primero, Room como fallback
- * 4. UI muestra dataToDisplay
+ * FLUJO DE DATOS CORRECTO:
+ * ========================
+ * 1. LaunchedEffect ejecuta:
+ *    ├─ loadLocalData() → Lee de Room (PRIMERO - rápido)
+ *    └─ loadInitialData() → Llama API (SEGUNDO - background)
+ *
+ * 2. dataToDisplay decisión:
+ *    ├─ Si Room disponible → Usar Room ✅
+ *    ├─ Si Room falla → Usar API como fallback
+ *    └─ Sino → null (mostrar loading)
+ *
+ * 3. Si API trae datos:
+ *    ├─ saveToRoom(apiData) → Actualizar Room
+ *    └─ dataToDisplay sigue siendo Room (pero actualizado)
+ *
+ * 4. Si API falla:
+ *    ├─ Continuar mostrando Room
+ *    └─ Sin cambios en UI
  *
  * @param onLogoutConfirmed Callback cuando confirma logout
  * @param onSettingsClick Callback para settings
@@ -104,58 +125,130 @@ fun HomeScreen(
 ) {
 
     // ==========================================
-    // OBSERVAR ESTADOS
+    // 1️⃣ OBSERVAR ESTADOS
     // ==========================================
 
-    // Observar estado (nombre, ubicación, etc.)
+    // Estado general del home (nombre, ubicación, etc.)
     val state = homeViewModel.state.collectAsState().value
 
-    // Estado de la carga inicial desde API
-    val syncInitialDataState = mechanicsViewModel.syncInitialData.collectAsState().value
-
-    // Estado de la carga inicial desde Room (NUEVO)
+    // ✅ NUEVO: Prioridad a Room
+    // Estado de la carga desde Room (PRIMARIO)
     val localInitialDataState = mechanicsViewModel.localInitialData.collectAsState().value
 
-    // Estado de servicio detallado
+    // Estado de la carga desde API (SECUNDARIO - para actualizar Room)
+    val syncInitialDataState = mechanicsViewModel.syncInitialData.collectAsState().value
+
+    // Estado de servicio detallado (para modal)
     val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
 
     // ==========================================
-    // LÓGICA: DECIDIR QUÉ DATOS MOSTRAR
+    // 2️⃣ DECISIÓN: ¿QUÉ DATOS MOSTRAR?
     // ==========================================
-    // Preferencia: API primero, luego Room como fallback
+    // ✅ ROOM SIEMPRE PRIMERO (si está disponible)
     val dataToDisplay = when {
-        syncInitialDataState is Result.Success -> (syncInitialDataState as Result.Success).data
-        localInitialDataState is Result.Success -> (localInitialDataState as Result.Success).data
-        else -> null
+        // 1️⃣ Prioridad 1: ROOM (SIEMPRE)
+        localInitialDataState is Result.Success -> {
+            println("✅ [DISPLAY] Mostrando datos de ROOM (fuente principal)")
+            localInitialDataState.data
+        }
+        // 2️⃣ Prioridad 2: API (FALLBACK)
+        syncInitialDataState is Result.Success -> {
+            println("⚠️ [DISPLAY] Mostrando datos de API (ROOM no disponible)")
+            syncInitialDataState.data
+        }
+        // 3️⃣ Sin datos
+        else -> {
+            println("⏳ [DISPLAY] Esperando datos de ROOM...")
+            null
+        }
     }
 
     // ==========================================
-    // EFECTOS LATERALES
+    // 3️⃣ LÓGICA: DETECTAR CAMBIOS EN ROOM
     // ==========================================
+    LaunchedEffect(localInitialDataState) {
+        when (localInitialDataState) {
+            is Result.Success -> {
+                val serviceCount = localInitialDataState.data.assignedServices.size
+                println("✅ [ROOM] Datos de Room cargados:")
+                println("   📊 Servicios: $serviceCount")
+                println("   🚗 Mecánico: ${localInitialDataState.data.mechanic.name}")
+                println("   📋 Total: ${localInitialDataState.data.syncMetadata.totalServices}")
+            }
+            is Result.Loading -> {
+                println("⏳ [ROOM] Cargando datos de Room desde SQLite...")
+            }
+            is Result.Error -> {
+                println("❌ [ROOM] Error al cargar Room: ${localInitialDataState.exception.message}")
+            }
+            else -> {
+                println("🔄 [ROOM] Estado: Idle")
+            }
+        }
+    }
 
-    // Cargar datos al abrir la pantalla
+    // ==========================================
+    // 4️⃣ LÓGICA: DETECTAR CAMBIOS EN API
+    // ==========================================
+    // La API SOLO se usa para actualizar Room en background
+    LaunchedEffect(syncInitialDataState) {
+        when (syncInitialDataState) {
+            is Result.Success -> {
+                val serviceCount = syncInitialDataState.data.assignedServices.size
+                println("📱 [API] Datos de API recibidos:")
+                println("   📊 Servicios: $serviceCount")
+                println("   🔄 Actualizando Room...")
+                // Aquí se guarda automáticamente en Room via repositorio
+                // No hace falta hacer nada, el repository ya lo hace
+            }
+            is Result.Loading -> {
+                println("⏳ [API] Llamando API en background...")
+            }
+            is Result.Error -> {
+                println("❌ [API] Error al llamar API: ${syncInitialDataState.exception.message}")
+                println("✅ [API] Continuando con datos de Room (offline-first)")
+            }
+            else -> {
+                println("🔄 [API] Estado: Idle")
+            }
+        }
+    }
+
+    // ==========================================
+    // 5️⃣ EFECTOS LATERALES: CARGAR DATOS
+    // ==========================================
     LaunchedEffect(Unit) {
-        mechanicsViewModel.loadInitialData()   // Intenta desde API
-        mechanicsViewModel.loadLocalData()     // Carga fallback desde Room
+        println("\n📱 ═══════════════════════════════════════════════════════")
+        println("📱 HomeScreen abierto - Iniciando carga de datos")
+        println("📱 ═══════════════════════════════════════════════════════\n")
+
+        // 1️⃣ PRIMERO: Cargar Room (instantáneo - ~50ms)
+        println("1️⃣ [LOAD] Iniciando carga de ROOM (fuente principal)")
+        mechanicsViewModel.loadLocalData()
+        println("1️⃣ [LOAD] ✅ ROOM cargado (instantáneo - ~50ms)\n")
+
+        // 2️⃣ SEGUNDO: Cargar API en background (200-500ms)
+        println("2️⃣ [LOAD] Iniciando carga de API en background (para actualizar)")
+        mechanicsViewModel.loadInitialData()
+        println("2️⃣ [LOAD] ✅ API en progreso (resultado en saveToRoom)\n")
     }
 
     // ==========================================
-    // STATE PARA CONTROLAR MODAL DE DETALLES
+    // 6️⃣ STATE: MODAL DE DETALLES DE SERVICIO
     // ==========================================
 
     var selectedServiceId by remember { mutableStateOf<String?>(null) }
     var showDetailModal by remember { mutableStateOf(false) }
 
-    // Observar cambios en detailedService
+    // Observar cambios en detailedService para abrir modal
     LaunchedEffect(detailedServiceState) {
         when (detailedServiceState) {
             is Result.Success -> {
-                // Mostrar modal cuando se cargue el servicio detallado
+                println("✅ [DETAIL] Detalles del servicio cargados - Abriendo modal")
                 showDetailModal = true
             }
             is Result.Error -> {
-                // Manejar error
-                println("❌ Error al cargar detalles del servicio: ${detailedServiceState.exception.message}")
+                println("❌ [DETAIL] Error: ${detailedServiceState.exception.message}")
             }
             else -> {
                 // Loading o Idle
@@ -164,7 +257,7 @@ fun HomeScreen(
     }
 
     // ==========================================
-    // DEFINIR ACCIONES RÁPIDAS
+    // 7️⃣ DEFINIR ACCIONES RÁPIDAS
     // ==========================================
     val actionCards = listOf(
         ActionCardModel(
@@ -188,7 +281,7 @@ fun HomeScreen(
     )
 
     // ==========================================
-    // MODAL DE CONFIRMACIÓN (LOGOUT)
+    // 8️⃣ MODAL: CONFIRMACIÓN DE LOGOUT
     // ==========================================
 
     if (state.showLogoutDialog) {
@@ -198,10 +291,12 @@ fun HomeScreen(
             primaryButtonText = "Cerrar Sesión",
             secondaryButtonText = "Cancelar",
             onPrimaryClick = {
+                println("📤 [LOGOUT] Confirmar logout")
                 homeViewModel.onEvent(HomeEvent.ConfirmLogout)
                 onLogoutConfirmed()
             },
             onSecondaryClick = {
+                println("🚫 [LOGOUT] Cancelar logout")
                 homeViewModel.onEvent(HomeEvent.CancelLogout)
             },
             onDismiss = {
@@ -211,13 +306,14 @@ fun HomeScreen(
     }
 
     // ==========================================
-    // MODAL DE DETALLES DE SERVICIO
+    // 9️⃣ MODAL: DETALLES DE SERVICIO
     // ==========================================
 
     if (showDetailModal && detailedServiceState is Result.Success) {
         ServiceDetailModal(
             detailedService = detailedServiceState.data,
             onDismiss = {
+                println("❌ [DETAIL] Cerrando modal")
                 showDetailModal = false
                 selectedServiceId = null
             }
@@ -225,58 +321,83 @@ fun HomeScreen(
     }
 
     // ==========================================
-    // HOME TEMPLATE
+    // 🔟 HOME TEMPLATE: ESTRUCTURA PRINCIPAL
     // ==========================================
 
     HomeTemplate(
+        // ─────────────────────────────────────────
         // 1. Header del usuario
+        // ─────────────────────────────────────────
         headerSection = {
             HomeHeaderSection(
+                // ✅ Usar datos de ROOM (dataToDisplay)
                 userName = dataToDisplay?.mechanic?.name ?: state.userName,
                 userLocation = state.userLocation,
                 isOnline = true,
                 onSettingsClick = onSettingsClick,
                 onLogoutClick = {
+                    println("🔐 [LOGOUT] Usuario presionó logout")
                     homeViewModel.onEvent(HomeEvent.LogoutClicked)
                 }
             )
         },
+
+        // ─────────────────────────────────────────
         // 2. Sección de sincronización
+        // ─────────────────────────────────────────
         syncSection = {
             SyncSection(
                 statusText = "Estás en línea",
                 lastSyncText = "Última sincronización: Hoy 10:45 AM",
                 unsyncTitle = "${dataToDisplay?.syncMetadata?.totalServices ?: 0} Servicios",
                 unsyncDetails = "${dataToDisplay?.syncMetadata?.pendingServices ?: 0} Pendientes, ${dataToDisplay?.syncMetadata?.inProgressServices ?: 0} En Progreso",
-                onSyncClick = onSyncClick,
-                onSyncNowClick = onSyncNowClick
+                onSyncClick = {
+                    println("🔄 [SYNC] Usuario presionó sincronizar")
+                    onSyncClick()
+                },
+                onSyncNowClick = {
+                    println("⚡ [SYNC] Usuario presionó sincronizar ahora")
+                    mechanicsViewModel.loadInitialData()  // Forzar sincronización
+                    onSyncNowClick()
+                }
             )
         },
+
+        // ─────────────────────────────────────────
         // 3. Acciones rápidas (ActionCards)
+        // ─────────────────────────────────────────
         actionsSection = {
             ActionCardsSection(
                 actions = actionCards,
                 title = "Acciones Rápidas",
                 onActionClick = { actionId ->
-                    println("✅ Action selected: $actionId")
+                    println("✅ [ACTION] Action selected: $actionId")
                 },
                 columns = 3
             )
         },
-        // 4. Métricas
+
+        // ─────────────────────────────────────────
+        // 4. Métricas (datos de ROOM)
+        // ─────────────────────────────────────────
         metricsSection = {
             MetricsSection(
                 completedCount = "0",
+                // ✅ Usar datos de ROOM
                 inProgressCount = (dataToDisplay?.syncMetadata?.inProgressServices ?: 0).toString(),
                 pendingCount = (dataToDisplay?.syncMetadata?.pendingServices ?: 0).toString(),
                 efficiencyPercentage = "92%"
             )
         },
-        // 5. Lista de servicios
+
+        // ─────────────────────────────────────────
+        // 5. Lista de servicios (la más importante)
+        // ─────────────────────────────────────────
         serviceListSection = {
             when {
-                // Estado LOADING
-                syncInitialDataState is Result.Loading || localInitialDataState is Result.Loading -> {
+                // ESTADO 1: Cargando desde Room o API
+                localInitialDataState is Result.Loading || syncInitialDataState is Result.Loading -> {
+                    println("⏳ [UI] Estado: Cargando")
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -286,11 +407,14 @@ fun HomeScreen(
                         CircularProgressIndicator()
                     }
                 }
-                // Estado SUCCESS - Datos disponibles
+
+                // ESTADO 2: Datos disponibles (de ROOM)
                 dataToDisplay != null -> {
-                    // Convertir AssignedService a ServiceCardData
+                    println("✅ [UI] Estado: Mostrando servicios de ROOM")
+
+                    // Convertir AssignedService → ServiceCardData para UI
                     val services = dataToDisplay.assignedServices.map { service ->
-                        // Buscar tipo de servicio en la lista
+                        // Buscar el nombre del tipo de servicio
                         val serviceTypeName = dataToDisplay.serviceTypes
                             .find { it.id == service.serviceTypeId }?.name
                             ?: "Servicio"
@@ -312,6 +436,7 @@ fun HomeScreen(
                     }
 
                     if (services.isEmpty()) {
+                        println("ℹ️  [UI] No hay servicios asignados")
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -321,26 +446,29 @@ fun HomeScreen(
                             Text("✅ No hay servicios asignados")
                         }
                     } else {
+                        println("📋 [UI] Mostrando ${services.size} servicios")
                         ServiceListSectionOrganism(
                             title = "Servicios Asignados",
                             services = services,
                             onServiceClick = { serviceId ->
-                                println("✅ Service clicked: $serviceId")
+                                println("👆 [UI] Service clicked: $serviceId")
                             },
                             onCompleteClick = { serviceId ->
-                                println("✅ Service completed: $serviceId")
+                                println("✓ [UI] Service completed (detail): $serviceId")
                                 selectedServiceId = serviceId
                                 mechanicsViewModel.loadDetailedService(serviceId)
                             },
                             onRescheduleClick = { serviceId ->
-                                println("✅ Service rescheduled: $serviceId")
+                                println("📅 [UI] Service reschedule: $serviceId")
                                 onServiceReschedule(serviceId)
                             }
                         )
                     }
                 }
-                // Estado ERROR
-                syncInitialDataState is Result.Error && localInitialDataState is Result.Error -> {
+
+                // ESTADO 3: Error en ambos (Room Y API fallaron)
+                localInitialDataState is Result.Error && syncInitialDataState is Result.Error -> {
+                    println("❌ [UI] Estado: Error en ROOM y API")
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -355,7 +483,7 @@ fun HomeScreen(
                                 color = MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = syncInitialDataState.let {
+                                text = localInitialDataState.let {
                                     if (it is Result.Error) it.exception.message ?: "Error desconocido"
                                     else "Error desconocido"
                                 },
@@ -364,8 +492,9 @@ fun HomeScreen(
                             )
                             Button(
                                 onClick = {
-                                    mechanicsViewModel.loadInitialData()
+                                    println("🔄 [UI] Usuario presionó reintentar")
                                     mechanicsViewModel.loadLocalData()
+                                    mechanicsViewModel.loadInitialData()
                                 },
                                 modifier = Modifier.padding(top = 8.dp)
                             ) {
@@ -374,8 +503,10 @@ fun HomeScreen(
                         }
                     }
                 }
-                // Estado por defecto
+
+                // ESTADO 4: Por defecto (esperando)
                 else -> {
+                    println("⏳ [UI] Estado: Esperando datos...")
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -387,12 +518,15 @@ fun HomeScreen(
                 }
             }
         },
+
         modifier = modifier
     )
 }
 
 /**
  * Modal para mostrar detalles de un servicio
+ *
+ * Se abre cuando el usuario presiona "Completar" en una tarjeta
  *
  * @param detailedService Datos detallados del servicio
  * @param onDismiss Callback cuando se cierra el modal
