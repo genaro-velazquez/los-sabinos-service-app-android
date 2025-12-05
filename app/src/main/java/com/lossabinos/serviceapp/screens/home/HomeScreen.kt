@@ -98,13 +98,17 @@ fun HomeScreen(
     // Estado de servicio detallado
     val detailedServiceState = mechanicsViewModel.detailedService.collectAsState().value
 
+    // Estado de la carga inicial
+    val syncInitialDataState = mechanicsViewModel.syncInitialData.collectAsState().value
+
     // ==========================================
     // EFECTOS LATERALES
     // ==========================================
 
     // Cargar servicios asignados al abrir la pantalla
     LaunchedEffect(Unit) {
-        mechanicsViewModel.loadAssignedServices()
+        //mechanicsViewModel.loadAssignedServices()
+        mechanicsViewModel.loadInitialData()
     }
 
     // ==========================================

@@ -6,6 +6,8 @@ import org.json.JSONObject
 
 class MechanicDTO(
     val id:String,
+    val name: String,
+    val email: String,
     val fullName: String,
     val rol: String,
     val zoneId:String,
@@ -14,6 +16,8 @@ class MechanicDTO(
 
     constructor(json: JSONObject) : this (
         id = json.asString("id"),
+        name = json.asString("name"),
+        email = json.asString("email"),
         fullName = json.asString("full_name"),
         rol = json.asString("role"),
         zoneId = json.asString("zone_id"),
@@ -22,6 +26,8 @@ class MechanicDTO(
 
     override fun toEntity(): Mechanic = Mechanic(
         id = id,
+        name = name,
+        email = email,
         fullName = fullName,
         rol = rol,
         zoneId = zoneId,

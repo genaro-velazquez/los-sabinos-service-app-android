@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
+import com.lossabinos.domain.responses.InitialDataResponse
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
+import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +18,28 @@ import javax.inject.Inject
 @HiltViewModel
 class MechanicsViewModel @Inject constructor(
     private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
-    private val getDetailedServiceUseCase: GetDetailedServiceUseCase
+    private val getDetailedServiceUseCase: GetDetailedServiceUseCase,
+    private val getInitialDataUseCase: GetSyncInitialDataUseCase
 ) : ViewModel(){
+
+    // ==============
+    // CARGA INICIAL
+    // ==============
+    private val _syncInitialData = MutableStateFlow<Result<InitialDataResponse>>(Result.Loading)
+    val syncInitialData: StateFlow<Result<InitialDataResponse>> = _syncInitialData
+
+    fun loadInitialData(){
+        viewModelScope.launch {
+            try {
+                _syncInitialData.value = Result.Loading
+                val response = getInitialDataUseCase.execute()
+                _syncInitialData.value = Result.Success(data = response)
+            }
+            catch (e: Exception){
+                _syncInitialData.value = Result.Error(exception = e)
+            }
+        }
+    }
 
     // ==========================================
     // ASSIGNED SERVICES (Lista de servicios)
@@ -30,9 +52,9 @@ class MechanicsViewModel @Inject constructor(
             try {
                 _assignedServices.value = Result.Loading
                 val response = getMechanicsServicesUseCase.execute()
-                _assignedServices.value = Result.Success(response)
+                _assignedServices.value = Result.Success(data = response)
             } catch (e: Exception) {
-                _assignedServices.value = Result.Error(e)
+                _assignedServices.value = Result.Error(exception = e)
             }
         }
     }
@@ -64,9 +86,9 @@ class MechanicsViewModel @Inject constructor(
             try {
                 _detailedService.value = Result.Loading
                 val response = getDetailedServiceUseCase.execute(idService = idService)
-                _detailedService.value = Result.Success(response)
+                _detailedService.value = Result.Success(data = response)
             } catch (e: Exception) {
-                _detailedService.value = Result.Error(e)
+                _detailedService.value = Result.Error(exception = e)
             }
         }
     }

@@ -9,6 +9,9 @@ import org.json.JSONObject
 
 class VehicleDTO(
     val id:String,
+    val vin: String,
+    val economicNumber: String,
+    val modelName: String,
     val vehicleNumber:String,
     val licensePlate:String,
     val vehicleVersion: VehicleVersionDTO,
@@ -17,6 +20,9 @@ class VehicleDTO(
 
     constructor(json: JSONObject) : this (
         id                  = json.asString("id"),
+        vin                 = json.asString("vin"),
+        economicNumber      = json.asString("economic_number"),
+        modelName           = json.asString("model_name"),
         vehicleNumber       = json.asString("vehicle_number"),
         licensePlate        = json.asString("license_plate"),
         vehicleVersion      = VehicleVersionDTO(json = json.asJSONObject("model")),
@@ -25,7 +31,10 @@ class VehicleDTO(
 
     override fun toEntity(): Vehicle = Vehicle(
         id                  = id,
-        vehicleNumber      = vehicleNumber,
+        vin                 = vin,
+        economicNumber      = economicNumber,
+        modelName           = modelName,
+        vehicleNumber       = vehicleNumber,
         licensePlate        = licensePlate,
         vehicleVersion      = vehicleVersion.toEntity(),
         currentOdometerKm   = currentOdometerKm

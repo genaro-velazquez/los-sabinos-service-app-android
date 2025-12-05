@@ -17,4 +17,9 @@ interface MechanicsServices {
         @Path("id_service") idService: String
     ): Response<String>
 
+    @GET("/api/v1/sync/initial-data")
+    suspend fun syncInitialData(
+        @HeaderMap headers: Map<String, String>
+    ): Response<String>
+
 }
