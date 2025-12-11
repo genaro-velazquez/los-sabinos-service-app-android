@@ -4,357 +4,155 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 
 ---
 
-## 📋 Tabla de Contenidos
-
-- [Características](#características)
-- [Room Database - Offline-First](#-room-database---offline-first-✨-nuevo)
-- [Arquitectura](#arquitectura)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Flujo de Autenticación](#flujo-de-autenticación)
-- [Service Detail - Detalles del Servicio](#service-detail---detalles-del-servicio-✨-nuevo)
-- [Estado del Proyecto](#estado-del-proyecto)
-- [Git Workflow](#git-workflow---subir-cambios-a-github)
-- [Conventional Commits](#conventional-commits---tipos-de-commits)
-
----
-
-## ✨ Características
+## ✨ Características Principales
 
 ### Core Features
 - ✅ **Autenticación** con correo y contraseña
 - ✅ **Integración con backend Azure** para autenticación
 - ✅ **Validación automática de sesión** con SplashScreen
-- ✅ **Modal de confirmación** elegante para logout
 - ✅ **Logout seguro** con limpieza completa de datos
-- ✅ **Datos reales del usuario** en HomePage (nombre, ubicación)
 
-### API & Backend Integration
-- ✅ **Carga de servicios en tiempo real** desde API
-- ✅ **Bearer Token Authentication** - Headers con token automático
-- ✅ **Manejo de estados** (Loading, Success, Error, Idle) con Flow reactivo
-- ✅ **Logging CURL** completo para debugging
-- ✅ **Detalle de Servicio** - Carga datos específicos con modal ✨ NUEVO
-
-### Room Database & Offline-First ✨ NUEVO v1.7.0
+### Room Database & Offline-First ✨ v1.7.0
 - ✅ **Room Database** - Persistencia local con SQLite
-- ✅ **6 Entidades** - Mecánico, Servicio, Tipo, Zona, Vehículo, Órdenes
+- ✅ **10 Entidades** - 6 base + 4 checklist
 - ✅ **Sincronización automática** - API → Room al hacer login
-- ✅ **Lectura offline** - HomeScreen lee datos de Room (sin conexión)
-- ✅ **Mappers automáticos** - DTO → Entity → Domain Model
-- ✅ **Migrations transparentes** - fallbackToDestructiveMigration para desarrollo
-- ✅ **UseCase consolidado** - GetLocalInitialDataUseCase para traer todo
-- ✅ **Estados de sincronización** - SYNCED, PENDING, ERROR
-- ✅ **Arquitectura offline-first** - App funciona sin internet
+- ✅ **Lectura offline** - App funciona sin conexión
 
-### UI Components
-- ✅ **ActionCards** - Tarjetas de acciones rápidas
-- ✅ **Service List** - Listado de servicios asignados con UI adaptable
-- ✅ **Service Detail Modal** - Modal elegante con detalles del servicio ✨ NUEVO
-- ✅ **Indicadores y métricas** en pantalla Home
-- ✅ **Atomic Design** para componentes UI reutilizables
-
-### Foundation
-- ✅ **Inyección de dependencias con Hilt**
-- ✅ **Clean Architecture + MVVM + Repository Pattern**
-- ✅ **Coroutines + Flow** para operaciones asincrónicas
-- ✅ **Callbacks en Composables** - No en Data Classes ✨ NUEVO
+### Checklist Progress Implementation ✨ v1.8.0
+- ✅ **4 Nuevas Entidades** - ActivityProgress, ActivityEvidence, ObservationResponse, ServiceFieldValue
+- ✅ **ChecklistRepository** - Gestión de tareas y progreso
+- ✅ **@Serializable Domain Models** - Template, Section, Activity, Observation, ServiceField
+- ✅ **Marcado de tareas** - Completar activities con timestamp
+- ✅ **Captura de evidencia** - Guardar fotos/videos
+- ✅ **Respuestas a observaciones** - Guardar respuestas a preguntas
+- ✅ **Cálculo de progreso** - Porcentaje de tareas completadas (0-100%)
 
 ---
 
-## 🗄️ Room Database - Offline-First ✨ NUEVO
+## 🗄️ Base de Datos - v1.8.0
 
-### Descripción
+### 10 Entidades (6 base + 4 checklist)
 
-**Room Database** implementa una arquitectura **offline-first** que permite a la aplicación funcionar sin conexión a internet. Los datos se sincronizan automáticamente cuando hay conexión.
+#### Base (v1.7.0)
+- **Mechanic** - Datos del mecánico
+- **AssignedService** - Servicios asignados
+- **ServiceType** - Tipos de servicio
+- **WorkOrder** - Órdenes de trabajo
+- **Zone** - Zonas de servicio
+- **Vehicle** - Vehículos
 
-### Flujo de Sincronización
+#### Checklist (v1.8.0) ✨
+- **ActivityProgress** - Progreso de tareas
+- **ActivityEvidence** - Fotos/videos de tareas
+- **ObservationResponse** - Respuestas a preguntas
+- **ServiceFieldValue** - Valores ingresados
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ARQUITECTURA OFFLINE-FIRST               │
-└─────────────────────────────────────────────────────────────┘
+### Migration 2 → 3
 
-1. LOGIN EXITOSO
-   ├─ loadInitialData() ejecuta
-   ├─ GET /api/v1/mechanics/me/initial-data (API)
-   ├─ Response → InitialDataResponse
-   └─ Guardar en Room (Database)
-      ├─ mechanics tabla
-      ├─ assigned_services tabla
-      ├─ service_types tabla
-      ├─ zones tabla
-      ├─ vehicles tabla
-      └─ work_orders tabla
+```sql
+-- Tabla: activity_progress
+CREATE TABLE activity_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignedServiceId TEXT NOT NULL,
+    sectionIndex INTEGER NOT NULL,
+    activityIndex INTEGER NOT NULL,
+    activityDescription TEXT NOT NULL,
+    requiresEvidence INTEGER NOT NULL,
+    completed INTEGER DEFAULT 0,
+    completedAt TEXT
+);
 
-2. HOMEPAGE ABIERTO (SIN CONEXIÓN ✨)
-   ├─ loadLocalData() ejecuta
-   ├─ Leer desde Room (Database)
-   │  ├─ SELECT * FROM assigned_services
-   │  ├─ SELECT * FROM service_types
-   │  └─ SELECT * FROM mechanics
-   ├─ Mapear Room Entities → Domain Models
-   └─ Mostrar datos offline
+-- Tabla: activity_evidence
+CREATE TABLE activity_evidence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    activityProgressId INTEGER NOT NULL,
+    filePath TEXT NOT NULL,
+    fileType TEXT DEFAULT 'image',
+    timestamp TEXT NOT NULL
+);
 
-3. SINCRONIZACIÓN MANUAL (OPCIONAL)
-   ├─ Usuario presiona "Sincronizar"
-   ├─ loadInitialData() → API
-   └─ Actualizar Room con datos nuevos
-```
+-- Tabla: observation_response
+CREATE TABLE observation_response (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignedServiceId TEXT NOT NULL,
+    sectionIndex INTEGER NOT NULL,
+    observationIndex INTEGER NOT NULL,
+    observationDescription TEXT NOT NULL,
+    response TEXT,
+    timestamp TEXT
+);
 
-### 6 Entidades (Tablas)
-
-| Tabla | Campos | Relación |
-|-------|--------|----------|
-| **Mechanic** | id, name, email, company_id | 1 a N con Servicios |
-| **AssignedService** | id, work_order_id, service_type_id, status, priority, scheduled_start/end | N a 1 con WorkOrder, ServiceType |
-| **ServiceType** | id, name, estimated_duration | 1 a N con Servicios |
-| **WorkOrder** | id, mechanic_id, status, priority | 1 a N con Servicios |
-| **Zone** | id, name, code, region | Referencia en WorkOrder |
-| **Vehicle** | id, plate, model, mechanic_id | 1 a N con Mecánico |
-
-### Implementación - Archivos Principales
-
-#### 1. Room Entities (data/local/database/entity/)
-```kotlin
-@Entity(tableName = "mechanics")
-data class MechanicEntity(id: String, name: String, email: String, companyId: String)
-
-@Entity(tableName = "assigned_services")
-data class AssignedServiceEntity(id: String, workOrderId: String, serviceTypeId: String, 
-    status: String, priority: String, scheduledStart: String?, scheduledEnd: String?)
-
-// ServiceTypeEntity, ZoneEntity, VehicleEntity, WorkOrderEntity...
-```
-
-#### 2. DAOs (data/local/database/dao/InitialDataDao.kt)
-```kotlin
-@Dao
-interface InitialDataDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMechanic(mechanic: MechanicEntity)
-    
-    @Query("SELECT * FROM assigned_services")
-    suspend fun getAllAssignedServices(): List<AssignedServiceEntity>
-    
-    @Query("SELECT * FROM mechanics LIMIT 1")
-    suspend fun getMechanic(): MechanicEntity?
-    
-    @Query("SELECT * FROM service_types")
-    suspend fun getAllServiceTypes(): List<ServiceTypeEntity>
-}
-```
-
-#### 3. AppDatabase (data/local/database/AppDatabase.kt)
-```kotlin
-@Database(
-    entities = [MechanicEntity::class, AssignedServiceEntity::class, 
-        ServiceTypeEntity::class, ZoneEntity::class, VehicleEntity::class, WorkOrderEntity::class],
-    version = 2  // ✨ Incrementada para migration
-)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun initialDataDao(): InitialDataDao
-}
-```
-
-#### 4. Repository - Guardar en Room (MechanicsRetrofitRepository.kt)
-```kotlin
-override suspend fun saveToRoom(response: InitialDataResponse) {
-    val mechanicEntity = response.mechanic.toEntity()
-    val serviceEntities = response.assignedServices.map { it.toEntity() }
-    val typeEntities = response.serviceTypes.map { it.toEntity() }
-    
-    initialDataDao.insertMechanic(mechanicEntity)
-    initialDataDao.insertAssignedServices(serviceEntities)
-    // ... guardar más datos
-    println("✅ Datos guardados en Room")
-}
-```
-
-#### 5. Repository - Leer desde Room (MechanicsRetrofitRepository.kt)
-```kotlin
-override suspend fun getLocalInitialData(): InitialDataResponse {
-    val mechanic = initialDataDao.getMechanic()?.let { Mechanic(id = it.id, ...) }
-    val assignedServices = initialDataDao.getAllAssignedServices().map { it.toDomain() }
-    val serviceTypes = initialDataDao.getAllServiceTypes().map { it.toDomain() }
-    
-    return InitialDataResponse(mechanic, assignedServices, serviceTypes, syncMetadata)
-}
-```
-
-#### 6. Use Case (GetLocalInitialDataUseCase.kt)
-```kotlin
-class GetLocalInitialDataUseCase(private val repository: MechanicsRepository) {
-    suspend operator fun invoke(): InitialDataResponse? {
-        return try {
-            repository.getLocalInitialData()
-        } catch (e: Exception) {
-            println("❌ Error: ${e.message}")
-            null
-        }
-    }
-}
-```
-
-#### 7. ViewModel (MechanicsViewModel.kt) ✨ ACTUALIZADO
-```kotlin
-@HiltViewModel
-class MechanicsViewModel @Inject constructor(
-    private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
-    private val getLocalInitialDataUseCase: GetLocalInitialDataUseCase
-) : ViewModel() {
-    
-    private val _localInitialData = MutableStateFlow<Result<InitialDataResponse>>(Result.Idle)
-    val localInitialData: StateFlow<Result<InitialDataResponse>> = _localInitialData.asStateFlow()
-    
-    fun loadLocalData() {
-        viewModelScope.launch {
-            try {
-                _localInitialData.value = Result.Loading
-                val response = getLocalInitialDataUseCase()
-                _localInitialData.value = Result.Success(data = response!!)
-                println("✅ Datos de Room cargados")
-            } catch (e: Exception) {
-                _localInitialData.value = Result.Error(exception = e)
-            }
-        }
-    }
-}
-```
-
-#### 8. HomeScreen (Lectura Offline) ✨ ACTUALIZADO
-```kotlin
-@Composable
-fun HomeScreen(mechanicsViewModel: MechanicsViewModel = hiltViewModel()) {
-    val localInitialDataState = mechanicsViewModel.localInitialData.collectAsState().value
-    
-    LaunchedEffect(Unit) {
-        mechanicsViewModel.loadLocalData()  // ✨ Lee de Room
-    }
-    
-    when {
-        localInitialDataState is Result.Success -> {
-            val data = (localInitialDataState as Result.Success).data
-            HomeHeaderSection(userName = data.mechanic.name)
-            MetricsSection(inProgressCount = data.syncMetadata.inProgressServices.toString())
-            // ... mostrar servicios...
-        }
-        localInitialDataState is Result.Loading -> CircularProgressIndicator()
-        localInitialDataState is Result.Error -> Text("Error cargando datos")
-    }
-}
-```
-
-#### 9. DI (DatabaseModule.kt) ✨ NUEVO
-```kotlin
-@Module
-@InstallIn(SingletonComponent::class)
-object DatabaseModule {
-    
-    @Singleton
-    @Provides
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "los_sabinos.db")
-            .fallbackToDestructiveMigration(true)  // ✨ Migrations automáticas
-            .build()
-    }
-    
-    @Singleton
-    @Provides
-    fun provideInitialDataDao(database: AppDatabase): InitialDataDao {
-        return database.initialDataDao()
-    }
-}
+-- Tabla: service_field_value
+CREATE TABLE service_field_value (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignedServiceId TEXT NOT NULL,
+    fieldIndex INTEGER NOT NULL,
+    fieldLabel TEXT NOT NULL,
+    fieldType TEXT NOT NULL,
+    required INTEGER NOT NULL,
+    value TEXT,
+    timestamp TEXT
+);
 ```
 
 ---
 
-## 🏗️ Arquitectura
-
-**Clean Architecture + MVVM + Repository Pattern + Offline-First**
-
-```
-Presentation Layer (UI)
-    ↓ (observa estados)
-    ↓
-ViewModel (MechanicsViewModel)
-    ↓ (ejecuta casos de uso)
-    ↓
-Domain Layer (UseCases)
-    ↓ (abstracción)
-    ↓
-Repository Interface (IMechanicsRepository)
-    ↓ (implementación)
-    ↓
-Data Layer
-├─ Remote (Retrofit API)
-└─ Local (Room Database)
-```
-
-### Características de Arquitectura
-- **Offline-First**: Datos se guardan localmente primero
-- **Reactive**: Flow y StateFlow para estados reactivos
-- **Clean**: Separación clara de capas
-- **Testeable**: Inyección de dependencias con Hilt
-
----
-
-## 📁 Estructura del Proyecto - Actualizada ✨
+## 📁 Estructura del Proyecto
 
 ```
 app/src/main/java/com/lossabinos/serviceapp/
 │
 ├── data/
-│   ├── local/                              ✨ NUEVO
+│   ├── local/
 │   │   ├── database/
-│   │   │   ├── AppDatabase.kt
+│   │   │   ├── AppDatabase.kt (v3)
 │   │   │   ├── dao/
-│   │   │   │   └── InitialDataDao.kt
-│   │   │   └── entity/ (6 entities)
+│   │   │   │   ├── InitialDataDao.kt
+│   │   │   │   └── ChecklistDao.kt ✨
+│   │   │   └── entity/
+│   │   │       ├── MechanicEntity.kt
+│   │   │       ├── AssignedServiceEntity.kt
+│   │   │       ├── ServiceTypeEntity.kt
+│   │   │       ├── ZoneEntity.kt
+│   │   │       ├── VehicleEntity.kt
+│   │   │       ├── WorkOrderEntity.kt
+│   │   │       └── ChecklistEntities.kt ✨
 │   │   └── mappers/
-│   │       └── InitialDataMappers.kt
-│   │
-│   ├── remote/
-│   │   ├── services/ (Retrofit)
-│   │   └── dto/ (Data Transfer Objects)
 │   │
 │   ├── repositories/
-│   │   └── MechanicsRetrofitRepository.kt  ✨ ACTUALIZADO
+│   │   ├── MechanicsRetrofitRepository.kt
+│   │   └── local/
+│   │       └── ChecklistRepository.kt ✨
 │   │
-│   └── utils/
-│       ├── HeadersMaker.kt
-│       └── RetrofitResponseValidator.kt
+│   └── remote/
 │
 ├── domain/
-│   ├── repositories/
-│   │   └── MechanicsRepository.kt          ✨ ACTUALIZADO
+│   ├── models/
+│   │   ├── Mechanic.kt
+│   │   ├── Template.kt (@Serializable) ✨
+│   │   ├── Section.kt (@Serializable) ✨
+│   │   ├── Activity.kt (@Serializable) ✨
+│   │   ├── Observation.kt (@Serializable) ✨
+│   │   └── ServiceField.kt (@Serializable) ✨
 │   │
 │   ├── usecases/
 │   │   ├── GetMechanicsServicesUseCase.kt
 │   │   ├── GetDetailedServiceUseCase.kt
-│   │   └── GetLocalInitialDataUseCase.kt   ✨ NUEVO
+│   │   └── GetLocalInitialDataUseCase.kt
 │   │
-│   ├── models/ (Domain entities)
-│   │   └── InitialDataResponse.kt          ✨ NUEVO
-│   │
-│   └── common/
-│       └── Result.kt (sealed class con Idle)
+│   └── repositories/
 │
 ├── presentation/
 │   ├── viewmodels/
-│   │   └── MechanicsViewModel.kt           ✨ ACTUALIZADO
+│   │   ├── MechanicsViewModel.kt
+│   │   └── ChecklistViewModel.kt ✨
 │   │
-│   ├── screens/
-│   │   └── home/
-│   │       └── HomeScreen.kt               ✨ ACTUALIZADO
-│   │
-│   └── ui/
-│       ├── atoms, molecules, organisms
-│       └── templates
+│   └── screens/
 │
 ├── di/
-│   ├── DatabaseModule.kt                   ✨ NUEVO
-│   ├── UseCaseModule.kt                    ✨ ACTUALIZADO
-│   └── ... otros modules
+│   ├── DatabaseModule.kt (MIGRATION_2_TO_3) ✨
+│   ├── RepositoryModule.kt ✨
+│   └── ...
 │
 └── app/
     └── LosSabinosApplication.kt
@@ -362,259 +160,100 @@ app/src/main/java/com/lossabinos/serviceapp/
 
 ---
 
-## 🔐 Flujo de Autenticación - Actualizado ✨
+## 🚀 Git Workflow - Subir Cambios
 
-### Login con Sincronización Automática
-
-```
-LoginScreen
-    ↓
-Usuario ingresa credenciales
-    ↓
-LoginViewModel.onEvent(LoginEvent.LoginClicked)
-    ↓
-validateForm() ✓
-    ↓
-EmailPasswordLoginUseCase.execute()
-    ↓
-API validación ✓
-    ↓
-Token guardado en SharedPrefs
-    ↓
-loadInitialData() ejecuta  ✨ SINCRONIZACIÓN
-│  ├─ GET /api/v1/mechanics/me/initial-data
-│  ├─ Response → InitialDataResponse
-│  └─ saveToRoom(response)
-│     ├─ Insert mechanics
-│     ├─ Insert assigned_services
-│     └─ Insert service_types
-│
-✅ Todos los datos en Room
-    ↓
-NavigateToHome
-```
-
-### HomeScreen con Lectura Offline ✨ NUEVO
-
-```
-HomeScreen abierto
-    ↓
-LaunchedEffect detecta inicio
-    ↓
-loadLocalData() ejecuta  ✨ LECTURA OFFLINE
-│  ├─ GetLocalInitialDataUseCase()
-│  └─ initialDataDao.getMechanic()
-│     initialDataDao.getAllAssignedServices()
-│     initialDataDao.getAllServiceTypes()
-│
-✅ Datos de Room cargados
-    ↓
-UI muestra datos (CON O SIN CONEXIÓN)
-```
-
----
-
-## 🎯 Service Detail - Detalles del Servicio ✨ NUEVO
-
-### Flujo Completo
-
-```
-HomePage - Service List
-    ↓
-Usuario hace click en "Completar"
-    ↓
-onCompleteClick callback
-    ↓
-mechanicsViewModel.loadDetailedService(serviceId)
-    ↓
-GetDetailedServiceUseCase.execute()
-    ↓
-GET /api/v1/mechanics/me/assigned-services/{idService}
-    ↓
-DetailedServiceResponseDTO mapea JSON
-    ↓
-_detailedService.value = Result.Success(response)
-    ↓
-LaunchedEffect abre modal
-    ↓
-ServiceDetailModal se muestra ✨
-```
-
----
-
-## 📊 Estado del Proyecto - Actualizado ✨
-
-### ✅ v1.7.0 (Completado) - Room Database & Offline-First
-
-#### Implementación Database
-- [x] Room Database configurado (SQLite)
-- [x] 6 Entities (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
-- [x] InitialDataDao - CRUD operations
-- [x] AppDatabase version = 2
-- [x] fallbackToDestructiveMigration (migrations automáticas)
-
-#### Implementación Data Layer
-- [x] InitialDataMappers (Entity → Domain)
-- [x] saveToRoom() - Guardar API response en Room
-- [x] getLocalInitialData() - Lectura offline
-- [x] Repository con métodos locales
-
-#### Implementación Domain Layer
-- [x] GetLocalInitialDataUseCase
-- [x] InitialDataResponse modelo consolidado
-- [x] Repository interface actualizada
-
-#### Implementación Presentation Layer
-- [x] MechanicsViewModel.loadLocalData()
-- [x] HomeScreen lee de Room
-- [x] Estados separados (API vs Local)
-- [x] LaunchedEffect para cargar datos
-
-#### DI & Configuration
-- [x] DatabaseModule.kt (provideAppDatabase)
-- [x] UseCaseModule actualizado
-- [x] RepositoryModule ligado a Room
-
-#### Features Implementadas
-- [x] Sincronización automática (API → Room) al login
-- [x] Lectura offline (Room → UI) en HomeScreen
-- [x] Mappers automáticos (DTO → Entity → Domain)
-- [x] Migrations transparentes
-- [x] Estados de sincronización
-- [x] App funciona sin conexión ✨
-
-### ✅ v1.6.0 (Completado) - Service Detail & Clean Architecture
-
-- [x] DetailedServiceResponseDTO
-- [x] GetDetailedServiceUseCase
-- [x] ServiceDetailModal con AlertDialog
-- [x] MechanicsViewModel.loadDetailedService()
-- [x] Callbacks en Composables (Clean Architecture)
-
-### 🚧 v1.8.0 (Próximo)
-
-- [ ] Panel de tareas (checklist) con progreso
-- [ ] Captura de evidencia (imágenes)
-- [ ] Sincronización de imágenes
-- [ ] Escaneo QR/Barcode
-
----
-
-## 📝 Conventional Commits - Tipos de Commits
-
-### Formato Base
-
-```
-tipo(alcance): descripción breve
-
-[cuerpo opcional - descripción detallada]
-
-[pie opcional - información adicional, breaking changes, etc]
-```
-
-### Tipos Principales
-
-| Tipo | Descripción | Ejemplo |
-|------|-------------|---------|
-| **feat** | Nueva característica | `feat(database): Implementar Room Database` |
-| **fix** | Corrección de bug | `fix(ui): Corregir altura de componente` |
-| **refactor** | Cambio sin nuevas características | `refactor(callbacks): Mover a Composables` |
-| **docs** | Cambios en documentación | `docs: Actualizar README` |
-| **chore** | Cambios en config/deps | `chore(gradle): Actualizar dependencias` |
-
-### Alcances Recomendados
-```
-- auth           : Autenticación
-- api            : Backend integration
-- database       : Room & persistencia        ✨ NUEVO
-- sync           : Sincronización de datos   ✨ NUEVO
-- ui             : Componentes UI
-- viewmodel      : ViewModels
-- service-detail : Detalles del servicio
-- di             : Inyección de dependencias
-- readme         : Documentación
-```
-
----
-
-## 🚀 Git Workflow - Subir Cambios a GitHub
-
-### Pasos Completos
+### Comando para subir esta actualización
 
 ```bash
-# 1. Ver cambios
+# 1. En la raíz del proyecto
 git status
-git diff
 
 # 2. Agregar cambios
 git add .
 
-# 3. Revisar staging
-git status
+# 3. Crear commit
+git commit -m "feat(checklist): Implementar Checklist Progress v1.8.0
 
-# 4. Crear commit
-git commit -m "feat(database): Implementar Room Database offline-first
+Nuevas Entidades:
+- ActivityProgressEntity: Tareas completadas
+- ActivityEvidenceEntity: Fotos/videos
+- ObservationResponseEntity: Respuestas
+- ServiceFieldValueEntity: Valores ingresados
 
-Cambios principales:
-- Agregar 6 entities (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
-- Implementar InitialDataDao con operaciones CRUD
-- Crear AppDatabase con version = 2
-- Agregar InitialDataMappers (Entity → Domain)
-- Implementar saveToRoom() en MechanicsRepository
-- Implementar getLocalInitialData() para lectura offline
-- Crear GetLocalInitialDataUseCase consolidado
-- Agregar loadLocalData() en MechanicsViewModel
-- Actualizar HomeScreen para leer de Room
-- Configurar DatabaseModule con fallbackToDestructiveMigration
-- Sincronización automática (API → Room) al login
-- App ahora funciona sin conexión a internet ✨"
+ChecklistRepository:
+- initializeServiceChecklist()
+- completeActivity()
+- addActivityEvidence()
+- respondToObservation()
+- updateServiceFieldValue()
+- updateServiceProgress()
 
-# 5. Ver log
-git log --oneline -5
+Domain Models @Serializable:
+- Template, Section, Activity, Observation, ServiceField
 
-# 6. Subir a GitHub
-git push
+Migration 2→3:
+- 4 nuevas tablas normalizadas
+- Foreign keys configuradas
+- AppDatabase v3
 
-# 7. Verificar en GitHub
+Dependencias:
+- kotlinx.serialization
+- kotlin.plugin.serialization"
+
+# 4. Subir a GitHub
+git push origin main
+
+# 5. Verificar en GitHub
+# https://github.com/tu-usuario/los-sabinos
 ```
 
-### Comandos Útiles
+### Comandos útiles
 
 ```bash
-# Ver ramas
-git branch -a
+# Ver cambios
+git diff
 
-# Ver cambios específicos
-git diff app/src/main/java/com/lossabinos/serviceapp/data/
+# Ver commits recientes
+git log --oneline -10
 
-# Revertir cambios
+# Ver estado
+git status
+
+# Deshacer cambios
 git checkout -- archivo.kt
 
-# Ver histórico
-git log --oneline --graph --all
+# Cambiar rama
+git checkout develop
 
-# Comparar con rama anterior
+# Comparar ramas
 git diff main develop
 ```
 
 ---
 
-## 📊 Métricas del Proyecto
+## 📊 Estado del Proyecto
 
-- **ViewModels**: 4 (Splash, Login, Home, Mechanics)
-- **UseCases**: 6+ (Auth, Preferences, Services, DetailedService, LocalData)
-- **Room Entities**: 6 (Mechanic, Service, Type, Zone, Vehicle, WorkOrder)
-- **DAOs**: 1+ (InitialDataDao)
-- **Servicios Retrofit**: 2 (Authentication, Mechanics)
-- **Endpoints**: 3 (Login, AssignedServices, DetailedService)
-- **UI Componentes**: 28+ (Atomic Design)
-- **Líneas de código**: ~12000+
-- **Versión**: 1.7.0
-- **Status**: Room Database + Offline-First completo ✨
+**Versión:** 1.8.0  
+**Estado:** Checklist Progress Implementation ✨ Completo  
+**Base de Datos:** 10 entidades, migration 2→3  
+**Arquitectura:** Clean Architecture + MVVM + Repository + Offline-First
+
+### ✅ Implementado
+- [x] 4 nuevas entities Room
+- [x] ChecklistRepository completo
+- [x] ChecklistDao con 4 sub-DAOs
+- [x] Domain models @Serializable
+- [x] Migration 2→3
+- [x] RepositoryModule actualizado
+- [x] DatabaseModule actualizado
+
+### 🚧 Próximo (v1.9.0)
+- [ ] UI Panel de tareas visual
+- [ ] Camera integration
+- [ ] QR/Barcode scanning
+- [ ] Sincronización de imágenes
 
 ---
 
-**Última actualización:** Diciembre 5, 2025  
-**Versión:** 1.7.0  
-**Estado:** Room Database & Offline-First implementado ✨  
-**Arquitectura:** Clean Architecture + MVVM + Repository + Offline-First
+**Última actualización:** Diciembre 11, 2025  
+**Autor:** Equipo Los Sabinos

@@ -3,7 +3,12 @@ package com.lossabinos.serviceapp.di
 import android.content.SharedPreferences
 import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
 import com.lossabinos.data.dto.utilities.HeadersMaker
+import com.lossabinos.data.local.database.dao.ActivityEvidenceDao
+import com.lossabinos.data.local.database.dao.ActivityProgressDao
 import com.lossabinos.data.local.database.dao.InitialDataDao
+import com.lossabinos.data.local.database.dao.ObservationResponseDao
+import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
 import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepository
@@ -67,5 +72,25 @@ object RepositoryModule {
             initialDataDao = initialDataDao
         )
     }
+
+    // ============== CHECKLIST PROGRESS REPOSITORY ==============
+    // Administra: activities completadas, evidencias (fotos/videos),
+    // respuestas de observations, valores de campos y progreso general del servicio
+    @Singleton
+    @Provides
+    fun provideChecklistRepository(
+        activityProgressDao: ActivityProgressDao,
+        activityEvidenceDao: ActivityEvidenceDao,
+        observationResponseDao: ObservationResponseDao,
+        serviceFieldValueDao: ServiceFieldValueDao
+    ): ChecklistRepository {
+        return ChecklistRepository(
+            activityProgressDao,
+            activityEvidenceDao,
+            observationResponseDao,
+            serviceFieldValueDao
+        )
+    }
+
 
 }
