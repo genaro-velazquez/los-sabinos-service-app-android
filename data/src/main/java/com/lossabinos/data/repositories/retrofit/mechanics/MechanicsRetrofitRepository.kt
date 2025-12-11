@@ -72,6 +72,11 @@ class MechanicsRetrofitRepository(
                 assignedServices = data.assignedServices.map { it.toRoomEntity() }
             )
 
+            // Guardar AsyncMetadata
+            initialDataDao.insertSyncMetadata(
+                syncMetadata = data.syncMetadata.toRoomEntity()
+            )
+
             // Log para debugging
             println("✅ Datos guardados en Room exitosamente")
         } catch (e: Exception) {

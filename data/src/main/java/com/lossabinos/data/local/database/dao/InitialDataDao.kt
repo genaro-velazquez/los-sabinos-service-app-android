@@ -5,9 +5,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
 import com.lossabinos.data.local.database.entities.ServiceTypeEntity
+import com.lossabinos.data.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.local.database.entities.VehicleEntity
 import com.lossabinos.data.local.database.entities.WorkOrderEntity
 import com.lossabinos.data.local.database.entities.ZoneEntity
@@ -134,5 +136,18 @@ interface InitialDataDao {
     // ============ QUERIES PARA LECTURA ============
     @Query("SELECT * FROM mechanics LIMIT 1")
     suspend fun getMechanic(): MechanicEntity?
+
+    // ============ SYNC METADATA ============
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSyncMetadata(syncMetadata: SyncMetadataEntity)
+
+    @Query("SELECT * FROM sync_metadata WHERE id = 'sync_metadata' LIMIT 1")
+    suspend fun getSyncMetadata(): SyncMetadataEntity?
+
+    @Query("DELETE FROM sync_metadata")
+    suspend fun deleteSyncMetadata()
+
+    @Update
+    suspend fun updateSyncMetadata(syncMetadata: SyncMetadataEntity)
 
 }

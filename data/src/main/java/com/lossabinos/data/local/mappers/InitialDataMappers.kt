@@ -3,9 +3,11 @@ package com.lossabinos.data.local.mappers
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
 import com.lossabinos.data.local.database.entities.ServiceTypeEntity
+import com.lossabinos.data.local.database.entities.SyncMetadataEntity
 import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
+import com.lossabinos.domain.valueobjects.SyncMetadata
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -14,7 +16,9 @@ fun Mechanic.toRoomEntity(): MechanicEntity {
     return MechanicEntity(
         id = this.id,
         name = this.name,
-        email = this.email
+        email = this.email,
+        zoneId = this.zoneId,
+        zoneName = this.zoneName
     )
 }
 
@@ -50,3 +54,17 @@ fun AssignedService.toRoomEntity(): AssignedServiceEntity {
         progressPercentage = 0
     )
 }
+
+// ============ SyncMetadata: Domain → Room ============
+fun SyncMetadata.toRoomEntity(): SyncMetadataEntity {
+    return SyncMetadataEntity(
+        id = "sync_metadata",  // ID fijo
+        serverTimestamp = serverTimestamp,
+        totalServices = totalServices,
+        pendingServices = pendingServices,
+        inProgressServices = inProgressServices,
+        lastSync = lastSync,
+        updatedAt = java.time.Instant.now().toString()  // Timestamp actual
+    )
+}
+

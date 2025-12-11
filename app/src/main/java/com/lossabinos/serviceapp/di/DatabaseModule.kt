@@ -125,6 +125,39 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_3_TO_4 = object : Migration(3,4){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Agregar 2 columnas nuevas a mechanics
+            db.execSQL("""
+            ALTER TABLE mechanics 
+            ADD COLUMN zoneId TEXT NOT NULL DEFAULT ''
+        """)
+
+            db.execSQL("""
+            ALTER TABLE mechanics 
+            ADD COLUMN zoneName TEXT NOT NULL DEFAULT ''
+        """)
+
+        }
+    }
+
+    private val MIGRATION_4_TO_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+            CREATE TABLE IF NOT EXISTS sync_metadata (
+                id TEXT PRIMARY KEY NOT NULL,
+                serverTimestamp TEXT NOT NULL,
+                totalServices INTEGER NOT NULL,
+                pendingServices INTEGER NOT NULL,
+                inProgressServices INTEGER NOT NULL,
+                lastSync TEXT,
+                updatedAt TEXT NOT NULL
+            )
+        """)
+        }
+    }
+
+
     @Singleton
     @Provides
     fun provideAppDatabase(
@@ -135,7 +168,9 @@ object DatabaseModule {
             AppDatabase::class.java,
             "los_sabinos.db"
         )
-            .addMigrations(MIGRATION_2_TO_3)
+            .addMigrations(MIGRATION_2_TO_3,
+                MIGRATION_3_TO_4,
+                MIGRATION_4_TO_5)
             .fallbackToDestructiveMigration(true)
             .build()
     }

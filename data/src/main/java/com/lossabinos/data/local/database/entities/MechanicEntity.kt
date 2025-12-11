@@ -8,5 +8,7 @@ data class MechanicEntity(
     @PrimaryKey
     val id: String,
     val name: String,
-    val email: String
+    val email: String,
+    val zoneId: String,
+    val zoneName: String
 )
