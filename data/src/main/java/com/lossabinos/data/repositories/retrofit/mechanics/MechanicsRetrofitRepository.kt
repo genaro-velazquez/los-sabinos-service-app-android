@@ -15,6 +15,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.domain.valueobjects.VehicleVersion
@@ -109,7 +110,8 @@ class MechanicsRetrofitRepository(
                 priority = entity.priority,
                 scheduledStart = entity.scheduledStart ?: "",
                 scheduledEnd = entity.scheduledEnd ?: "",
-                template = Template(name = "", sections = emptyList(), serviceFields = emptyList())
+                checklistTemplate = ChecklistTemplate(name = "", version = "", template = Template(name = "", sections = emptyList(), serviceFields = emptyList()))
+                //template = Template(name = "", sections = emptyList(), serviceFields = emptyList())
             )
         }
 
@@ -172,7 +174,11 @@ class MechanicsRetrofitRepository(
                 priority = entity.priority,
                 scheduledStart = entity.scheduledStart ?: "",
                 scheduledEnd = entity.scheduledEnd ?: "",
-                template = Template(name = "", sections = emptyList(), serviceFields = emptyList())
+                checklistTemplate = ChecklistTemplate(
+                    name = "",
+                    version = "",
+                    template = Template(name = "", sections = emptyList(), serviceFields = emptyList()))
+                //template = Template(name = "", sections = emptyList(), serviceFields = emptyList())
             )
         }
     }

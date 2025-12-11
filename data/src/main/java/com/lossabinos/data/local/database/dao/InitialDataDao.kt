@@ -3,6 +3,7 @@ package com.lossabinos.data.local.database.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
@@ -16,7 +17,7 @@ interface InitialDataDao {
 
     // ============ SERVICE TYPES ============
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertServiceTypes(serviceTypes: List<ServiceTypeEntity>)
 
     @Query("SELECT * FROM service_types")
@@ -61,7 +62,7 @@ interface InitialDataDao {
 
     // ============ MECHANICS ============
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMechanics(mechanics: List<MechanicEntity>)
 
     @Query("SELECT * FROM mechanics")
@@ -94,7 +95,7 @@ interface InitialDataDao {
 
     // ============ ASSIGNED SERVICES ============
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAssignedServices(assignedServices: List<AssignedServiceEntity>)
 
     @Query("SELECT * FROM assigned_services")

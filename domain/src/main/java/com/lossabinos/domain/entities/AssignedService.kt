@@ -1,6 +1,6 @@
 package com.lossabinos.domain.entities
 
-import com.lossabinos.domain.valueobjects.Template
+import com.lossabinos.domain.valueobjects.ChecklistTemplate
 
 class AssignedService(
     val id:String,
@@ -13,5 +13,5 @@ class AssignedService(
     val scheduledStart: String,
     val scheduledEnd: String,
     val priority: String,
-    val template: Template
+    val checklistTemplate: ChecklistTemplate
 ): DomainEntity()

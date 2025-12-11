@@ -46,7 +46,7 @@ fun AssignedService.toRoomEntity(): AssignedServiceEntity {
         notes = null,  // Por ahora, no viene en el DTO
         scheduledStart = this.scheduledStart,
         scheduledEnd = this.scheduledEnd,
-        checklistTemplateJson = Json.encodeToString(this.template),
+        checklistTemplateJson = Json.encodeToString(this.checklistTemplate),
         progressPercentage = 0
     )
 }

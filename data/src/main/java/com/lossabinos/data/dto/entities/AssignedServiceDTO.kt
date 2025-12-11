@@ -2,6 +2,7 @@ package com.lossabinos.data.dto.entities
 
 import com.lossabinos.data.dto.utilities.asJSONObject
 import com.lossabinos.data.dto.utilities.asString
+import com.lossabinos.data.dto.valueobjects.ChecklistTemplateDTO
 import com.lossabinos.data.dto.valueobjects.TemplateDTO
 import com.lossabinos.domain.entities.AssignedService
 import org.json.JSONObject
@@ -17,7 +18,7 @@ open class AssignedServiceDTO (
     val scheduledStart: String,
     val scheduledEnd: String,
     val priority: String,
-    val template: TemplateDTO
+    val checklistTemplate: ChecklistTemplateDTO
 ): DTO<AssignedService>(){
 
     constructor(json: JSONObject) : this (
@@ -31,7 +32,7 @@ open class AssignedServiceDTO (
         scheduledStart = json.asString("scheduled_start"),
         scheduledEnd = json.asString("scheduled_end"),
         priority = json.asString("priority"),
-        template = TemplateDTO(json = json.asJSONObject("checklist_template"))
+        checklistTemplate = ChecklistTemplateDTO(json = json.asJSONObject("checklist_template"))
     )
 
     override fun toEntity(): AssignedService = AssignedService(
@@ -45,6 +46,6 @@ open class AssignedServiceDTO (
         scheduledStart = scheduledStart,
         scheduledEnd = scheduledEnd,
         priority = priority,
-        template = template.toEntity()
+        checklistTemplate = checklistTemplate.toEntity()
     )
 }
