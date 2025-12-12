@@ -6,6 +6,8 @@ import com.lossabinos.domain.entities.ServiceType
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.valueobjects.SyncMetadata
+import kotlinx.coroutines.flow.Flow
 
 interface MechanicsRepository {
 
@@ -21,5 +23,11 @@ interface MechanicsRepository {
     suspend fun getLocalServiceTypes(): List<ServiceType>
 
     suspend fun getLocalInitialData(): InitialDataResponse
+
+    // Room Flows (leyendo datos locales)
+    fun getMechanicFlow(): Flow<Mechanic?>
+    fun getAssignedServicesFlow(): Flow<List<AssignedService>>
+    fun getServiceTypesFlow(): Flow<List<ServiceType>>
+    fun getSyncMetadataFlow(): Flow<SyncMetadata?>
 
 }

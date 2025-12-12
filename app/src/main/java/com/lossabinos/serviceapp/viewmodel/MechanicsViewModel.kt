@@ -2,17 +2,28 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.entities.AssignedService
+import com.lossabinos.domain.entities.Mechanic
+import com.lossabinos.domain.entities.ServiceType
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
+import com.lossabinos.domain.usecases.mechanics.GetMechanicFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
+import com.lossabinos.domain.usecases.mechanics.GetServiceTypesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
+import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
+import com.lossabinos.domain.valueobjects.SyncMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,8 +32,13 @@ class MechanicsViewModel @Inject constructor(
     private val getMechanicsServicesUseCase: GetMechanicsServicesUseCase,
     private val getDetailedServiceUseCase: GetDetailedServiceUseCase,
     private val getInitialDataUseCase: GetSyncInitialDataUseCase,
-    private val getLocalInitialDataUseCase: GetLocalInitialDataUseCase
+    private val getLocalInitialDataUseCase: GetLocalInitialDataUseCase,
+    getMechanicFlowUseCase: GetMechanicFlowUseCase,
+    getAssignedServicesFlowUseCase: GetAssignedServicesFlowUseCase,
+    getServiceTypesFlowUseCase: GetServiceTypesFlowUseCase,
+    getSyncMetadataFlowUseCase: GetSyncMetadataFlowUseCase
 ) : ViewModel(){
+
 
     // ==============
     // CARGA INICIAL
@@ -33,16 +49,24 @@ class MechanicsViewModel @Inject constructor(
     fun loadInitialData(){
         viewModelScope.launch {
             try {
+                println("\n⏳ [API] Iniciando carga desde API...")
                 _syncInitialData.value = Result.Loading
                 val response = getInitialDataUseCase.execute()
+                //println("✅ [API] Datos recibidos")
+
+                //println("💾 [ROOM] Guardando datos...")
                 _syncInitialData.value = Result.Success(data = response)
+                println("✅ [API] Proceso completo\n")
             }
             catch (e: Exception){
+                println("❌ [API] Error: ${e.message}")
                 _syncInitialData.value = Result.Error(exception = e)
+                println("✅ [API] Continuando con datos de Room\n")
             }
         }
     }
 
+/*
     // ==========================================
     // ASSIGNED SERVICES (Lista de servicios)
     // ==========================================
@@ -94,7 +118,7 @@ class MechanicsViewModel @Inject constructor(
             }
         }
     }
-
+*/
     // ============== ← NUEVO
     // DATOS LOCALES (desde Room)
     // ==============
@@ -118,6 +142,62 @@ class MechanicsViewModel @Inject constructor(
             }
         }
     }
+
+    // ============================================================
+    // MECHANIC (de Room)
+    // ============================================================
+    val mechanic: StateFlow<Mechanic?> =
+        getMechanicFlowUseCase()
+            .catch { exception ->
+                println("❌ [VM] Error en mechanic Flow: ${exception.message}")
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = null
+            )
+
+    // ============================================================
+    // ASSIGNED SERVICES (de Room)
+    // ============================================================
+    val assignedServices: StateFlow<List<AssignedService>> =
+        getAssignedServicesFlowUseCase()
+            .catch { exception ->
+                println("❌ [VM] Error en assignedServices Flow: ${exception.message}")
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = emptyList()
+            )
+
+    // ============================================================
+    // SERVICE TYPES (de Room)
+    // ============================================================
+    val serviceTypes: StateFlow<List<ServiceType>> =
+        getServiceTypesFlowUseCase()
+            .catch { exception ->
+                println("❌ [VM] Error en serviceTypes Flow: ${exception.message}")
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = emptyList()
+            )
+
+    // ============================================================
+    // SYNC METADATA (de Room)
+    // ============================================================
+    val syncMetadata: StateFlow<SyncMetadata?> =
+        getSyncMetadataFlowUseCase()
+            .catch { exception ->
+                println("❌ [VM] Error en syncMetadata Flow: ${exception.message}")
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = null
+            )
 
 }
 

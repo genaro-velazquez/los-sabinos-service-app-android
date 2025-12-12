@@ -6,6 +6,11 @@ import com.lossabinos.data.dto.responses.DetailedServiceResponseDTO
 import com.lossabinos.data.dto.responses.InitialDataResponseDTO
 import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.local.database.dao.InitialDataDao
+import com.lossabinos.data.local.database.entities.AssignedServiceEntity
+import com.lossabinos.data.local.database.entities.MechanicEntity
+import com.lossabinos.data.local.database.entities.ServiceTypeEntity
+import com.lossabinos.data.local.database.entities.SyncMetadataEntity
+import com.lossabinos.data.local.mappers.toDomain
 import com.lossabinos.data.local.mappers.toRoomEntity
 import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.Mechanic
@@ -19,6 +24,10 @@ import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.domain.valueobjects.VehicleVersion
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 
 class MechanicsRetrofitRepository(
@@ -46,9 +55,13 @@ class MechanicsRetrofitRepository(
         val json = RetrofitResponseValidator.validate(response = response)
         val dto = InitialDataResponseDTO(json = json)
         //return dto.toEntity()
+        println("✅ [API] DTO Response recibido")
         val initialDataResponse = dto.toEntity()
+        println("✅ [API] DTO to Entity")
         // GUARDAR EN ROOM (nuevo)
+        println("✅ [API] Salvando en bd local")
         saveToRoom(initialDataResponse)
+        println("✅ [API] Información guardada en bd local")
         // DEVOLVER DATOS
         return initialDataResponse
 
@@ -88,7 +101,7 @@ class MechanicsRetrofitRepository(
     // Carga infrmacion de carga inicial
     override suspend fun getLocalInitialData(): InitialDataResponse {
         // Traer mecánico
-        val mechanicEntity = initialDataDao.getMechanic()
+        val mechanicEntity = initialDataDao.getMechanicOnce()
         val mechanic = mechanicEntity?.let {
             Mechanic(
                 id = it.id,
@@ -102,7 +115,7 @@ class MechanicsRetrofitRepository(
         } ?: throw Exception("Mecánico no encontrado")
 
         // Traer servicios asignados
-        val serviceEntities = initialDataDao.getAllAssignedServices()
+        val serviceEntities = initialDataDao.getAllAssignedServicesOnce()
         val assignedServices = serviceEntities.map { entity ->
             AssignedService(
                 id = entity.id,
@@ -151,7 +164,7 @@ class MechanicsRetrofitRepository(
 
     // Estos se me hace que no se cuparan
     override suspend fun getLocalMechanic(): Mechanic? {
-        val mechanicEntity = initialDataDao.getMechanic()
+        val mechanicEntity = initialDataDao.getMechanicOnce()
         return mechanicEntity?.let {
             Mechanic(
                 id = it.id,
@@ -166,7 +179,7 @@ class MechanicsRetrofitRepository(
     }
 
     override suspend fun getLocalAssignedServices(): List<AssignedService> {
-        val entities = initialDataDao.getAllAssignedServices()
+        val entities = initialDataDao.getAllAssignedServicesOnce()
         return entities.map { entity ->
             AssignedService(
                 id = entity.id,
@@ -201,5 +214,64 @@ class MechanicsRetrofitRepository(
         }
     }
 
+    // ============================================================
+    // 1️⃣ MECHANIC FLOW
+    // ============================================================
+    override fun getMechanicFlow(): Flow<Mechanic?> {
+        return initialDataDao.getMechanicFlow()
+            .map { mechanicEntity ->
+                mechanicEntity?.toDomain()
+            }
+            .catch { exception ->
+                println("❌ [REPO] Error en MechanicFlow: ${exception.message}")
+                throw exception
+            }
+    }
+
+    // ============================================================
+    // 2️⃣ ASSIGNED SERVICES FLOW
+    // ============================================================
+    override fun getAssignedServicesFlow(): Flow<List<AssignedService>> {
+        return initialDataDao.getAllAssignedServicesFlow()
+            .map { serviceEntities ->
+                serviceEntities.map { entity ->
+                    entity.toDomain()
+                }
+            }
+            .catch { exception ->
+                println("❌ [REPO] Error en AssignedServicesFlow: ${exception.message}")
+                throw exception
+            }
+    }
+
+    // ============================================================
+    // 3️⃣ SERVICE TYPES FLOW
+    // ============================================================
+    override fun getServiceTypesFlow(): Flow<List<ServiceType>> {
+        return initialDataDao.getAllServiceTypesFlow()
+            .map { typeEntities ->
+                typeEntities.map { entity ->
+                    entity.toDomain()
+                }
+            }
+            .catch { exception ->
+                println("❌ [REPO] Error en ServiceTypesFlow: ${exception.message}")
+                throw exception
+            }
+    }
+
+    // ============================================================
+    // 4️⃣ SYNC METADATA FLOW
+    // ============================================================
+    override fun getSyncMetadataFlow(): Flow<SyncMetadata?> {
+        return initialDataDao.getSyncMetadataFlow()
+            .map { metadataEntity ->
+                metadataEntity?.toDomain()
+            }
+            .catch { exception ->
+                println("❌ [REPO] Error en SyncMetadataFlow: ${exception.message}")
+                throw exception
+            }
+    }
 
 }
