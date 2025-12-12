@@ -28,7 +28,9 @@ fun ServiceType.toRoomEntity(): ServiceTypeEntity {
     return ServiceTypeEntity(
         id = this.id,
         name = this.name,
-        estimatedDurationMinutes = this.estimatedDurationMinutes
+        estimatedDurationMinutes = this.estimatedDurationMinutes,
+        code = this.code,
+        category = this.category
     )
 }
 

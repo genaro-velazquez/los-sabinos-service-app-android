@@ -19,7 +19,7 @@ class ServiceTypeDTO(
         name = json.asString("name"),
         code = json.asString("code"),
         category = json.asString("category"),
-        estimatedDurationMinutes = json.asInt("estimated_duration_minutes")
+        estimatedDurationMinutes = json.asInt("estimated_duration_hours")
     )
 
     override fun toEntity(): ServiceType = ServiceType(

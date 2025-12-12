@@ -96,8 +96,8 @@ class MechanicsRetrofitRepository(
                 email = it.email,
                 fullName = "",
                 rol = "",
-                zoneId = "",
-                zoneName = ""
+                zoneId = it.zoneId,
+                zoneName = it.zoneName
             )
         } ?: throw Exception("Mecánico no encontrado")
 
@@ -107,9 +107,9 @@ class MechanicsRetrofitRepository(
             AssignedService(
                 id = entity.id,
                 workOrderId = entity.workOrderId,
-                workOrderNumber = "",
+                workOrderNumber = entity.workOrderNumber,
                 serviceTypeId = entity.serviceTypeId,
-                serviceTypeName = "",
+                serviceTypeName = entity.serviceTypeName,
                 vehicle = Vehicle(id = "", vin = "", economicNumber = "", modelName = "", vehicleNumber ="", licensePlate = "", vehicleVersion = VehicleVersion(make = "", model = "", year = 0), currentOdometerKm = 0),
                 status = entity.status,
                 priority = entity.priority,

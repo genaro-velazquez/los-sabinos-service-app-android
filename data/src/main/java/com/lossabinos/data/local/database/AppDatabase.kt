@@ -33,7 +33,7 @@ import com.lossabinos.data.local.database.entities.ZoneEntity
         ServiceFieldValueEntity::class,
         SyncMetadataEntity::class
     ],
-    version = 5
+    version = 6
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun initialDataDao(): InitialDataDao

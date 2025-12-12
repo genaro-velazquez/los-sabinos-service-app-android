@@ -141,6 +141,22 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_5_TO_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Agregar 2 columnas nuevas a service_types
+            db.execSQL("""
+            ALTER TABLE service_types 
+            ADD COLUMN code TEXT NOT NULL DEFAULT ''
+        """)
+
+            db.execSQL("""
+            ALTER TABLE service_types 
+            ADD COLUMN category TEXT NOT NULL DEFAULT ''
+        """)
+        }
+    }
+
+
     private val MIGRATION_4_TO_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("""
@@ -170,7 +186,8 @@ object DatabaseModule {
         )
             .addMigrations(MIGRATION_2_TO_3,
                 MIGRATION_3_TO_4,
-                MIGRATION_4_TO_5)
+                MIGRATION_4_TO_5,
+                MIGRATION_5_TO_6)
             .fallbackToDestructiveMigration(true)
             .build()
     }

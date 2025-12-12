@@ -332,7 +332,7 @@ fun HomeScreen(
             HomeHeaderSection(
                 // ✅ Usar datos de ROOM (dataToDisplay)
                 userName = dataToDisplay?.mechanic?.name ?: state.userName,
-                userLocation = state.userLocation,
+                userLocation = dataToDisplay?.mechanic?.zoneName ?: state.userLocation,
                 isOnline = true,
                 onSettingsClick = onSettingsClick,
                 onLogoutClick = {
