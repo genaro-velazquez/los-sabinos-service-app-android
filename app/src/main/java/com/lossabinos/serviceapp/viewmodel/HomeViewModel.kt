@@ -31,6 +31,8 @@ sealed class HomeEvent {
     object LogoutClicked : HomeEvent()
     object ConfirmLogout : HomeEvent()
     object CancelLogout : HomeEvent()
+
+    data class CompleteServiceClicked(val serviceId: String) : HomeEvent()  // ✨ NUEVO
 }
 
 /**
@@ -105,7 +107,15 @@ class HomeViewModel @Inject constructor(
                 // Cancelar logout y cerrar dialog
                 _state.update { it.copy(showLogoutDialog = false) }
             }
+            is HomeEvent.CompleteServiceClicked -> {
+                println("✅ Navegando a ChecklistProgress: ${event.serviceId}")
+                _navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(event.serviceId)
+            }
         }
+    }
+
+    fun clearNavigationEvent(){
+        _navigationEvent.value = null
     }
 
     /**

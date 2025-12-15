@@ -334,8 +334,11 @@ fun HomeScreen(
                             println("👆 [UI] Service clicked: $serviceId")
                         },
                         onCompleteClick = { serviceId ->
-                            println("✓ [UI] Service completed: $serviceId")
-                            onServiceComplete(serviceId)
+                            println("✓ Service complete: $serviceId")
+                            // ✨ NUEVO: Emitir evento
+                            homeViewModel.onEvent(
+                                HomeEvent.CompleteServiceClicked(serviceId)
+                            )
                         },
                         onRescheduleClick = { serviceId ->
                             println("📅 [UI] Service reschedule: $serviceId")
