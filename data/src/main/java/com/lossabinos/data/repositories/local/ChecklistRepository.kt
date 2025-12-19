@@ -179,4 +179,121 @@ class ChecklistRepository(
         return java.time.LocalDateTime.now().toString()
     }
 
+
+
+
+
+    // ═══════════════════════════════════════════════════════
+    // 1. OBTENER actividades completadas de una sección
+    // ═══════════════════════════════════════════════════════
+    suspend fun getActivitiesProgressForSection(
+        assignedServiceId: String,
+        sectionIndex: Int
+    ): List<ActivityProgressEntity> {
+        return activityProgressDao.getActivitiesBySectionAndService(
+            assignedServiceId = assignedServiceId,
+            sectionIndex = sectionIndex
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 2. OBTENER evidencias (fotos) de una actividad
+    // ═══════════════════════════════════════════════════════
+    suspend fun getEvidenceForActivity(
+        activityProgressId: Long
+    ): List<ActivityEvidenceEntity> {
+        return activityEvidenceDao.getEvidenceByActivityProgress(activityProgressId)
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 3. OBTENER respuestas de observaciones de una sección
+    // ═══════════════════════════════════════════════════════
+    suspend fun getObservationResponsesForSection(
+        assignedServiceId: String,
+        sectionIndex: Int
+    ): List<ObservationResponseEntity> {
+        return observationResponseDao.getObservationResponsesBySection(
+            assignedServiceId = assignedServiceId,
+            sectionIndex = sectionIndex
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 4. OBTENER TODAS las actividades completadas del servicio
+    // ═══════════════════════════════════════════════════════
+    suspend fun getTotalCompletedActivities(
+        assignedServiceId: String
+    ): Int {
+        return activityProgressDao.countCompletedActivities(
+            assignedServiceId = assignedServiceId
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 5. GUARDAR actividad completada
+    // ═══════════════════════════════════════════════════════
+    suspend fun saveActivityProgress(
+        assignedServiceId: String,
+        sectionIndex: Int,
+        activityIndex: Int,
+        description: String,
+        requiresEvidence: Boolean
+    ): Long {
+        val entity = ActivityProgressEntity(
+            assignedServiceId = assignedServiceId,
+            sectionIndex = sectionIndex,
+            activityIndex = activityIndex,
+            activityDescription = description,
+            requiresEvidence = requiresEvidence,
+            completed = true,
+            completedAt = System.currentTimeMillis().toISO8601String()
+        )
+        return activityProgressDao.insertActivityProgress(entity)
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 6. GUARDAR evidencia (foto)
+    // ═══════════════════════════════════════════════════════
+    suspend fun saveActivityEvidence(
+        activityProgressId: Long,
+        filePath: String,
+        fileType: String = "image"
+    ) {
+        val entity = ActivityEvidenceEntity(
+            activityProgressId = activityProgressId,
+            filePath = filePath,
+            fileType = fileType,
+            timestamp = System.currentTimeMillis().toISO8601String()
+        )
+        activityEvidenceDao.insertActivityEvidence(entity)
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 7. GUARDAR respuesta a observación
+    // ═══════════════════════════════════════════════════════
+    suspend fun saveObservationResponse(
+        assignedServiceId: String,
+        sectionIndex: Int,
+        observationIndex: Int,
+        observationDescription: String,
+        response: String
+    ) {
+        val entity = ObservationResponseEntity(
+            assignedServiceId = assignedServiceId,
+            sectionIndex = sectionIndex,
+            observationIndex = observationIndex,
+            observationDescription = observationDescription,
+            response = response,
+            timestamp = System.currentTimeMillis().toISO8601String()
+        )
+        observationResponseDao.insertObservationResponse(entity)
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 8. Helper: Convertir ISO8601 String a formato legible
+    // ═══════════════════════════════════════════════════════
+    private fun Long.toISO8601String(): String {
+        return java.time.Instant.ofEpochMilli(this)
+            .toString()
+    }
 }

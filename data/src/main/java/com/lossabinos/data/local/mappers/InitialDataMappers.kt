@@ -100,9 +100,9 @@ fun AssignedServiceEntity.toDomain(): AssignedService {
         serviceTypeName = this.serviceTypeName,
         vehicle = Vehicle(
             id = this.vehicleId,
-            vin = this.vehicleVin ?: "",
-            economicNumber = this.vehicleEconomicNumber ?: "",
-            modelName = this.vehicleModelName ?: "",
+            vin = this.vehicleVin,
+            economicNumber = this.vehicleEconomicNumber,
+            modelName = this.vehicleModelName,
             vehicleNumber = "",
             licensePlate = "",
             vehicleVersion = VehicleVersion(make = "", model = "", year = 0),

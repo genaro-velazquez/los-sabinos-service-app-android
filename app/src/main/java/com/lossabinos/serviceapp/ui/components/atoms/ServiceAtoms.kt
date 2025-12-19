@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lossabinos.serviceapp.utils.DateUtils
 
 // ==========================================
 // 1. SERVICE ICON ATOM
@@ -159,32 +161,39 @@ fun TimeSlotAtom(
     endTime: String,
     duration: String
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    // 🆕 Calcula la duración automáticamente
+    val calculatedDuration = DateUtils.calculateDuration(startTime, endTime)
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Icono de reloj
-        Icon(
-            imageVector = Icons.Filled.AccessTime,
-            contentDescription = "Hora",
-            tint = Color.Black,
-            modifier = Modifier.size(18.dp)
-        )
-
-        // Hora
-        Text(
-            text = "$startTime - $endTime",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Black,
-            fontWeight = FontWeight.Medium
-        )
-
-        // Duración
-        Text(
-            text = duration,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF9E9E9E)
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AccessTime,
+                contentDescription = "Hora",
+                tint = Color.Black,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = "${DateUtils.formatIsoToReadable(startTime)} - ${DateUtils.formatIsoToReadable(endTime)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 26.dp)
+        ) {
+            Text(
+                text = "Duración: $calculatedDuration",  // 🆕 Usa la calculada
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF9E9E9E)
+            )
+        }
     }
 }
 

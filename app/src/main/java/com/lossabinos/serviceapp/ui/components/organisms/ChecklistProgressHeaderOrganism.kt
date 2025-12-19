@@ -25,7 +25,7 @@ import com.lossabinos.serviceapp.ui.components.molecules.ProgressIndicatorMolecu
 @Composable
 fun ChecklistProgressHeaderOrganism(
     serviceName: String,
-    serviceType: String,
+    templateName: String,
     currentProgress: Int,  // ej: 1
     totalTasks: Int,       // ej: 4
     progressPercentage: Int,  // ej: 35
@@ -51,7 +51,7 @@ fun ChecklistProgressHeaderOrganism(
             // ═══════════════════════════════════════
             HeaderWithBadgeMolecule(
                 title = serviceName,
-                subtitle = serviceType,
+                subtitle = templateName,
                 badge = "$currentProgress/$totalTasks"
             )
 
@@ -68,7 +68,7 @@ fun ChecklistProgressHeaderOrganism(
     }
 }
 
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun ChecklistProgressHeaderOrganismPreview(){
@@ -82,3 +82,4 @@ fun ChecklistProgressHeaderOrganismPreview(){
         )
     }
 }
+*/

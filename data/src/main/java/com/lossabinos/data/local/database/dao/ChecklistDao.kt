@@ -16,8 +16,66 @@ import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
 @Dao
 interface ActivityProgressDao {
 
+    // ═══════════════════════════════════════════════════════
+    // 1. INSERTAR actividad completada
+    // ═══════════════════════════════════════════════════════
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertActivityProgress(activity: ActivityProgressEntity): Long
+
+    // ═══════════════════════════════════════════════════════
+    // 4. ✨ OBTENER actividades de una sección específica
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT * FROM activity_progress 
+        WHERE assignedServiceId = :assignedServiceId 
+        AND sectionIndex = :sectionIndex
+        ORDER BY activityIndex ASC
+    """)
+    suspend fun getActivitiesBySectionAndService(
+        assignedServiceId: String,
+        sectionIndex: Int
+    ): List<ActivityProgressEntity>
+
+    // ═══════════════════════════════════════════════════════
+    // 7. ✨ CONTAR actividades completadas de un servicio
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT COUNT(*) FROM activity_progress 
+        WHERE assignedServiceId = :assignedServiceId 
+        AND completed = 1
+    """)
+    suspend fun countCompletedActivities(
+        assignedServiceId: String
+    ): Int
+
+    // ═══════════════════════════════════════════════════════
+    // 8. ✨ OBTENER TODAS las actividades completadas (para verificar sección)
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT * FROM activity_progress 
+        WHERE assignedServiceId = :assignedServiceId 
+        AND completed = 1
+        ORDER BY sectionIndex, activityIndex ASC
+    """)
+    suspend fun getAllCompletedActivities(
+        assignedServiceId: String
+    ): List<ActivityProgressEntity>
+
+    // ═══════════════════════════════════════════════════════
+    // 9. ✨ VERIFICAR si una actividad ya está completada
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT * FROM activity_progress 
+        WHERE assignedServiceId = :assignedServiceId 
+        AND sectionIndex = :sectionIndex
+        AND activityIndex = :activityIndex
+        LIMIT 1
+    """)
+    suspend fun getActivityProgress(
+        assignedServiceId: String,
+        sectionIndex: Int,
+        activityIndex: Int
+    ): ActivityProgressEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertActivityProgressList(activities: List<ActivityProgressEntity>)
@@ -31,18 +89,6 @@ interface ActivityProgressDao {
         ORDER BY sectionIndex, activityIndex
     """)
     suspend fun getActivityProgressByService(serviceId: String): List<ActivityProgressEntity>
-
-    @Query("""
-        SELECT * FROM activity_progress 
-        WHERE assignedServiceId = :serviceId 
-        AND sectionIndex = :sectionIndex 
-        AND activityIndex = :activityIndex
-    """)
-    suspend fun getActivityProgress(
-        serviceId: String,
-        sectionIndex: Int,
-        activityIndex: Int
-    ): ActivityProgressEntity?
 
     @Query("""
         SELECT COUNT(*) FROM activity_progress 
@@ -63,6 +109,24 @@ interface ActivityProgressDao {
 // 2️⃣ DAO para Activity Evidence
 @Dao
 interface ActivityEvidenceDao {
+
+    // ═══════════════════════════════════════════════════════
+    // 2. INSERTAR evidencia (foto)
+    // ═══════════════════════════════════════════════════════
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertActivityEvidence(evidence: ActivityEvidenceEntity): Long
+
+    // ═══════════════════════════════════════════════════════
+    // 5. ✨ OBTENER evidencias de una actividad
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT * FROM activity_evidence 
+        WHERE activityProgressId = :activityProgressId
+        ORDER BY timestamp DESC
+    """)
+    suspend fun getEvidenceByActivityProgress(
+        activityProgressId: Long
+    ): List<ActivityEvidenceEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvidence(evidence: ActivityEvidenceEntity): Long
@@ -93,8 +157,25 @@ interface ActivityEvidenceDao {
 @Dao
 interface ObservationResponseDao {
 
+    // ═══════════════════════════════════════════════════════
+    // 3. INSERTAR respuesta a observación
+    // ═══════════════════════════════════════════════════════
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertObservationResponse(response: ObservationResponseEntity): Long
+
+    // ═══════════════════════════════════════════════════════
+    // 6. ✨ OBTENER respuestas de observaciones de una sección
+    // ═══════════════════════════════════════════════════════
+    @Query("""
+        SELECT * FROM observation_response 
+        WHERE assignedServiceId = :assignedServiceId 
+        AND sectionIndex = :sectionIndex
+        ORDER BY observationIndex ASC
+    """)
+    suspend fun getObservationResponsesBySection(
+        assignedServiceId: String,
+        sectionIndex: Int
+    ): List<ObservationResponseEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertObservationResponseList(responses: List<ObservationResponseEntity>)

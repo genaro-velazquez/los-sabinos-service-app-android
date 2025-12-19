@@ -5,6 +5,7 @@ plugins {
     /*Hilt Dependence Injection*/
     id("kotlin-kapt")  // ✅ AGREGAR ESTO
     id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
 
 android {
@@ -93,4 +94,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
+    // Serialización JSON
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 }

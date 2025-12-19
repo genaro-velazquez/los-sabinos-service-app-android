@@ -31,8 +31,7 @@ sealed class HomeEvent {
     object LogoutClicked : HomeEvent()
     object ConfirmLogout : HomeEvent()
     object CancelLogout : HomeEvent()
-
-    data class CompleteServiceClicked(val serviceId: String) : HomeEvent()  // ✨ NUEVO
+    data class CompleteServiceClicked(val serviceId: String) : HomeEvent()
 }
 
 /**
@@ -108,8 +107,9 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(showLogoutDialog = false) }
             }
             is HomeEvent.CompleteServiceClicked -> {
-                println("✅ Navegando a ChecklistProgress: ${event.serviceId}")
-                _navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(event.serviceId)
+                println("✅ Navegando a VehicleRegisterScreen: ${event.serviceId}")
+                //_navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(event.serviceId)
+                _navigationEvent.value = NavigationEvent.NavigateToVehicleRegistration(event.serviceId)
             }
         }
     }

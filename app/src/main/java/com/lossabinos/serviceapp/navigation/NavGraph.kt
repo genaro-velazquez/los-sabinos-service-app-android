@@ -15,7 +15,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.lossabinos.serviceapp.navigation.Routes.VEHICLE_REGISTRATION
 import com.lossabinos.serviceapp.screens.checklist.ChecklistProgressScreen
+import com.lossabinos.serviceapp.screens.checklist.VehicleRegistrationScreen
 import com.lossabinos.serviceapp.screens.home.HomeScreen
 import com.lossabinos.serviceapp.screens.login.LoginScreen
 import com.lossabinos.serviceapp.viewmodel.HomeViewModel
@@ -25,6 +27,9 @@ import kotlinx.coroutines.flow.collectLatest
 import com.lossabinos.serviceapp.screens.splash.SplashScreen
 import com.lossabinos.serviceapp.viewmodel.ChecklistViewModel
 import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
+import com.lossabinos.serviceapp.viewmodel.VehicleRegistrationViewModel
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Rutas disponibles en la aplicación
@@ -34,6 +39,7 @@ object Routes {
     const val LOGIN = "login"
     const val HOME = "home"
     const val CHECKLIST_PROGRESS = "checklist_progress/{serviceId}"
+    const val VEHICLE_REGISTRATION = "vehicle_registration/{serviceId}"
 }
 
 /**
@@ -139,7 +145,6 @@ fun NavGraph(
 
             // ============================================================================
             // 2. Escuchar eventos de navegación del HomeViewModel
-            // (Home → Login)
             // ============================================================================
             LaunchedEffect(key1 = homeViewModel) {
                 homeViewModel.navigationEvent.collectLatest { event ->
@@ -152,11 +157,17 @@ fun NavGraph(
                             // Limpiar estado del LoginViewModel
                             loginViewModel.clearState()
                         }
-                        // ✨ NUEVO: Escuchar navegación a ChecklistProgress
                         is NavigationEvent.NavigateToChecklistProgress -> {
                             println("🔄 [NavGraph] Navegando a ChecklistProgress: ${event.serviceId}")
                             navController.navigate(
-                                "${Routes.CHECKLIST_PROGRESS.replace("{serviceId}", event.serviceId)}"
+                                Routes.CHECKLIST_PROGRESS.replace("{serviceId}", event.serviceId)
+                            )
+                            homeViewModel.clearNavigationEvent()
+                        }
+                        is NavigationEvent.NavigateToVehicleRegistration -> {
+                            println("🔄 [NavGraph] Navegando a VehicleRegistration: ${event.serviceId}")
+                            navController.navigate(
+                                VEHICLE_REGISTRATION.replace(oldValue = "{serviceId}", newValue = event.serviceId)
                             )
                             homeViewModel.clearNavigationEvent()
                         }
@@ -199,25 +210,81 @@ fun NavGraph(
             val checklistViewModel: ChecklistViewModel = hiltViewModel()
             val mechanicsViewModel: MechanicsViewModel = hiltViewModel()
 
-            // Obtener datos del servicio
+            // Obtener datos de la BD de HomeScreen (DomainEntity)
+            //✅ List<AssignedService>
             val services = mechanicsViewModel.assignedServices
                 .collectAsStateWithLifecycle().value
+            //✅ List<ServiceType>
+            /*
             val types = mechanicsViewModel.serviceTypes
-                .collectAsStateWithLifecycle().value
+                .collectAsStateWithLifecycle().value*/
 
+            println("📊 Servicios cargados: ${services.size}")
+            //println("📊 Tipos cargados: ${types.size}")
+
+            //Encontrar el servicio específico
             val selectedService = services.find { it.id == serviceId }
-            val serviceTypeName = types
-                .find { it.id == selectedService?.serviceTypeId }?.name
-                ?: "Servicio"
+
+            println("🎯 Servicio encontrado: ${selectedService?.serviceTypeName}")
 
             if (selectedService != null) {
+                /*
+                val serviceTypeName = types
+                    .find { it.id == selectedService.serviceTypeId }?.name
+                    ?: "Servicio"
+                 */
+
+                val checklistJsonString = Json.encodeToString(selectedService.checklistTemplate.template)
+
+                println("✅ ChecklistTemplate serializado a JSON")
+                println("📋 JSON: ${checklistJsonString.take(100)}...")
+
                 ChecklistProgressScreen(
-                    serviceName = "Service Id",
-                    serviceType = "Service name",
-                    currentProgress = 60,
-                    totalTasks = 5,
-                    progressPercentage = 30,
-                    serviceId = "3",
+                    serviceId               = serviceId,
+                    checklistTemplateJson   = checklistJsonString,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    viewModel = checklistViewModel
+                )
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Servicio no encontrado")
+                }
+            }
+        }
+
+        // ============================================================================
+        // VEHICLE REGISTRATION SCREEN
+        // ============================================================================
+        composable(
+            route = VEHICLE_REGISTRATION,
+            arguments = listOf(
+                navArgument("serviceId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+
+            val vehicleRegistrationModel: VehicleRegistrationViewModel = hiltViewModel()
+            val serviceId = backStackEntry.arguments?.getString("serviceId") ?: ""
+
+            // 🆕 Obtener el JSON
+            val mechanicsViewModel: MechanicsViewModel = hiltViewModel()
+            val services = mechanicsViewModel.assignedServices
+                .collectAsStateWithLifecycle().value
+            val selectedService = services.find { it.id == serviceId }
+
+            if (selectedService != null) {
+                val checklistJsonString = Json.encodeToString(selectedService.checklistTemplate.template)
+
+                VehicleRegistrationScreen(
+                    checklistTemplateJson = checklistJsonString,  // 🆕 PASA EL JSON
+                    onContinueClick = {
+                        navController.navigate("checklist_progress/$serviceId")
+                        vehicleRegistrationModel.clearNavigationEvent()
+                    },
                     onBackClick = {
                         navController.popBackStack()
                     }
@@ -231,10 +298,6 @@ fun NavGraph(
                 }
             }
         }
-
-
-
-
     }
 }
 

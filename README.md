@@ -35,12 +35,20 @@ Aplicación Android nativa para gestionar servicios de mantenimiento con funcion
 - ✅ **Código Simplificado** - HomeScreen 60% más simple sin lógica compleja
 - ✅ **Google Best Practice** - Arquitectura MVVM moderno recomendado por Google
 
+### Vehicle Registration & Dynamic Fields ✨✨ v2.1.0
+- ✅ **VehicleRegistrationScreen** - Nueva pantalla previa al checklist
+- ✅ **Campos dinámicos** - Cargados desde serviceFields del template JSON
+- ✅ **VehicleRegistrationFieldUIModel** - Modelo UI reutilizable y escalable
+- ✅ **DateUtils** - Formateo de fechas ISO a formatos legibles
+- ✅ **Progreso por sección** - Indicadores reiniciados por cada sección
+- ✅ **Atomic Design mejorado** - Componentes escalables y mantenibles
+- ✅ **Validación dinámica** - Campos requeridos desde JSON
+
 ---
 
-## 🏗️ Arquitectura - v2.0.0
+## 🏗️ Arquitectura - v2.1.0
 
 ### Flujo de Datos (Push Pattern con Flow)
-
 ```
 Room SQLite (cambios detectados automáticamente)
     ↓ (Flows emiten cambios)
@@ -62,8 +70,27 @@ MechanicsViewModel:
   ✅ val serviceTypes: StateFlow<List<ServiceType>>
   ✅ val syncMetadata: StateFlow<SyncMetadata?>
     ↓ (collectAsStateWithLifecycle)
-HomeScreen UI
+HomeScreen UI → VehicleRegistrationScreen → ChecklistProgressScreen
     ↓ (Auto-actualización en tiempo real)
+```
+
+### Flujo de Navegación v2.1.0
+```
+LOGIN
+  ↓
+HOME (Servicios disponibles)
+  ├─ Usuario clickea "Completar"
+  ↓
+VEHICLE REGISTRATION (Captura de datos)
+  ├─ Carga campos dinámicos desde serviceFields JSON
+  ├─ Usuario ingresa: Kilometraje, Tipo de Aceite, etc.
+  ├─ Validación de campos requeridos
+  ↓
+CHECKLIST PROGRESS (Tareas)
+  ├─ Progreso por sección (reinicia cada sección)
+  ├─ Marcado de actividades
+  ├─ Captura de evidencia
+  └─ Observaciones
 ```
 
 ### Ventajas del Flow Pattern v2.0.0
@@ -101,7 +128,6 @@ HomeScreen UI
 - **SyncMetadata** - Metadatos de sincronización (total_services, pending, in_progress)
 
 ### Versión BD: 6
-
 ```
 v1 → v2: MIGRATION_2_TO_3 (Agregar 4 tablas checklist)
 v2 → v3: MIGRATION_3_TO_4 (Agregar zoneId, zoneName)
@@ -111,8 +137,7 @@ v4 → v5: MIGRATION_5_TO_6 (Agregar code, category)
 
 ---
 
-## 📁 Estructura del Proyecto - v2.0.0
-
+## 📁 Estructura del Proyecto - v2.1.0
 ```
 app/src/main/java/com/lossabinos/serviceapp/
 │
@@ -151,7 +176,8 @@ app/src/main/java/com/lossabinos/serviceapp/
 │   │   ├── Section.kt (@Serializable)
 │   │   ├── Activity.kt (@Serializable)
 │   │   ├── Observation.kt (@Serializable)
-│   │   └── ServiceField.kt (@Serializable)
+│   │   ├── ServiceField.kt (@Serializable)
+│   │   └── ChecklistRoot.kt (@Serializable)
 │   │
 │   ├── usecases/ ✨ v2.0.0 (6 UseCases)
 │   │   ├── GetMechanicFlowUseCase.kt
@@ -166,16 +192,58 @@ app/src/main/java/com/lossabinos/serviceapp/
 │
 ├── presentation/
 │   ├── viewmodels/
-│   │   └── MechanicsViewModel.kt (4 StateFlows, sin lógica compleja)
+│   │   ├── MechanicsViewModel.kt (4 StateFlows, sin lógica compleja)
+│   │   ├── ChecklistViewModel.kt (Progreso dinámico por sección)
+│   │   └── VehicleRegistrationViewModel.kt ✨ v2.1.0 (Campos dinámicos)
 │   │
-│   └── screens/
-│       └── home/
-│           └── HomeScreen.kt (simplificada -60%)
+│   └── ui/
+│       ├── atoms/
+│       │   ├── IconWithBackgroundAtom.kt
+│       │   ├── InputFieldAtom.kt
+│       │   ├── ContinueButtonAtom.kt
+│       │   └── SubtextAtom.kt
+│       │
+│       ├── molecules/
+│       │   ├── KilometrageCardMolecule.kt
+│       │   ├── OilTypeCardMolecule.kt
+│       │   └── HeaderWithSubtitleMolecule.kt
+│       │
+│       ├── organisms/
+│       │   ├── VehicleRegistrationFormOrganism.kt ✨ v2.1.0
+│       │   ├── VehicleRegistrationActionOrganism.kt
+│       │   ├── ActivitiesListOrganism.kt
+│       │   └── ObservationsOrganism.kt
+│       │
+│       ├── templates/
+│       │   ├── VehicleRegistrationTemplate.kt ✨ v2.1.0
+│       │   └── ChecklistProgressTemplate.kt
+│       │
+│       ├── screens/
+│       │   ├── login/
+│       │   ├── home/
+│       │   ├── vehicle_registration/ ✨ v2.1.0
+│       │   │   └── VehicleRegistrationScreen.kt
+│       │   └── checklist_progress/
+│       │       └── ChecklistProgressScreen.kt
+│       │
+│       ├── models/ ✨ v2.1.0
+│       │   ├── VehicleRegistrationFieldUIModel.kt (Homologado)
+│       │   ├── ActivityUIModel.kt
+│       │   ├── ObservationUIModel.kt
+│       │   └── SectionUIModel.kt
+│       │
+│       └── navigation/
+│           └── NavGraph.kt
 │
 ├── di/
 │   ├── DatabaseModule.kt (MIGRATION_2_TO_6)
 │   ├── RepositoryModule.kt
 │   └── UseCaseModule.kt ✨ v2.0.0 (6 UseCases)
+│
+├── utils/
+│   ├── Constants.kt
+│   ├── DateUtils.kt ✨ v2.1.0 (Formateo de fechas)
+│   └── ExtensionFunctions.kt
 │
 └── app/
     └── LosSabinosApplication.kt
@@ -183,157 +251,252 @@ app/src/main/java/com/lossabinos/serviceapp/
 
 ---
 
-## 🔄 Flujo Completo v2.0.0
+## ✨ Cambios v2.1.0 - Vehicle Registration & Dynamic Fields
+
+### 🎯 Nueva Pantalla: Vehicle Registration
+
+**Ubicación:** `presentation/ui/screens/vehicle_registration/`
+
+**Responsabilidad:** Captura de datos iniciales del vehículo antes de iniciar el checklist
+
+**Características:**
+- ✅ Carga dinámica de campos desde `serviceFields` del JSON
+- ✅ Validación de campos requeridos
+- ✅ Formato de entrada por tipo (número, texto)
+- ✅ Navegación: HomeScreen → VehicleRegistrationScreen → ChecklistProgressScreen
+
+### 🔄 Flujo Completo v2.1.0
+```
+1. HomeScreen
+   └─ Usuario clickea "Completar"
+      └─ emit: HomeEvent.CompleteServiceClicked(serviceId)
+
+2. HomeViewModel
+   └─ onEvent() emite: NavigationEvent.NavigateToVehicleRegistration(serviceId)
+
+3. NavGraph
+   └─ Navega a: "vehicle_registration/{serviceId}"
+      └─ Obtiene: selectedService.checklistTemplate.template (JSON)
+
+4. VehicleRegistrationScreen
+   └─ Deserializa JSON → Template
+      └─ Extrae: template.serviceFields
+         └─ Carga: VehicleRegistrationViewModel.loadServiceFieldsFromJson()
+
+5. VehicleRegistrationViewModel
+   └─ Convierte ServiceField → VehicleRegistrationFieldUIModel
+      └─ Emite campos dinámicos a StateFlow
+
+6. VehicleRegistrationTemplate
+   └─ Renderiza campos dinámicamente
+      └─ Usuario ingresa datos
+         └─ Clickea "Iniciar Captura"
+            └─ Guarda datos en Room
+               └─ Navega a ChecklistProgressScreen
+
+7. ChecklistProgressScreen
+   └─ Muestra tareas del checklist
+      └─ Progreso reiniciado por sección (sectionProgressPercentage)
+```
+
+### 📋 Modelos UI Homologados v2.1.0
+
+Todos los modelos de UI siguen el patrón `*UIModel`:
+```kotlin
+// Antes: VehicleRegistrationField
+// Ahora: VehicleRegistrationFieldUIModel ✅
+data class VehicleRegistrationFieldUIModel(
+    val id: String,
+    val label: String,
+    val value: String,
+    val placeholder: String = "",
+    val icon: ImageVector,
+    val suffix: String = "",
+    val keyboardType: KeyboardType = KeyboardType.Text,
+    val additionalInfo: String = "",
+    val fieldType: FieldType = FieldType.TEXT_INPUT,
+    val required: Boolean = false
+)
+
+// Extensión para convertir desde ServiceField
+fun ServiceField.toVehicleRegistrationFieldUIModel(value: String): VehicleRegistrationFieldUIModel
+```
+
+### 🗓️ DateUtils - Formateo de Fechas v2.1.0
+
+Ubicación: `utils/DateUtils.kt`
+```kotlin
+object DateUtils {
+    fun formatIsoToReadable(isoDateTime: String): String
+    fun formatIsoToTime(isoDateTime: String): String
+    fun formatIsoToDate(isoDateTime: String): String
+    fun calculateDuration(startTime: String, endTime: String): String
+}
+
+// Ejemplo:
+formatIsoToReadable("2025-11-29T20:00:00Z") // → "29 nov 2025, 20:00"
+calculateDuration("2025-11-29T20:00:00Z", "2025-12-17T21:32:00Z") // → "18d 1h 32m"
+```
+
+### 📊 Progreso por Sección - ChecklistProgressScreen v2.1.0
+
+**Nuevo en ChecklistUIState:**
+```kotlin
+data class ChecklistUIState(
+    // ... campos anteriores ...
+    
+    // 🆕 Progreso POR SECCIÓN (se reinicia cada sección)
+    val sectionTotalActivities: Int,      // Tareas en la sección actual
+    val sectionCompletedActivities: Int,  // Tareas completadas en la sección actual
+    val sectionProgressPercentage: Int,   // Progreso SOLO de esta sección
+    
+    // ... campos anteriores ...
+)
+```
+
+**Comportamiento:**
+- ✅ Progreso global: mantiene valor total del servicio
+- ✅ Progreso sección: reinicia a 0% en cada sección nueva
+- ✅ Header muestra: badge "2/3", progreso "0%", nombre sección nueva
+
+---
+
+## 🧬 Atomic Design - Componentes Homologados v2.1.0
+
+### Atoms
+- `IconWithBackgroundAtom` - Icono con fondo circular
+- `CardTitleAtom` - Título de card
+- `InputFieldAtom` - Campo de entrada con sufijo
+- `SubtextAtom` - Texto de soporte
+- `ContinueButtonAtom` - Botón reutilizable con icon
+
+### Molecules
+- `KilometrageCardMolecule` - Card de kilometraje
+- `OilTypeCardMolecule` - Card de tipo de aceite
+- `HeaderWithSubtitleMolecule` - Header genérico
+
+### Organisms
+- `VehicleRegistrationFormOrganism` - Formulario dinámico
+- `VehicleRegistrationActionOrganism` - Acciones
+- `ActivitiesListOrganism` - Lista de tareas
+- `ObservationsOrganism` - Observaciones
+
+### Templates
+- `VehicleRegistrationTemplate` - Layout completo con Scaffold
+- `ChecklistProgressTemplate` - Layout checklist con Scaffold
+
+---
+
+## 🔄 Flujo Completo v2.1.0
 
 ### Momento 1: HomeScreen Abre
-
 ```kotlin
 // HomeScreen.kt
 LaunchedEffect(Unit) {
-    // ✨ SOLO esto - el resto es automático
     mechanicsViewModel.loadInitialData()
 }
 
-// Los 4 Flows se auto-observan automáticamente
-val mechanic = mechanicsViewModel.mechanic
-    .collectAsStateWithLifecycle().value
-
 val services = mechanicsViewModel.assignedServices
     .collectAsStateWithLifecycle().value
 
-val types = mechanicsViewModel.serviceTypes
-    .collectAsStateWithLifecycle().value
-
-val metadata = mechanicsViewModel.syncMetadata
-    .collectAsStateWithLifecycle().value
+// Mostrar servicios en lista
+// Usuario clickea "Completar"
 ```
 
-### Momento 2: loadInitialData() Executa
-
+### Momento 2: Navegar a Vehicle Registration
 ```kotlin
-// MechanicsViewModel.kt
-fun loadInitialData() {
-    viewModelScope.launch {
-        try {
-            // 1️⃣ Obtener datos de API
-            val response = getInitialDataUseCase.execute()
-            
-            // 2️⃣ Guardar en Room
-            saveInitialDataToRoomUseCase(response)
-            
-            // 3️⃣ Los Flows detectan cambios automáticamente
-            // ← No necesita hacer nada más
-        } catch (e: Exception) {
-            println("❌ Error: ${e.message}")
-        }
-    }
+// HomeEvent emitido
+HomeEvent.CompleteServiceClicked(serviceId)
+    ↓
+// HomeViewModel emite NavigationEvent
+NavigationEvent.NavigateToVehicleRegistration(serviceId)
+    ↓
+// NavGraph navega
+navController.navigate("vehicle_registration/$serviceId")
+```
+
+### Momento 3: VehicleRegistrationScreen Abre
+```kotlin
+// VehicleRegistrationScreen.kt
+LaunchedEffect(checklistTemplateJson) {
+    viewModel.loadServiceFieldsFromJson(checklistTemplateJson)
+}
+
+// ViewModel deserializa JSON
+val template = Json.decodeFromString<Template>(checklistTemplateJson)
+val serviceFieldsJson = template.serviceFields
+
+// Convierte a VehicleRegistrationFieldUIModel
+val convertedFields = serviceFieldsJson.map { 
+    it.toVehicleRegistrationFieldUIModel(currentValue)
+}
+
+// StateFlow emite campos
+_serviceFields.value = convertedFields
+```
+
+### Momento 4: Usuario Completa Formulario
+```kotlin
+// VehicleRegistrationTemplate renderiza dinámicamente
+fields.forEach { field ->
+    InputFieldAtom(value = field.value, ...)
+}
+
+// Usuario ingresa datos y clickea "Iniciar Captura"
+viewModel.saveVehicleData {
+    navController.navigate("checklist_progress/$serviceId")
 }
 ```
 
-### Momento 3: Flow Detecta Cambios
+### Momento 5: ChecklistProgressScreen Abre
+```kotlin
+// ChecklistProgressScreen.kt
+LaunchedEffect(Unit) {
+    viewModel.loadTemplate(checklistTemplateJson, serviceId)
+}
 
-```
-saveToRoom() guarda en Room
-    ↓
-Room SQLite actualiza 11 tablas
-    ↓
-Todos los Flows detectan cambios:
-  ✅ getMechanicFlow() emite
-  ✅ getAllAssignedServicesFlow() emite
-  ✅ getAllServiceTypesFlow() emite
-  ✅ getSyncMetadataFlow() emite
-    ↓
-StateFlow recibe nuevo valor automáticamente
-    ↓
-collectAsStateWithLifecycle() notifica
-    ↓
-HomeScreen se re-renderiza con datos nuevos ✨
+// ViewModel carga actividades de Room
+// Calcula sectionProgressPercentage = 0% (nueva sección)
+
+// Template renderiza con progreso reiniciado
+Text("${state.sectionProgressPercentage}%")  // 0%
 ```
 
 ---
 
-## ✨ Lo Más Importante - v2.0.0
+## ✅ Implementado v2.1.0
 
-### Antes (v1.8.0) - Complejo
-
-```kotlin
-// ❌ Múltiple observación + lógica compleja
-val localInitialDataState = mechanicsViewModel.localInitialDataFlow
-    .collectAsStateWithLifecycle().value
-val syncInitialDataState = mechanicsViewModel.syncInitialData
-    .collectAsStateWithLifecycle().value
-
-val dataToDisplay = when {
-    localInitialDataState is Result.Success -> { ... }
-    syncInitialDataState is Result.Success -> { ... }
-    else -> null
-}
-
-LaunchedEffect(Unit) {
-    mechanicsViewModel.loadLocalData()      // Manual
-    mechanicsViewModel.loadInitialData()    // Manual
-}
-```
-
-### Después (v2.0.0) - Simple
-
-```kotlin
-// ✅ 4 valores directos + sin lógica
-val mechanic = mechanicsViewModel.mechanic
-    .collectAsStateWithLifecycle().value
-
-val services = mechanicsViewModel.assignedServices
-    .collectAsStateWithLifecycle().value
-
-val types = mechanicsViewModel.serviceTypes
-    .collectAsStateWithLifecycle().value
-
-val metadata = mechanicsViewModel.syncMetadata
-    .collectAsStateWithLifecycle().value
-
-LaunchedEffect(Unit) {
-    mechanicsViewModel.loadInitialData()  // ← Solo esto
-}
-
-// Usar directamente
-Text(mechanic?.name ?: "Cargando...")
-```
+- [x] VehicleRegistrationScreen (nueva pantalla)
+- [x] Carga dinámica de serviceFields desde JSON
+- [x] VehicleRegistrationFieldUIModel (homologado con *UIModel)
+- [x] Validación de campos requeridos
+- [x] DateUtils para formateo de fechas
+- [x] Progreso por sección (sectionProgressPercentage)
+- [x] Navegación HomeScreen → VehicleReg → Checklist
+- [x] Atomic Design escalable
+- [x] Extension functions para conversiones
+- [x] Topbar con back button en Scaffold
 
 ---
 
-## 📊 Estado del Proyecto
+## 🚧 Próximo (v2.2.0)
 
-**Versión:** 2.0.0  
-**Estado:** Flow Pattern Implementation ✅ Completo  
-**Base de Datos:** 11 entidades, migrations 2→6  
-**Arquitectura:** Clean Architecture + MVVM + Repository + Flow Pattern + Offline-First
-
-### ✅ Implementado v2.0.0
-- [x] 4 UseCases Flow (Mechanic, Services, Types, Metadata)
-- [x] 2 UseCases API (GetInitialData, SaveToRoom)
-- [x] 4 StateFlows en ViewModel (auto-reactivos)
-- [x] HomeScreen simplificado 60%
-- [x] Flow Pattern MVVM (Google Best Practice)
-- [x] UseCaseModule Hilt (6 provides)
-- [x] Reactividad automática sin manual work
-- [x] Offline-first mejorado con Flows
-
-### 🚧 Próximo (v2.1.0)
-- [ ] UI Panel de tareas visual
-- [ ] Camera integration
-- [ ] QR/Barcode scanning
-- [ ] Sincronización de imágenes
-- [ ] Detalle de servicio modal completo
+- [ ] Captura de cámara (CameraX)
+- [ ] Selección de galería
+- [ ] Subida de imágenes al servidor
+- [ ] Sincronización de evidencias
+- [ ] Indicador de sincronización en tiempo real
+- [ ] Modo oscuro (Dark Mode)
 
 ---
 
 ## 💾 Dependencias Principales
-
 ```gradle
 // Jetpack Compose & Lifecycle
 implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"
 implementation "androidx.compose.ui:ui"
 implementation "androidx.navigation:navigation-compose"
+implementation "androidx.compose.material3:material3"
 
 // Room Database
 implementation "androidx.room:room-runtime:2.5.2"
@@ -357,118 +520,157 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
 implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
 implementation "com.google.code.gson:gson:2.10.1"
 plugin "org.jetbrains.kotlin.plugin.serialization"
+
+// Camera & ML Kit (para v2.2.0)
+// implementation "androidx.camera:camera-camera2:1.2.0"
+// implementation "com.google.mlkit:barcode-scanning:17.1.0"
 ```
 
 ---
 
-## 🚀 Git Workflow - Subir v2.0.0
-
+## 🚀 Git Workflow - Subir v2.1.0
 ```bash
 git add .
 
-git commit -m "feat(flow-pattern): Implementar Flow Pattern v2.0.0 - MVVM Best Practice
+git commit -m "feat(vehicle-registration): Implementar Vehicle Registration + Dynamic Fields v2.1.0
 
-✨ Nuevos UseCases (6):
-- GetMechanicFlowUseCase
-- GetAssignedServicesFlowUseCase  
-- GetServiceTypesFlowUseCase
-- GetSyncMetadataFlowUseCase
-- GetInitialDataUseCase (API)
-- SaveInitialDataToRoomUseCase (API)
+✨ Nueva Pantalla: Vehicle Registration
+- VehicleRegistrationScreen nueva
+- Ubicación: presentation/ui/screens/vehicle_registration/
+- Previa a ChecklistProgressScreen
+- Carga de datos iniciales del vehículo
 
-🏗️ ViewModel Simplificado:
-- 4 StateFlows auto-reactivos
-- Flujo: ViewModel → UseCase → Repository → Room
-- Eliminada lógica compleja
-- No necesita loadLocalData()
+📋 Campos Dinámicos:
+- Carga desde serviceFields del JSON template
+- VehicleRegistrationFieldUIModel (homologado)
+- Validación de campos requeridos
+- Tipos: TEXT_INPUT, NUMBER_INPUT, DROPDOWN, DATE_PICKER
 
-📱 HomeScreen Refactorizado:
-- Reducido 60% (400→250 líneas)
-- Sin LaunchedEffect complejos
-- Usar datos directamente de StateFlows
+🗓️ DateUtils Nuevo:
+- formatIsoToReadable() - Formato completo
+- formatIsoToTime() - Solo hora
+- formatIsoToDate() - Solo fecha
+- calculateDuration() - Duración entre fechas
 
-🔄 Arquitectura:
-- Flow Pattern (Google Best Practice)
-- Push Pattern (en lugar de Pull)
-- Auto-sincronización en tiempo real
-- Offline-first mejorado
+📊 Progreso por Sección:
+- sectionTotalActivities
+- sectionCompletedActivities
+- sectionProgressPercentage (reinicia cada sección)
+- Header se actualiza dinámicamente
 
-🎯 Base de Datos:
-- Versión 6 (migrations 2→6)
-- 11 entidades
-- SyncMetadataFlow
-- Detección automática de cambios
+🧬 Atomic Design Homologado:
+- VehicleRegistrationFieldUIModel (*UIModel pattern)
+- Atoms reutilizables
+- Molecules componibles
+- Organisms escalables
 
-📊 Mejoras de Rendimiento:
-- CPU (carga): -80% (~50ms → ~10ms)
-- Conversiones: -75% (3-4 → 1)
-- Código: -60% (HomeScreen)
-- Reactividad: Manual → Automática ✅"
+🔄 Navegación Actualizada:
+- HomeScreen → VehicleRegistrationScreen → ChecklistProgressScreen
+- Flujo completo de captura de datos
 
-git push origin main
+🎯 Mejoras:
+- Código escalable para agregar campos nuevos
+- Extension functions para conversiones
+- Scaffold con TopAppBar y back button
+- Validación dinámica desde JSON
+
+📁 Estructura:
+- /presentation/ui/screens/vehicle_registration/
+- /presentation/ui/models/ (homologado)
+- /utils/DateUtils.kt (nuevo)
+- NavGraph actualizado
+
+✅ Verificar en Logcat:
+- 📋 Service Fields encontrados: X
+- ✅ X campos cargados dinámicamente
+- ✅ Navegando a VehicleRegistration
+- ✅ Siguiente sección: (nombre)"
+
+git push origin develop
+git pull request main develop
 ```
 
 ---
 
-## 🎯 Testing v2.0.0
+## 🎯 Testing v2.1.0
 
-### Verificar en Logcat
-
+### Verificar Flujo Completo
 ```
-📱 ═══════════════════════════════════════════════════════
-📱 HomeScreen abierto - Iniciando carga de datos
-📱 ═══════════════════════════════════════════════════════
-
-⏳ [API] Iniciando carga desde API...
-✅ [API] DTO Response recibido
-✅ [API] DTO to Entity
-✅ [API] Salvando en bd local
-✅ Datos guardados en Room exitosamente
-✅ [API] Información guardada en bd local
-✅ [API] Proceso completo
-
-// Los Flows detectan cambios automáticamente
-// UI muestra datos sin necesidad de manual refresh
+HomeScreen
+  └─ Click "Completar"
+     └─ ✅ Navega a VehicleRegistrationScreen
+        └─ ✅ Carga campos dinámicamente
+           └─ ✅ Muestra: Kilometraje, Tipo de Aceite
+              └─ Usuario ingresa datos
+                 └─ Click "Iniciar Captura"
+                    └─ ✅ Navega a ChecklistProgressScreen
+                       └─ ✅ Progreso sección = 0%
+                          └─ ✅ Fecha formateada: "29 nov 2025, 20:00"
+                             └─ ✅ Duración: "18d 1h 32m"
 ```
 
-### En HomeScreen
-
-Debería ver:
-- ✅ Nombre del mecánico (Henry N.)
-- ✅ Servicios listados (4 servicios)
-- ✅ Tipos de servicio
-- ✅ Metadatos (Total, Pending, In Progress)
-
----
-
-## 📚 Referencias & Best Practices
-
-- **Google Architecture Samples**: https://github.com/android/architecture-samples
-- **Room & Flow**: https://developer.android.com/training/data-storage/room/async-dao
-- **Kotlin Flow**: https://kotlinlang.org/docs/flow.html
-- **MVVM Architecture**: https://developer.android.com/topic/architecture
-- **Hilt Dependency Injection**: https://developer.android.com/training/dependency-injection/hilt-android
-
----
-
-## 📈 Comparativa: v1.8.0 → v2.0.0
-
+### En Logcat Buscar
 ```
-Métrica                 v1.8.0          v2.0.0          Mejora
-────────────────────────────────────────────────────────────
-Conversiones            3-4 veces       1 sola vez      -75%
-HomeScreen líneas       ~400            ~250            -60%
-LaunchedEffect          3 complejos     1 simple        -67%
-Sincronización          Manual          Automática      ✅
-Reactividad             No              Sí              ✅
-Google Pattern          ❌ No           ✅ Best Practice ✅
-CPU (carga)             ~50ms           ~10ms           -80%
-Código boilerplate      Alto            Bajo            -60%
+📋 Service Fields encontrados: 2
+   - Kilometraje (number, requerido: true)
+   - Tipo de aceite (text, requerido: true)
+✅ 2 campos cargados dinámicamente
+   - ID: kilometraje, Label: Kilometraje, Required: true
+   - ID: tipo_de_aceite, Label: Tipo de aceite, Required: true
+
+✅ Navegando a VehicleRegistration
+✅ Siguiente sección: IDENTIFICACIÓN DE LA TRANSMISIÓN
+   Progreso sección: 0/5 (0%)
 ```
 
 ---
 
-**Última actualización:** Diciembre 12, 2025  
-**Versión:** 2.0.0 - Flow Pattern Implementation  
+## 📊 Estado del Proyecto - v2.1.0
+
+**Versión:** 2.1.0  
+**Estado:** Vehicle Registration + Dynamic Fields ✅ Completo  
+**Base de Datos:** 11 entidades, migrations 2→6  
+**Arquitectura:** Clean Architecture + MVVM + Repository + Flow Pattern + Offline-First + Atomic Design
+
+### ✅ Implementado v2.1.0
+- [x] VehicleRegistrationScreen nueva
+- [x] Carga dinámica de serviceFields
+- [x] VehicleRegistrationFieldUIModel
+- [x] DateUtils con formateo de fechas
+- [x] Progreso por sección reiniciable
+- [x] Atomic Design homologado
+- [x] Navegación completa
+- [x] Validación de campos requeridos
+- [x] Extension functions para conversiones
+
+### 🚧 Próximo (v2.2.0)
+- [ ] Camera integration (CameraX)
+- [ ] Galería de imágenes
+- [ ] Subida de evidencias
+- [ ] Sincronización de imágenes
+- [ ] Indicador de sincronización
+- [ ] Dark Mode
+
+---
+
+## 📈 Comparativa: v2.0.0 → v2.1.0
+```
+Métrica                           v2.0.0          v2.1.0          Nuevos
+────────────────────────────────────────────────────────────────────────
+Pantallas                         3               4               +1 (VehicleReg)
+Modelos UI                        3               4               +1 (FieldUIModel)
+Campos dinámicos                  ❌ No           ✅ Sí           Desde JSON
+DateUtils funciones              0               4               Nuevas
+Progreso                          Global          Por sección     +Sección
+Validación                        Manual          Dinámica        Desde JSON
+Componentes Atoms                 4               5               +1
+Componentes Molecules             2               3               +1
+Componentes Organisms             4               6               +2
+```
+
+---
+
+**Última actualización:** Diciembre 18, 2025  
+**Versión:** 2.1.0 - Vehicle Registration & Dynamic Fields  
 **Autor:** Equipo Los Sabinos  
-**Estado:** ✅ Producción - MVVM Best Practice Completo
+**Estado:** ✅ Desarrollo - Feature Completo Testeado

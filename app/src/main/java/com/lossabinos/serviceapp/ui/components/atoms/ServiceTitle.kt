@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 fun ServiceTitle(
     title: String,
     subtitle: String,
-    titleSize: TextUnit = 28.sp,
+    titleSize: TextUnit = 22.sp,
     subtitleSize: TextUnit = 14.sp,
     modifier: Modifier = Modifier
 ) {
