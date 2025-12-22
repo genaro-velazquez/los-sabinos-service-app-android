@@ -2,8 +2,12 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
+import com.lossabinos.serviceapp.models.toDomain
 import com.lossabinos.serviceapp.models.toVehicleRegistrationFieldUIModel
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +36,10 @@ sealed class VehicleRegistrationEvent {
 }
 
 @HiltViewModel
-class VehicleRegistrationViewModel @Inject constructor() : ViewModel() {
+class VehicleRegistrationViewModel @Inject constructor(
+    private val saveServiceFieldValueUseCase: SaveServiceFieldValueUseCase,
+    private val saveServiceFieldValuesUseCase: SaveServiceFieldValuesUseCase
+) : ViewModel() {
 
     private val _kilometrage = MutableStateFlow("")
     val kilometrage: StateFlow<String> = _kilometrage.asStateFlow()
@@ -40,10 +47,8 @@ class VehicleRegistrationViewModel @Inject constructor() : ViewModel() {
     private val _oilType = MutableStateFlow("")
     val oilType: StateFlow<String> = _oilType.asStateFlow()
 
-    //Lista de campos dinámicos
     private val _serviceFields = MutableStateFlow<List<VehicleRegistrationFieldUIModel>>(emptyList())
     val serviceFields: StateFlow<List<VehicleRegistrationFieldUIModel>> = _serviceFields.asStateFlow()
-
 
     private val _lastKilometers = MutableStateFlow("45,230 km")
     val lastKilometers: StateFlow<String> = _lastKilometers.asStateFlow()
@@ -144,21 +149,57 @@ class VehicleRegistrationViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun saveVehicleData(onSuccess: () -> Unit) {
+    fun saveVehicleData(
+        assignedServiceId: String,
+        onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
 
+                println("💾 Guardando datos del vehículo...")
+                println("   Servicio: $assignedServiceId")
+                println("   Campos: ${_serviceFields.value.size}")
+
+                // 🆕 Convertir VehicleRegistrationFieldUIModel → ServiceFieldValue (Domain)
+                val domainFields = _serviceFields.value.mapIndexed { index, uiField ->
+                    ServiceFieldValue(
+                        id = "0",
+                        label = uiField.label,
+                        value = uiField.value,
+                        fieldType =  uiField.fieldType.toDomain(),  // "TEXT_INPUT", "NUMBER_INPUT"
+                        required = uiField.required)
+                }
+
+                // 🆕 Llamar al UseCase (no directamente al Repository)
+                saveServiceFieldValuesUseCase(
+                    assignedServiceId = assignedServiceId,
+                    fields = domainFields
+                )
+
+                println("✅ vehicleRegistrationViewMoedel - Datos del vehículo guardados:")
+                domainFields.forEach { field ->
+                    println("   - ${field.label}: ${field.value}")
+                }
+
+                delay(500)
+                _isLoading.value = false
+
+                // 🆕 Emitir evento de navegación
+                _navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(assignedServiceId)
+
+                onSuccess()
+
+/*
                 // TODO: Guardar datos en Room
                 val fieldData = _serviceFields.value.associate { it.id to it.value }
-                println("✅ Datos guardados:")
+                println("✅ Datos Obtenidos:")
                 fieldData.forEach { (id, value) ->
                     println("   - $id: $value")
                 }
 
                 delay(500)
                 _isLoading.value = false
-                onSuccess()
+                onSuccess()*/
             } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
                 _isLoading.value = false

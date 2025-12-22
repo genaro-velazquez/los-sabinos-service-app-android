@@ -11,6 +11,7 @@ import com.lossabinos.serviceapp.viewmodel.VehicleRegistrationViewModel
 @Composable
 fun VehicleRegistrationScreen(
     checklistTemplateJson: String,
+    serviceId: String,
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -31,7 +32,9 @@ fun VehicleRegistrationScreen(
             viewModel.updateFieldValue(fieldId, newValue)
         },
         onContinueClick = {
-            viewModel.saveVehicleData {
+            viewModel.saveVehicleData(
+                assignedServiceId = serviceId
+            ) {
                 onContinueClick()
             }
         },

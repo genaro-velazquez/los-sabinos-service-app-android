@@ -8,12 +8,14 @@ import com.lossabinos.data.local.database.dao.ActivityProgressDao
 import com.lossabinos.data.local.database.dao.InitialDataDao
 import com.lossabinos.data.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
-import com.lossabinos.data.repositories.local.ChecklistRepository
+import com.lossabinos.data.local.repositories.ChecklistRepositoryImpl
+//import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
 import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepository
 import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsServices
 import com.lossabinos.domain.repositories.AuthenticationRepository
+import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
@@ -61,7 +63,7 @@ object RepositoryModule {
     // ============== MECHANICS REPOSITORY ==============
     @Singleton
     @Provides
-    fun provideMechanicsRepository(
+    fun provideMechanicsRepositoryImp(
         mechanicsServices: MechanicsServices,
         headersMaker: HeadersMaker,
         initialDataDao: InitialDataDao
@@ -72,7 +74,7 @@ object RepositoryModule {
             initialDataDao = initialDataDao
         )
     }
-
+/*
     // ============== CHECKLIST PROGRESS REPOSITORY ==============
     // Administra: activities completadas, evidencias (fotos/videos),
     // respuestas de observations, valores de campos y progreso general del servicio
@@ -91,6 +93,21 @@ object RepositoryModule {
             serviceFieldValueDao
         )
     }
-
+*/
+    @Singleton
+    @Provides
+    fun provideChecklistRepository(
+        activityProgressDao: ActivityProgressDao,
+        activityEvidenceDao: ActivityEvidenceDao,
+        observationResponseDao: ObservationResponseDao,
+        serviceFieldValueDao: ServiceFieldValueDao
+    ) : ChecklistRepository {
+        return ChecklistRepositoryImpl(
+            activityProgressDao = activityProgressDao,
+            activityEvidenceDao = activityEvidenceDao,
+            observationResponseDao = observationResponseDao,
+            serviceFieldValueDao =  serviceFieldValueDao
+        )
+    }
 
 }

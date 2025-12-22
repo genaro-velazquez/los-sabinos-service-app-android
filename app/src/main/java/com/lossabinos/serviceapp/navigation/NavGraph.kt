@@ -281,6 +281,7 @@ fun NavGraph(
 
                 VehicleRegistrationScreen(
                     checklistTemplateJson = checklistJsonString,  // 🆕 PASA EL JSON
+                    serviceId = serviceId,
                     onContinueClick = {
                         navController.navigate("checklist_progress/$serviceId")
                         vehicleRegistrationModel.clearNavigationEvent()

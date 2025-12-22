@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
+import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.valueobjects.FieldType
 import com.lossabinos.domain.valueobjects.ServiceField
 
 data class VehicleRegistrationFieldUIModel(
@@ -16,11 +18,11 @@ data class VehicleRegistrationFieldUIModel(
     val suffix: String = "",
     val keyboardType: KeyboardType = KeyboardType.Text,
     val additionalInfo: String = "",
-    val fieldType: FieldType = FieldType.TEXT_INPUT,
+    val fieldType: FieldTypeUIModel = FieldTypeUIModel.TEXT_INPUT,
     val required: Boolean = false
 )
 
-enum class FieldType {
+enum class FieldTypeUIModel {
     TEXT_INPUT,
     DROPDOWN,
     DATE_PICKER,
@@ -51,11 +53,28 @@ fun ServiceField.toVehicleRegistrationFieldUIModel(value: String): VehicleRegist
             else -> KeyboardType.Text
         },
         fieldType = when (type) {
-            "number" -> FieldType.NUMBER_INPUT
-            else -> FieldType.TEXT_INPUT
+            "number" -> FieldTypeUIModel.NUMBER_INPUT
+            else -> FieldTypeUIModel.TEXT_INPUT
         },
         required = required
     )
 }
 
+fun VehicleRegistrationFieldUIModel.toDomain() : ServiceFieldValue{
+    return ServiceFieldValue(
+        id = id,
+        label = label,
+        value = value,
+        fieldType = fieldType.toDomain(),
+        required = required
+    )
+}
 
+fun FieldTypeUIModel.toDomain() : FieldType{
+    return when (this){
+        FieldTypeUIModel.DATE_PICKER -> FieldType.DATE_PICKER
+        FieldTypeUIModel.DROPDOWN -> FieldType.DROPDOWN
+        FieldTypeUIModel.NUMBER_INPUT -> FieldType.NUMBER_INPUT
+        FieldTypeUIModel.TEXT_INPUT -> FieldType.TEXT_INPUT
+    }
+}

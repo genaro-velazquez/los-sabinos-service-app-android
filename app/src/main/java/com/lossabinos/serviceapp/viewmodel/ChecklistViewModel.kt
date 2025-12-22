@@ -4,13 +4,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.repositories.local.ChecklistRepository
+import com.lossabinos.data.local.mappers.toEntity
+//import com.lossabinos.data.repositories.local.ChecklistRepository
+import com.lossabinos.domain.entities.ActivityEvidence
+import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
+import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
+import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
+import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
+import com.lossabinos.domain.usecases.checklist.GetTotalCompletedActivitiesUseCase
+import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
+import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
 import com.lossabinos.serviceapp.models.ObservationUIModel
 import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
+import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
+import com.lossabinos.serviceapp.models.toDomain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,8 +58,78 @@ data class ChecklistUIState(
 
 @HiltViewModel
 class ChecklistViewModel @Inject constructor(
-    private val checklistRepository: ChecklistRepository
+//    private val checklistRepository: ChecklistRepository,
+    private val completeActivityUseCase: CompleteActivityUseCase,
+    private val getTotalCompletedActivitiesUseCase: GetTotalCompletedActivitiesUseCase,
+    private val getObservationResponsesForSectionUseCase: GetObservationResponsesForSectionUseCase,
+    private val getActivitiesProgressForSectionUseCase:  GetActivitiesProgressForSectionUseCase,
+    private val getEvidenceForActivityUseCase: GetEvidenceForActivityUseCase,
+    private val saveActivityEvidenceUseCase: SaveActivityEvidenceUseCase,
+    private val saveObservationResponseUseCase: SaveObservationResponseUseCase
 ) : ViewModel() {
+/*
+    /***** Service Field Value *****/
+    private val _kilometrage = MutableStateFlow("")
+    val kilometrage: StateFlow<String> = _kilometrage.asStateFlow()
+    private val _oilType = MutableStateFlow("")
+    val oilType: StateFlow<String> = _oilType.asStateFlow()
+    private val _serviceFields = MutableStateFlow<List<VehicleRegistrationFieldUIModel>>(emptyList())
+    val serviceFields: StateFlow<List<VehicleRegistrationFieldUIModel>> = _serviceFields.asStateFlow()
+    /********************************/
+
+    fun saveVehicleRegistration(
+        assignedServiceId: String,
+        uiFields: List<VehicleRegistrationFieldUIModel>
+    ){
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val domainFields = uiFields.map { it.toDomain() }
+                saveServiceFieldValuesUseCase.invoke(
+                    assignedServiceId = assignedServiceId,
+                    fields = domainFields
+                )
+            }
+            catch (e: Exception){
+                _isLoading.value = false
+                println("❌ Error: ${e.message}")
+            }
+        }
+    }
+
+    fun saveVehicleData(
+        assignedServiceId: String,
+        fieldIndex: Int,
+        fieldLabel: String,
+        fieldType: String,
+        required: Boolean,
+        value: String?
+    ){
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                println("💾 Guardando datos del vehículo...")
+                println("   Servicio: $assignedServiceId")
+                println("   Campos: ${_serviceFields.value.size}")
+
+                // 🆕 Guardar en Room usando el UseCase
+                saveServiceFieldValueUseCase.invoke(
+                    assignedServiceId = assignedServiceId,
+                    fieldIndex = fieldIndex,
+                    fieldLabel = fieldLabel,
+                    fieldType = fieldType,
+                    required = required,
+                    value = value
+                )
+                _isLoading.value = false
+            }
+            catch (e: Exception) {
+                _isLoading.value = false
+                println("❌ Error: ${e.message}")
+            }
+        }
+    }
+*/
 
     private val _state = MutableStateFlow(ChecklistUIState())
     val state: StateFlow<ChecklistUIState> = _state.asStateFlow()
@@ -103,7 +186,8 @@ class ChecklistViewModel @Inject constructor(
                     println("✅ Template deserializado: ${tmpl.sections.size} secciones")
 
                     // ✨ PASO 2: Cargar progreso previo de Room
-                    val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
+                    //val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
+                    val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(assignedServiceId = serviceId)
                     println("✅ Actividades completadas previas: $totalCompleted")
 
                     // ✨ PASO 3: Encontrar sección actual
@@ -118,12 +202,19 @@ class ChecklistViewModel @Inject constructor(
                     )
 
                     // ✨ PASO 5: Cargar observaciones previas
+                    val observationResponses = getObservationResponsesForSectionUseCase.invoke(
+                        assignedServiceId = serviceId,
+                        sectionIndex = currentSectionIndex
+                    )
+/*
                     val observationResponses = checklistRepository.getObservationResponsesForSection(
                         assignedServiceId = serviceId,
                         sectionIndex = currentSectionIndex
                     )
 
                     val previousObservations = observationResponses.firstOrNull()?.response ?: ""
+*/
+                    val previousObservations = observationResponses.firstOrNull() ?: ""
 
                     // ✨ PASO 6: Calcular totales
                     val totalActivities = sectionUIModel.activities.count() //tmpl.sections.sumOf { it.activities.size }
@@ -155,17 +246,17 @@ class ChecklistViewModel @Inject constructor(
                         sectionCompletedActivities = sectionCompletedActivities,
                         sectionProgressPercentage = sectionProgressPercentage,
                         canContinue = checkIfSectionComplete(sectionUIModel.activities),
-                        observations = previousObservations
+                        observations = "" //previousObservations
                     )
 
-                    _observations.value = previousObservations
+                    _observations.value = ""//previousObservations
 
                     println("✅ Estado actualizado:")
                     println("   - Sección: ${sectionUIModel.section.name}")
                     println("   - Actividades: ${sectionUIModel.activities.size}")
                     println("   - Completadas: $totalCompleted")
                     println("   - Progreso: $progressPercentage%")
-                    println("   - Observaciones previas: ${previousObservations.take(30)}...")
+                    //println("   - Observaciones previas: ${previousObservations.take(30)}...")
                 }
 
                 _isLoading.value = false
@@ -188,17 +279,29 @@ class ChecklistViewModel @Inject constructor(
         val section = template.sections[sectionIndex]
 
         // Cargar progreso de actividades desde Room
+        val activitiesProgress = getActivitiesProgressForSectionUseCase.invoke(
+            assignedServiceId = serviceId,
+            sectionIndex = sectionIndex
+        )
+/*
+        // Cargar progreso de actividades desde Room
         val activitiesProgress = checklistRepository.getActivitiesProgressForSection(
             assignedServiceId = serviceId,
             sectionIndex = sectionIndex
         )
-
+*/
         // Cargar evidencias desde Room
-        val allEvidences = mutableMapOf<Int, List<ActivityEvidenceEntity>>()
+        //val allEvidences = mutableMapOf<Int, List<ActivityEvidenceEntity>>()
+        val allEvidences = mutableMapOf<Int, List<ActivityEvidence>>()
         activitiesProgress.forEach { progress ->
-            allEvidences[progress.activityIndex] = checklistRepository.getEvidenceForActivity(
+            allEvidences[progress.activityIndex] = getEvidenceForActivityUseCase.invoke(
                 activityProgressId = progress.id
             )
+/*
+                        allEvidences[progress.activityIndex] = checklistRepository.getEvidenceForActivity(
+                            activityProgressId = progress.id
+                        )
+*/
         }
 
         // Combinar Domain + Room
@@ -212,26 +315,33 @@ class ChecklistViewModel @Inject constructor(
 
             ActivityUIModel(
                 activity = ActivityModel(activity = activity),
-                progress = progress,
-                evidence = evidence
+                progress = progress?.toEntity(),
+                evidence = evidence.map { it.toEntity() }
             )
         }
 
+        val observationResponses = getObservationResponsesForSectionUseCase.invoke(
+            assignedServiceId = serviceId,
+            sectionIndex = sectionIndex
+        )
+
+/*
         // Cargar observaciones desde Room
         val observationResponses = checklistRepository.getObservationResponsesForSection(
             assignedServiceId = serviceId,
             sectionIndex = sectionIndex
         )
-
+*/
         val observationsUI = section.observations.mapIndexed { index, observation ->
             val response = observationResponses.find { it.observationIndex == index }
 
             println("   - Observación $index: ${observation}")
-            println("     • Respuesta: ${response?.response?.take(30) ?: "Sin respuesta"}")
+            //println("     • Respuesta: ${response?.response?.take(30) ?: "Sin respuesta"}")
+            //println("     • Respuesta: ${response?.response?.take(30) ?: "Sin respuesta"}")
 
             ObservationUIModel(
                 observation = observation,
-                response = response
+                response = response?.toEntity()
             )
         }
 
@@ -249,11 +359,16 @@ class ChecklistViewModel @Inject constructor(
         serviceId: String
     ): Int {
         for ((index, section) in template.sections.withIndex()) {
+            val activitiesProgress = getActivitiesProgressForSectionUseCase.invoke(
+                assignedServiceId = serviceId,
+                sectionIndex = index
+            )
+/*
             val activitiesProgress = checklistRepository.getActivitiesProgressForSection(
                 assignedServiceId = serviceId,
                 sectionIndex = index
             )
-
+*/
             val completedCount = activitiesProgress.count { it.completed }
             val totalInSection = section.activities.size
 
@@ -283,6 +398,14 @@ class ChecklistViewModel @Inject constructor(
                 println("💾 Guardando actividad $activityIndex: ${activity.activity.description}")
 
                 // Guardar en Room
+                val progressId = completeActivityUseCase.invoke(
+                    assignedServiceId = serviceId,
+                    sectionIndex = state.currentSectionIndex,
+                    activityIndex = activityIndex,
+                    description = activity.activity.description,
+                    requiresEvidence = activity.activity.requiresEvidence
+                )
+/*
                 val progressId = checklistRepository.saveActivityProgress(
                     assignedServiceId = serviceId,
                     sectionIndex = state.currentSectionIndex,
@@ -290,6 +413,7 @@ class ChecklistViewModel @Inject constructor(
                     description = activity.activity.description,
                     requiresEvidence = activity.activity.requiresEvidence
                 )
+ */
 
                 // Actualizar en memoria
                 val updatedActivities = state.currentSectionActivities.toMutableList()
@@ -306,7 +430,8 @@ class ChecklistViewModel @Inject constructor(
                 )
 
                 // Recalcular
-                val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
+                //val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
+                val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(assignedServiceId = serviceId)
                 val newPercentage = (totalCompleted * 100) / state.totalActivities
                 val canContinue = checkIfSectionComplete(updatedActivities)
 
@@ -348,11 +473,20 @@ class ChecklistViewModel @Inject constructor(
                 activity.progress?.let { progress ->
                     println("📷 Guardando foto para actividad $activityIndex: $photoUri")
 
+
+                    saveActivityEvidenceUseCase.invoke(
+                        id = 0,
+                        activityProgressId = progress.id,
+                        filePath = photoUri,
+                        fileType = "image"
+                    )
+/*
                     checklistRepository.saveActivityEvidence(
                         activityProgressId = progress.id,
                         filePath = photoUri,
                         fileType = "image"
                     )
+ */
 
                     println("✅ Foto guardada")
                 }
@@ -371,6 +505,15 @@ class ChecklistViewModel @Inject constructor(
                 val state = _state.value
 
                 state.currentSectionObservations.forEach { obsUI ->
+                    saveObservationResponseUseCase.invoke(
+                        assignedServiceId = serviceId,
+                        sectionIndex = state.currentSectionIndex,
+                        observationIndex = state.currentSectionObservations.indexOf(obsUI),
+                        observationDescription = "", //obsUI.observation.description,
+                        response = observationText
+                    )
+
+/*
                     checklistRepository.saveObservationResponse(
                         assignedServiceId = serviceId,
                         sectionIndex = state.currentSectionIndex,
@@ -378,6 +521,7 @@ class ChecklistViewModel @Inject constructor(
                         observationDescription = "", //obsUI.observation.description,
                         response = observationText
                     )
+ */
                 }
 
                 println("✅ Observaciones guardadas: ${observationText.take(30)}...")

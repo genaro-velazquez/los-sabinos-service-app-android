@@ -11,8 +11,11 @@ import com.lossabinos.data.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.domain.valueobjects.Template
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlin.collections.mapIndexed
 
-
+/*
 class ChecklistRepository(
     private val activityProgressDao: ActivityProgressDao,
     private val activityEvidenceDao: ActivityEvidenceDao,
@@ -60,7 +63,7 @@ class ChecklistRepository(
 
             // 4. Crear service_field_value para CADA campo
             template.serviceFields.forEachIndexed { fieldIndex, field ->
-                serviceFieldValueDao.insertFieldValue(
+                serviceFieldValueDao.insertServiceFieldValue(
                     ServiceFieldValueEntity(
                         assignedServiceId = assignedService.id,
                         fieldIndex = fieldIndex,
@@ -179,10 +182,6 @@ class ChecklistRepository(
         return java.time.LocalDateTime.now().toString()
     }
 
-
-
-
-
     // ═══════════════════════════════════════════════════════
     // 1. OBTENER actividades completadas de una sección
     // ═══════════════════════════════════════════════════════
@@ -297,3 +296,4 @@ class ChecklistRepository(
             .toString()
     }
 }
+*/

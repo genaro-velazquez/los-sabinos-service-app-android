@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Update
 import androidx.room.Query
+import androidx.room.Upsert
 import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
@@ -210,31 +211,110 @@ interface ObservationResponseDao {
 @Dao
 interface ServiceFieldValueDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFieldValue(fieldValue: ServiceFieldValueEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFieldValueList(fieldValues: List<ServiceFieldValueEntity>)
+    // 🆕 UPSERT (Update or Insert) - Más eficiente
+    @Upsert
+    suspend fun upsertServiceFieldValue(entity: ServiceFieldValueEntity)
 
+    // 🆕 UPSERT múltiples
+    @Upsert
+    suspend fun upsertServiceFieldValues(entities: List<ServiceFieldValueEntity>)
+
+    // Guardar uno (deprecated - usar upsert)
+    @Insert
+    suspend fun insertServiceFieldValue(entity: ServiceFieldValueEntity): Long
+
+    // Guardar múltiples (deprecated - usar upsert)
+    @Insert
+    suspend fun insertServiceFieldValues(entities: List<ServiceFieldValueEntity>)
+
+    // 🆕 Actualizar
     @Update
-    suspend fun updateFieldValue(fieldValue: ServiceFieldValueEntity)
+    suspend fun updateServiceFieldValue(entity: ServiceFieldValueEntity)
 
-    @Query("""
-        SELECT * FROM service_field_value 
-        WHERE assignedServiceId = :serviceId
-        ORDER BY fieldIndex
-    """)
-    suspend fun getFieldValuesByService(serviceId: String): List<ServiceFieldValueEntity>
+    // 🆕 Obtener valor específico
+    @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId AND fieldLabel = :fieldLabel LIMIT 1")
+    suspend fun getServiceFieldValue(assignedServiceId: String, fieldLabel: String): ServiceFieldValueEntity?
 
-    @Query("""
-        SELECT * FROM service_field_value 
-        WHERE assignedServiceId = :serviceId AND fieldIndex = :fieldIndex
-    """)
-    suspend fun getFieldValue(
-        serviceId: String,
-        fieldIndex: Int
-    ): ServiceFieldValueEntity?
+    // Obtener valores de un servicio
+    @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
+    suspend fun getServiceFieldValuesByService(assignedServiceId: String): List<ServiceFieldValueEntity>
 
-    @Delete
-    suspend fun deleteFieldValue(fieldValue: ServiceFieldValueEntity)
+    // 🆕 Eliminar campos de un servicio (antes de guardar nuevamente)
+    @Query("DELETE FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
+    suspend fun deleteServiceFieldValuesByService(assignedServiceId: String)
+
+
+
+    /*
+        // Esto estaba antes sin que actualice solo inserta nuevo siempre
+        // Guardar un campo
+        @Insert
+        suspend fun insertServiceFieldValue(entity: ServiceFieldValueEntity): Long
+
+        // Guardar múltiples campos
+        @Insert
+        suspend fun insertServiceFieldValues(entities: List<ServiceFieldValueEntity>)
+
+        // Obtener valores de un servicio
+        @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
+        suspend fun getServiceFieldValuesByService(assignedServiceId: String): List<ServiceFieldValueEntity>
+
+        // Obtener un campo específico
+        @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId AND fieldLabel = :fieldLabel")
+        suspend fun getServiceFieldValue(assignedServiceId: String, fieldLabel: String): ServiceFieldValueEntity?
+
+        // Actualizar un campo
+        @Query("UPDATE service_field_value SET value = :value, timestamp = :timestamp WHERE assignedServiceId = :assignedServiceId AND fieldLabel = :fieldLabel")
+        suspend fun updateServiceFieldValue(assignedServiceId: String, fieldLabel: String, value: String, timestamp: String)
+
+        // Eliminar campos de un servicio
+        @Query("DELETE FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
+        suspend fun deleteServiceFieldValuesByService(assignedServiceId: String)
+
+        @Query("""
+               SELECT * FROM service_field_value
+               WHERE assignedServiceId = :serviceId AND fieldIndex = :fieldIndex
+           """)
+        suspend fun getFieldValue(
+            serviceId: String,
+            fieldIndex: Int
+        ): ServiceFieldValueEntity?
+
+        @Update
+        suspend fun updateFieldValue(fieldValue: ServiceFieldValueEntity)
+    */
+
+
+
+
+    /*
+       suspend fun insertFieldValue(fieldValue: ServiceFieldValueEntity): Long
+
+       @Insert(onConflict = OnConflictStrategy.REPLACE)
+       suspend fun insertFieldValueList(fieldValues: List<ServiceFieldValueEntity>)
+
+       @Update
+       suspend fun updateFieldValue(fieldValue: ServiceFieldValueEntity)
+
+       @Query("""
+           SELECT * FROM service_field_value
+           WHERE assignedServiceId = :serviceId
+           ORDER BY fieldIndex
+       """)
+       suspend fun getFieldValuesByService(serviceId: String): List<ServiceFieldValueEntity>
+
+       @Query("""
+           SELECT * FROM service_field_value
+           WHERE assignedServiceId = :serviceId AND fieldIndex = :fieldIndex
+       """)
+       suspend fun getFieldValue(
+           serviceId: String,
+           fieldIndex: Int
+       ): ServiceFieldValueEntity?
+
+       @Delete
+       suspend fun deleteFieldValue(fieldValue: ServiceFieldValueEntity)
+
+   */
 }

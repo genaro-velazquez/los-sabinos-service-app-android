@@ -1,9 +1,19 @@
 package com.lossabinos.serviceapp.di
 
 import com.lossabinos.domain.repositories.AuthenticationRepository
+import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
+import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
+import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
+import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
+import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
+import com.lossabinos.domain.usecases.checklist.GetTotalCompletedActivitiesUseCase
+import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
+import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
@@ -114,4 +124,98 @@ object UseCaseModule {
     ): GetSyncMetadataFlowUseCase {
         return GetSyncMetadataFlowUseCase(repository)
     }
+
+    //******************************
+    // UseCases ChecklistRepository
+    //******************************
+    @Singleton
+    @Provides
+    fun provideCompleteActivityUseCase(
+        repository: ChecklistRepository
+    ) : CompleteActivityUseCase {
+        return CompleteActivityUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetActivitiesProgressForUseCase(
+        repository: ChecklistRepository
+    ) : GetActivitiesProgressForSectionUseCase{
+        return GetActivitiesProgressForSectionUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetEvidenceForActivityUseCase(
+        repository: ChecklistRepository
+    ) : GetEvidenceForActivityUseCase {
+        return GetEvidenceForActivityUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetObservationResponsesForSectionUseCase(
+        repository: ChecklistRepository
+    ) : GetObservationResponsesForSectionUseCase{
+        return GetObservationResponsesForSectionUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetTotalCompletedActivitiesUseCase(
+        repository: ChecklistRepository
+    ) : GetTotalCompletedActivitiesUseCase {
+        return GetTotalCompletedActivitiesUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveActivityEvidenceUseCase(
+        repository: ChecklistRepository
+    ) : SaveActivityEvidenceUseCase{
+        return SaveActivityEvidenceUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveObservationResponseUseCase(
+        repository: ChecklistRepository
+    ) : SaveObservationResponseUseCase{
+        return SaveObservationResponseUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveServiceFieldValueUseCase(
+        repository: ChecklistRepository
+    ) : SaveServiceFieldValueUseCase{
+        return SaveServiceFieldValueUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveServiceFieldValuesUseCase(
+        repository: ChecklistRepository
+    ) : SaveServiceFieldValuesUseCase{
+        return SaveServiceFieldValuesUseCase(
+            checklistRepository = repository
+        )
+    }
+
 }

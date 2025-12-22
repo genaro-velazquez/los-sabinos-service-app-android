@@ -2,6 +2,7 @@ package com.lossabinos.data.local.database.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 // ACTIVITY PROGRESS
@@ -78,6 +79,13 @@ data class ObservationResponseEntity(
             parentColumns = ["id"],
             childColumns = ["assignedServiceId"],
             onDelete = ForeignKey.CASCADE
+        )
+    ],
+    // 🆕 Agregar índice único
+    indices = [
+        Index(
+            value = ["assignedServiceId", "fieldLabel"],
+            unique = true  // Garantiza que no haya duplicados
         )
     ]
 )
