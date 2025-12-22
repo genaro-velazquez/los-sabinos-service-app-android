@@ -50,6 +50,8 @@ fun ServiceHeaderMolecule(
     icon: ImageVector,
     title: String,
     status: String,
+    statusBackgroundColor: Color = Color(0xFFE0E0E0),
+    statusTextColor: Color = Color(0xFF424242),
     clientName: String
 ) {
     Row(
@@ -97,8 +99,8 @@ fun ServiceHeaderMolecule(
                 // ✅ MEJORADO: Badge flexible
                 ServiceBadge(
                     text = status,
-                    backgroundColor = Color(0xFFE0E0E0),
-                    textColor = Color(0xFF424242),
+                    backgroundColor = statusBackgroundColor,
+                    textColor = statusTextColor,
                     modifier = Modifier
                         .wrapContentWidth()
                         .padding(start = 4.dp)  // ✅ Pequeño padding

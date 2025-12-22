@@ -46,16 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lossabinos.domain.responses.DetailedServiceResponse
-
-
-
-
-
-
-
-
-
-
+import com.lossabinos.serviceapp.utils.getStatusColor
 
 
 /**
@@ -311,6 +302,9 @@ fun HomeScreen(
                             .find { it.id == service.serviceTypeId }?.name
                             ?: "Servicio"
 
+                        // 🆕 Obtener colores basados en el estado
+                        val statusColor = getStatusColor(service.status)
+
                         ServiceCardData(
                             id = service.id,
                             excecutionId = service.id,
@@ -318,6 +312,8 @@ fun HomeScreen(
                             clientName = "Cliente",
                             icon = Icons.Filled.Build,
                             status = service.status.replaceFirstChar { it.uppercase() },
+                            statusBackgroundColor = statusColor.backgroundColor,  // 🆕
+                            statusTextColor = statusColor.textColor,              // 🆕
                             startTime = service.scheduledStart,
                             endTime = service.scheduledEnd,
                             duration = "N/A",

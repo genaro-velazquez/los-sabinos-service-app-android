@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +99,16 @@ fun ServiceBadge(
             maxLines = 1,  // ✅ Mantener en una línea
             overflow = TextOverflow.Ellipsis,  // ✅ ... si es muy largo
             fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ServiceBadgePreview(){
+    MaterialTheme{
+        ServiceBadge(
+            text = "Pending"
         )
     }
 }

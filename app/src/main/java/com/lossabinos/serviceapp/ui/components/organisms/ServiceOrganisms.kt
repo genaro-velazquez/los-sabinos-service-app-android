@@ -51,6 +51,8 @@ data class ServiceCardData(
     val clientName: String,
     val icon: ImageVector,
     val status: String,
+    val statusBackgroundColor: Color = Color(0xFFE0E0E0),  // 🆕
+    val statusTextColor: Color = Color(0xFF424242),        // 🆕
     val startTime: String,
     val endTime: String,
     val duration: String,
@@ -88,6 +90,8 @@ fun ServiceCardOrganism(
                 icon = service.icon,
                 title = service.title,
                 status = service.status,
+                statusBackgroundColor = service.statusBackgroundColor,
+                statusTextColor = service.statusTextColor,
                 clientName = service.clientName
             )
 
