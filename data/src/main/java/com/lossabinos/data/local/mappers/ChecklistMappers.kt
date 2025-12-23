@@ -3,9 +3,12 @@ package com.lossabinos.data.local.mappers
 import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
+import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
+import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.valueobjects.FieldType
 
 
 //++++++++++++++++++++++++++++
@@ -87,5 +90,43 @@ fun ActivityEvidence.toEntity() : ActivityEvidenceEntity {
         fileType = filePath,
         timestamp = timestamp
     )
+}
+
+//*************************
+// ServiceFieldValueEntity
+//*************************
+
+fun ServiceFieldValueEntity.toDomain() : ServiceFieldValue{
+    return ServiceFieldValue(
+        id                  = id.toString(),
+        assignedServiceId   = assignedServiceId,
+        fieldIndex          = fieldIndex,
+        fieldLabel          = fieldLabel,
+        fieldType           = fieldType.toFieldType(),
+        required            = required,
+        value               = value,
+        timestamp           = timestamp
+    )
+}
+
+fun ServiceFieldValue.toEntity() : ServiceFieldValueEntity{
+    return ServiceFieldValueEntity(
+        id = id.toLong(),
+        assignedServiceId = assignedServiceId,
+        fieldIndex = fieldIndex,
+        fieldLabel= fieldLabel,
+        fieldType = fieldType.name,
+        required = false,
+        value = null,
+        timestamp = timestamp
+    )
+}
+
+private fun String.toFieldType(): FieldType {
+    return try {
+        FieldType.valueOf(this)
+    } catch (e: IllegalArgumentException) {
+        FieldType.TEXT_INPUT // default seguro
+    }
 }
 

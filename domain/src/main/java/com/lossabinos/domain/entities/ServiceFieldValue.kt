@@ -5,8 +5,11 @@ import com.lossabinos.domain.valueobjects.FieldType
 
 class ServiceFieldValue(
     val id: String,
-    val label: String,
-    val value: String?,
+    val assignedServiceId: String,  // FK (camelCase)
+    val fieldIndex: Int,
+    val fieldLabel: String,
     val fieldType: FieldType,
-    val required: Boolean
+    val required: Boolean,
+    val value: String? = null,
+    val timestamp: String? = null
 ) : DomainEntity()

@@ -2,7 +2,9 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.data.local.mappers.toEntity
 import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.valueobjects.Template
@@ -38,7 +40,8 @@ sealed class VehicleRegistrationEvent {
 @HiltViewModel
 class VehicleRegistrationViewModel @Inject constructor(
     private val saveServiceFieldValueUseCase: SaveServiceFieldValueUseCase,
-    private val saveServiceFieldValuesUseCase: SaveServiceFieldValuesUseCase
+    private val saveServiceFieldValuesUseCase: SaveServiceFieldValuesUseCase,
+    private val getServiceFieldValuesUseCase: GetServiceFieldValuesUseCase
 ) : ViewModel() {
 
     private val _kilometrage = MutableStateFlow("")
@@ -164,7 +167,9 @@ class VehicleRegistrationViewModel @Inject constructor(
                 val domainFields = _serviceFields.value.mapIndexed { index, uiField ->
                     ServiceFieldValue(
                         id = "0",
-                        label = uiField.label,
+                        assignedServiceId = assignedServiceId,
+                        fieldIndex = index,
+                        fieldLabel = uiField.label,
                         value = uiField.value,
                         fieldType =  uiField.fieldType.toDomain(),  // "TEXT_INPUT", "NUMBER_INPUT"
                         required = uiField.required)
@@ -178,7 +183,7 @@ class VehicleRegistrationViewModel @Inject constructor(
 
                 println("✅ vehicleRegistrationViewMoedel - Datos del vehículo guardados:")
                 domainFields.forEach { field ->
-                    println("   - ${field.label}: ${field.value}")
+                    println("   - ${field.fieldLabel}: ${field.value}")
                 }
 
                 delay(500)
@@ -212,5 +217,49 @@ class VehicleRegistrationViewModel @Inject constructor(
         _navigationEvent.value = null
     }
 
+    fun loadPreviousFieldValues(
+        assignedServiceId: String
+    ){
+        viewModelScope.launch {
+            try {
+                println("💾 Cargando datos previos del servicio: $assignedServiceId")
+
+                // Obtener del repository
+                val savedValues = getServiceFieldValuesUseCase.invoke(
+                    assignedServiceId = assignedServiceId
+                )
+                    //.map { it.toEntity() }
+
+                if (savedValues.isNotEmpty()) {
+                    println("✅ Datos previos encontrados: ${savedValues.size}")
+
+                    // Actualizar los campos con los datos guardados
+                    val updatedFields = _serviceFields.value.map { field ->
+                        val savedValue = savedValues.find {
+                            it.fieldLabel == field.label
+                        }?.value
+
+                        if (savedValue != null) {
+                            println("   - ${field.label}: $savedValue")
+                            field.copy(value = savedValue)
+                        } else {
+                            field
+                        }
+                    }
+
+                    _serviceFields.value = updatedFields
+                    println("✅ Campos actualizados con datos previos")
+                } else {
+                    println("⚠️ No hay datos previos guardados")
+                }
+
+
+            }catch (e: Exception){
+                println("❌ Error: ${e.message}")
+                _isLoading.value = false
+            }
+
+        }
+    }
 
 }

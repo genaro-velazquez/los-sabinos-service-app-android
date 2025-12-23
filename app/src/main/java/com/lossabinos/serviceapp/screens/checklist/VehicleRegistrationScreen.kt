@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lossabinos.serviceapp.ui.components.templates.VehicleRegistrationTemplate
 import com.lossabinos.serviceapp.viewmodel.VehicleRegistrationViewModel
 
@@ -19,7 +20,10 @@ fun VehicleRegistrationScreen(
 
     // 🆕 Cargar campos dinámicamente al abrir
     LaunchedEffect(checklistTemplateJson) {
+        // 1. Cargar campos del template
         viewModel.loadServiceFieldsFromJson(checklistTemplateJson)
+        // 2. Cargar datos previos guardados
+        viewModel.loadPreviousFieldValues(serviceId)
     }
 
     val serviceFields by viewModel.serviceFields.collectAsState()

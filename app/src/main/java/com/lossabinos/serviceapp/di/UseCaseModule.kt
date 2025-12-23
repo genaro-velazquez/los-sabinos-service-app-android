@@ -9,6 +9,7 @@ import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
 import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
+import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.GetTotalCompletedActivitiesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
@@ -214,6 +215,16 @@ object UseCaseModule {
         repository: ChecklistRepository
     ) : SaveServiceFieldValuesUseCase{
         return SaveServiceFieldValuesUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetServiceFieldValuesUseCase(
+        repository: ChecklistRepository
+    ) : GetServiceFieldValuesUseCase{
+        return GetServiceFieldValuesUseCase(
             checklistRepository = repository
         )
     }

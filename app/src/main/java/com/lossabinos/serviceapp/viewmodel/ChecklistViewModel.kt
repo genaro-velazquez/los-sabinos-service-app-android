@@ -191,7 +191,7 @@ class ChecklistViewModel @Inject constructor(
                     println("✅ Actividades completadas previas: $totalCompleted")
 
                     // ✨ PASO 3: Encontrar sección actual
-                    val currentSectionIndex = findFirstIncompleteSection(tmpl, serviceId)
+                    val currentSectionIndex = 0 //findFirstIncompleteSection(tmpl, serviceId)
                     println("✅ Sección actual a mostrar: $currentSectionIndex")
 
                     // ✨ PASO 4: Cargar datos de sección actual (Domain + Room)

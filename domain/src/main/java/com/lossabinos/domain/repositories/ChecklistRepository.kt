@@ -64,6 +64,10 @@ interface ChecklistRepository {
         assignedServiceId: String,
         fields: List<ServiceFieldValue>
     )
+
+    suspend fun getServiceFieldValues(
+        assignedServiceId: String
+    ) : List<ServiceFieldValue>
 }
 
 

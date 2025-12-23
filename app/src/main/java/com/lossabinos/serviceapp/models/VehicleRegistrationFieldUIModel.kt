@@ -59,16 +59,17 @@ fun ServiceField.toVehicleRegistrationFieldUIModel(value: String): VehicleRegist
         required = required
     )
 }
-
+/*
 fun VehicleRegistrationFieldUIModel.toDomain() : ServiceFieldValue{
     return ServiceFieldValue(
         id = id,
-        label = label,
+        assignedServiceId = ,
         value = value,
         fieldType = fieldType.toDomain(),
         required = required
     )
 }
+*/
 
 fun FieldTypeUIModel.toDomain() : FieldType{
     return when (this){

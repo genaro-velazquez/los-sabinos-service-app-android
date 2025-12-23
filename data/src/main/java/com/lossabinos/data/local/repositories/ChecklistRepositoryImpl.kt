@@ -180,7 +180,7 @@ class ChecklistRepositoryImpl(
                 ServiceFieldValueEntity(
                     assignedServiceId = assignedServiceId,
                     fieldIndex = index,
-                    fieldLabel = field.label,
+                    fieldLabel = field.fieldLabel,
                     fieldType = field.fieldType.name,
                     required = field.required,
                     value = field.value,
@@ -220,5 +220,14 @@ class ChecklistRepositoryImpl(
             e.printStackTrace()
             throw e
         }
+    }
+
+    override suspend fun getServiceFieldValues(
+        assignedServiceId: String
+    ): List<ServiceFieldValue> {
+        return serviceFieldValueDao.getServiceFieldValuesByService(
+            assignedServiceId = assignedServiceId
+        )
+            .map { it.toDomain() }
     }
 }
