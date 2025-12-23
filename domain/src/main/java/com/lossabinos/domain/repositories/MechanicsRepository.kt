@@ -3,6 +3,7 @@ package com.lossabinos.domain.repositories
 import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
+import com.lossabinos.domain.entities.Vehicle
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
@@ -29,5 +30,9 @@ interface MechanicsRepository {
     fun getAssignedServicesFlow(): Flow<List<AssignedService>>
     fun getServiceTypesFlow(): Flow<List<ServiceType>>
     fun getSyncMetadataFlow(): Flow<SyncMetadata?>
+
+    suspend fun getQRVehicle(
+        vehicleId:String
+    ): Vehicle
 
 }

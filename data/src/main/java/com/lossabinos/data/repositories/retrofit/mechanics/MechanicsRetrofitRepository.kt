@@ -1,5 +1,6 @@
 package com.lossabinos.data.repositories.retrofit.mechanics
 
+import com.lossabinos.data.dto.entities.VehicleDTO
 import com.lossabinos.data.dto.repositories.retrofit.RetrofitResponseValidator
 import com.lossabinos.data.dto.responses.AssignedServicesResponseDTO
 import com.lossabinos.data.dto.responses.DetailedServiceResponseDTO
@@ -272,6 +273,15 @@ class MechanicsRetrofitRepository(
                 println("❌ [REPO] Error en SyncMetadataFlow: ${exception.message}")
                 throw exception
             }
+    }
+
+    override suspend fun getQRVehicle(
+        vehicleId: String
+    ): Vehicle {
+        val response = assignedServices.getVehicleByQR(headers = headersMaker.build(), idVehicle = vehicleId)
+        val json = RetrofitResponseValidator.validate(response = response)
+        val dto = VehicleDTO(json = json)
+        return dto.toEntity()
     }
 
 }

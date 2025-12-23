@@ -8,6 +8,7 @@ import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.valueobjects.Template
+import com.lossabinos.serviceapp.models.ScanQRState
 import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
 import com.lossabinos.serviceapp.models.toDomain
 import com.lossabinos.serviceapp.models.toVehicleRegistrationFieldUIModel
@@ -43,6 +44,27 @@ class VehicleRegistrationViewModel @Inject constructor(
     private val saveServiceFieldValuesUseCase: SaveServiceFieldValuesUseCase,
     private val getServiceFieldValuesUseCase: GetServiceFieldValuesUseCase
 ) : ViewModel() {
+
+    // 🆕 Estado del QR
+    private val _qrState = MutableStateFlow(ScanQRState.INITIAL)
+    val qrState: StateFlow<ScanQRState> = _qrState.asStateFlow()
+
+    // 🆕 Métodos para cambiar estado
+    fun setValidQR() {
+        _qrState.value = ScanQRState.VALID
+        println("✅ QR Válido")
+    }
+
+    fun setInvalidQR() {
+        _qrState.value = ScanQRState.INVALID
+        println("❌ QR Inválido")
+    }
+
+    fun resetQRState() {
+        _qrState.value = ScanQRState.INITIAL
+        println("🔄 Reset QR State")
+    }
+
 
     private val _kilometrage = MutableStateFlow("")
     val kilometrage: StateFlow<String> = _kilometrage.asStateFlow()

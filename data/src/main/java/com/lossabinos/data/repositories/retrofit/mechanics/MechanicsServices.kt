@@ -22,4 +22,9 @@ interface MechanicsServices {
         @HeaderMap headers: Map<String, String>
     ): Response<String>
 
+    @GET("/api/v1/vehicles/{id_vehicle}/qr")
+    suspend fun getVehicleByQR(
+        @HeaderMap headers: Map<String, String>,
+        @Path("id_vehicle") idVehicle:String
+    ): Response<String>
 }

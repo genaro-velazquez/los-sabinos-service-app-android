@@ -18,6 +18,49 @@ fun VehicleRegistrationScreen(
 ) {
     val viewModel: VehicleRegistrationViewModel = hiltViewModel()
 
+    LaunchedEffect(checklistTemplateJson) {
+        viewModel.loadServiceFieldsFromJson(checklistTemplateJson)
+        viewModel.loadPreviousFieldValues(serviceId)
+    }
+
+    // 🆕 Estados
+    val qrState by viewModel.qrState.collectAsState()
+    val serviceFields by viewModel.serviceFields.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val isEnabled = viewModel.validateAndContinue() && !isLoading
+
+    VehicleRegistrationTemplate(
+        qrState = qrState,  // 🆕 Pasar estado
+        fields = serviceFields,
+        onScanClick = {
+            println("🔍 Escanear QR")
+            // TODO: Implementar lógica de QR
+        },
+        onFieldChange = { fieldId, newValue ->
+            viewModel.updateFieldValue(fieldId, newValue)
+        },
+        onContinueClick = {
+            viewModel.saveVehicleData(
+                assignedServiceId = serviceId,
+                onSuccess = onContinueClick
+            )
+        },
+        onBackClick = onBackClick,
+        isEnabled = isEnabled
+    )
+}
+
+
+/*
+@Composable
+fun VehicleRegistrationScreen(
+    checklistTemplateJson: String,
+    serviceId: String,
+    onContinueClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    val viewModel: VehicleRegistrationViewModel = hiltViewModel()
+
     // 🆕 Cargar campos dinámicamente al abrir
     LaunchedEffect(checklistTemplateJson) {
         // 1. Cargar campos del template
@@ -46,3 +89,4 @@ fun VehicleRegistrationScreen(
         isEnabled = isEnabled
     )
 }
+*/
