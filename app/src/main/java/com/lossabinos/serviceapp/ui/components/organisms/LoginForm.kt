@@ -47,8 +47,8 @@ fun LoginForm(
 
         // Logo
         LogoCard(
-            size = 120,
-            modifier = Modifier.padding(top = 32.dp, bottom = 40.dp)
+            size = 180,
+            modifier = Modifier //Modifier.padding(top = 32.dp, bottom = 40.dp)
         )
 
         // Título

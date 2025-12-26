@@ -49,6 +49,9 @@ class VehicleRegistrationViewModel @Inject constructor(
     private val _qrState = MutableStateFlow(ScanQRState.INITIAL)
     val qrState: StateFlow<ScanQRState> = _qrState.asStateFlow()
 
+    // 🆕 Almacenar el vehicleId del servicio
+    private var serviceVehicleId: String = ""
+
     // 🆕 Métodos para cambiar estado
     fun setValidQR() {
         _qrState.value = ScanQRState.VALID
@@ -63,6 +66,63 @@ class VehicleRegistrationViewModel @Inject constructor(
     fun resetQRState() {
         _qrState.value = ScanQRState.INITIAL
         println("🔄 Reset QR State")
+    }
+
+    // 🆕 SIMPLIFICAR: Solo una función de validación
+    fun setServiceVehicleId(vehicleId: String) {
+        this.serviceVehicleId = vehicleId
+        println("🚗 Vehicle ID del servicio establecido: $vehicleId")
+    }
+
+    // 🆕 Validar QR y actualizar estado
+    fun validateQRAndLoadData(qrValue: String) {
+        viewModelScope.launch {
+            try {
+                println("🔍 Validando QR: $qrValue")
+
+                val qrVehicleId = extractVehicleIdFromQR(qrValue)
+
+                println("📋 Vehicle ID extraído del QR: $qrVehicleId")
+                println("📋 Vehicle ID del servicio: $serviceVehicleId")
+
+                if (qrVehicleId.isNotEmpty() && qrVehicleId == serviceVehicleId) {
+                    println("✅ QR Válido - Vehicle IDs coinciden")
+                    _qrState.value = ScanQRState.VALID
+                } else {
+                    println("❌ QR Inválido - Vehicle IDs no coinciden")
+                    println("   QR: $qrVehicleId")
+                    println("   Servicio: $serviceVehicleId")
+                    _qrState.value = ScanQRState.INVALID
+                }
+            } catch (e: Exception) {
+                println("❌ Error validando QR: ${e.message}")
+                e.printStackTrace()
+                _qrState.value = ScanQRState.INVALID
+            }
+        }
+    }
+
+    // 🆕 Extraer vehicle_id del string del QR
+    private fun extractVehicleIdFromQR(qrValue: String): String {
+        return try {
+            // Formato: "vehicle_id=be48febf-2858-4bae-bb8a-64e80c15bcee"
+            if (qrValue.contains("vehicle_id=")) {
+                val parts = qrValue.split("vehicle_id=")
+                if (parts.size > 1) {
+                    val extracted = parts[1].trim()
+                    println("📝 Extracto del QR: $extracted")
+                    extracted
+                } else {
+                    ""
+                }
+            } else {
+                println("⚠️ QR no contiene formato 'vehicle_id='")
+                ""
+            }
+        } catch (e: Exception) {
+            println("❌ Error extrayendo vehicle_id: ${e.message}")
+            ""
+        }
     }
 
 

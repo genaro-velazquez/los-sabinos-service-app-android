@@ -20,6 +20,7 @@ import com.lossabinos.serviceapp.screens.checklist.ChecklistProgressScreen
 import com.lossabinos.serviceapp.screens.checklist.VehicleRegistrationScreen
 import com.lossabinos.serviceapp.screens.home.HomeScreen
 import com.lossabinos.serviceapp.screens.login.LoginScreen
+import com.lossabinos.serviceapp.screens.qr_scanner.QRScannerScreen
 import com.lossabinos.serviceapp.viewmodel.HomeViewModel
 import com.lossabinos.serviceapp.viewmodel.LoginViewModel
 import com.lossabinos.serviceapp.viewmodel.SplashViewModel
@@ -31,6 +32,9 @@ import com.lossabinos.serviceapp.viewmodel.VehicleRegistrationViewModel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import androidx.compose.runtime.remember
+
+
 /**
  * Rutas disponibles en la aplicación
  */
@@ -40,6 +44,7 @@ object Routes {
     const val HOME = "home"
     const val CHECKLIST_PROGRESS = "checklist_progress/{serviceId}"
     const val VEHICLE_REGISTRATION = "vehicle_registration/{serviceId}"
+    const val QR_SCANNER = "qr_scanner"
 }
 
 /**
@@ -282,6 +287,7 @@ fun NavGraph(
                 VehicleRegistrationScreen(
                     checklistTemplateJson = checklistJsonString,  // 🆕 PASA EL JSON
                     serviceId = serviceId,
+                    navController = navController,
                     onContinueClick = {
                         navController.navigate("checklist_progress/$serviceId")
                         vehicleRegistrationModel.clearNavigationEvent()
@@ -299,6 +305,34 @@ fun NavGraph(
                 }
             }
         }
+
+        // ============================================================================
+        // QR SCANNER SCREEN
+        // ============================================================================
+        composable(route = Routes.QR_SCANNER) { backStackEntry ->
+
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Routes.VEHICLE_REGISTRATION)
+            }
+
+            val vehicleRegistrationViewModel: VehicleRegistrationViewModel = hiltViewModel(parentEntry)
+
+            QRScannerScreen(
+                onQRScanned = { qrValue ->
+                    println("📱 QR escaneado en NavGraph: $qrValue")
+
+                    // ✅ CAMBIO: Pasar directamente al ViewModel de VehicleRegistrationScreen
+                    vehicleRegistrationViewModel.validateQRAndLoadData(qrValue)
+
+                    // Regresar a VehicleRegistrationScreen
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }
 

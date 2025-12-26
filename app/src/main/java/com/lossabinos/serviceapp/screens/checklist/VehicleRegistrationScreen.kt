@@ -5,8 +5,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.lossabinos.serviceapp.ui.components.templates.VehicleRegistrationTemplate
+import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
 import com.lossabinos.serviceapp.viewmodel.VehicleRegistrationViewModel
 
 @Composable
@@ -14,13 +17,28 @@ fun VehicleRegistrationScreen(
     checklistTemplateJson: String,
     serviceId: String,
     onContinueClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    navController: NavController  // 🆕 Agregar para navegar
 ) {
     val viewModel: VehicleRegistrationViewModel = hiltViewModel()
 
-    LaunchedEffect(checklistTemplateJson) {
+    // 🆕 Obtener el vehicleId del servicio
+    val mechanicsViewModel: MechanicsViewModel = hiltViewModel()
+    val services = mechanicsViewModel.assignedServices
+        .collectAsStateWithLifecycle().value
+    val selectedService = services.find { it.id == serviceId }
+
+
+    LaunchedEffect(checklistTemplateJson, serviceId) {
         viewModel.loadServiceFieldsFromJson(checklistTemplateJson)
         viewModel.loadPreviousFieldValues(serviceId)
+
+        // 🆕 Establecer el vehicleId del servicio en el ViewModel
+        selectedService?.let { service ->
+            viewModel.setServiceVehicleId(service.vehicle.id)  // Asumiendo que tiene vehicleId
+            println("🚗 VehicleId configurado en ViewModel: ${service.vehicle.id}")
+        }
+
     }
 
     // 🆕 Estados
@@ -33,8 +51,9 @@ fun VehicleRegistrationScreen(
         qrState = qrState,  // 🆕 Pasar estado
         fields = serviceFields,
         onScanClick = {
-            println("🔍 Escanear QR")
-            // TODO: Implementar lógica de QR
+            println("🔍 Abriendo escáner QR")
+            // 🆕 Navegar a QR Scanner
+            navController.navigate("qr_scanner")
         },
         onFieldChange = { fieldId, newValue ->
             viewModel.updateFieldValue(fieldId, newValue)
@@ -45,7 +64,11 @@ fun VehicleRegistrationScreen(
                 onSuccess = onContinueClick
             )
         },
-        onBackClick = onBackClick,
+        onBackClick = {
+            // 🆕 Resetear QR state al regresar
+            viewModel.resetQRState()
+            onBackClick()
+        },
         isEnabled = isEnabled
     )
 }

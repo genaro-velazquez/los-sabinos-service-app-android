@@ -96,4 +96,17 @@ dependencies {
     kapt(libs.androidx.room.compiler)
     // Serialización JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // 🆕 ML Kit Barcode Scanning
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
+    // 🆕 CameraX (para capturar video)
+    implementation("androidx.camera:camera-core:1.5.2")
+    implementation("androidx.camera:camera-camera2:1.5.2")
+    implementation("androidx.camera:camera-lifecycle:1.5.2")
+    implementation("androidx.camera:camera-view:1.5.2")
+
+    // 🆕 Permisos
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
+
 }
