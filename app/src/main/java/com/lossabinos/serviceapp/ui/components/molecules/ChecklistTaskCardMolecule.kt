@@ -60,12 +60,18 @@ fun ChecklistTaskCardMolecule(
             )
 
             // Si requiere evidencia y no está completado: mostrar upload
-            if (requiresEvidence && !completed) {
+            if (requiresEvidence) {
                 EvidenceUploadMolecule(
                     hasPhoto = hasPhoto,
                     photoUri = photoUri,
                     onAddPhoto = {
                         onAddPhoto(taskId)
+                    },
+                    onRemovePhoto = {
+                        val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@EvidenceUploadMolecule
+                        // Obtener el ID de la evidencia para eliminar
+                        // Necesitas pasar esto desde el ViewModel
+                        // viewModel.deleteActivityEvidence(index, evidenceId)
                     }
                 )
             }

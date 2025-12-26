@@ -19,15 +19,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.lossabinos.serviceapp.ui.components.organisms.ActivityTaskItem
 import com.lossabinos.serviceapp.ui.components.templates.ChecklistProgressTemplate
 import com.lossabinos.serviceapp.viewmodel.ChecklistViewModel
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewModelScope
+import com.lossabinos.serviceapp.screens.camera.CameraScreen
+import kotlinx.coroutines.isActive
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +42,17 @@ fun ChecklistProgressScreen(
     serviceId: String,
     checklistTemplateJson: String,
     onBackClick: () -> Unit,
+    navController: NavController,
     viewModel: ChecklistViewModel = hiltViewModel()
 
 ) {
     val uiState         = viewModel.state.collectAsStateWithLifecycle().value
     val observations    = viewModel.observations.collectAsStateWithLifecycle().value
     val isLoading       = viewModel.isLoading.collectAsStateWithLifecycle().value
+
+    // 🆕 Estado para mostrar cámara
+    var showCamera = remember { mutableStateOf(false) }
+    var currentActivityIndex = remember { mutableStateOf(-1) }
 
     // ✨ CARGAR TEMPLATE AL ABRIR
     LaunchedEffect(Unit) {
@@ -51,6 +63,84 @@ fun ChecklistProgressScreen(
         )
     }
 
+    // 🆕 Mostrar cámara si está activada
+    if (showCamera.value) {
+        CameraScreen(
+            onPhotoCaptured = { imagePath ->
+                println("📸 Foto capturada en ChecklistProgressScreen: $imagePath")
+                println("   Para actividad: ${currentActivityIndex.value}")
+                println("   ViewModel: $viewModel")  // 🆕 VERIFICAR viewModel
+                println("   ViewScope activo: ${viewModel.viewModelScope.isActive}")  // 🆕 VERIFICAR scope
+
+                // Guardar en Room
+                viewModel.addPhotoToActivity(
+                    activityIndex = currentActivityIndex.value,
+                    photoUri = imagePath
+                )
+
+                println("✅ addPhotoToActivity fue LLAMADO")  // 🆕 Log DESPUÉS de llamar
+
+                // Cerrar cámara
+                showCamera.value = false
+                currentActivityIndex.value = -1
+            },
+            onBackClick = {
+                showCamera.value = false
+                currentActivityIndex.value = -1
+            }
+        )
+    } else {
+        // Pantalla normal de checklist
+        ChecklistProgressTemplate(
+            serviceName = uiState.currentSectionName,
+            templateName = uiState.templateName,
+            currentProgress = uiState.currentSectionIndex + 1,
+            totalTasks = uiState.totalActivities,
+            progressPercentage = uiState.sectionProgressPercentage,
+            tasks = uiState.currentSectionActivities.mapIndexed { index, activityUI ->
+                ActivityTaskItem(
+                    id = "activity_$index",
+                    description = activityUI.activity.description,
+                    completed = activityUI.progress?.completed ?: false,
+                    requiresEvidence = activityUI.activity.requiresEvidence,
+                    hasPhoto = activityUI.evidence.isNotEmpty(),
+                    photoUri = activityUI.evidence.firstOrNull()?.filePath
+                )
+            },
+            observations = observations,
+            onObservationsChange = { newText ->
+                viewModel.updateObservations(text = newText)
+            },
+            onTaskCheckedChange = { taskId, completed ->
+                val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
+                if (completed) {
+                    viewModel.completeActivity(index)
+                }
+            },
+            onCameraClick = { taskId ->
+                println("📷 Abriendo cámara para $taskId")
+                val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
+                currentActivityIndex.value = index
+                showCamera.value = true
+            },
+            onAddPhoto = { taskId ->
+                println("📷 Abriendo cámara para $taskId")
+                val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
+                currentActivityIndex.value = index
+                showCamera.value = true
+            },
+            onContinueClick = {
+                if (uiState.allSectionsComplete) {
+                    viewModel.onContinueClicked()
+                } else {
+                    viewModel.nextSection()
+                }
+            },
+            isLoading = isLoading,
+            onBackClick = onBackClick
+        )
+    }
+/*
     ChecklistProgressTemplate(
         serviceName = uiState.currentSectionName,
         templateName = uiState.templateName,
@@ -97,6 +187,7 @@ fun ChecklistProgressScreen(
         isLoading = isLoading,
         onBackClick = onBackClick
     )
+ */
 
 }
 

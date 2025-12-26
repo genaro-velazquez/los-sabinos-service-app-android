@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.io.File
 import javax.inject.Inject
 
 data class ChecklistUIState(
@@ -465,33 +466,143 @@ class ChecklistViewModel @Inject constructor(
     // 6. GUARDAR FOTO A ACTIVIDAD
     // ═══════════════════════════════════════════════════════
     fun addPhotoToActivity(activityIndex: Int, photoUri: String) {
+        println("🔴 addPhotoToActivity: Iniciando...")
+        viewModelScope.launch {
+            println("🟡 DENTRO del viewModelScope.launch")
+
+            try {
+                println("📸 addPhotoToActivity llamado")
+                println("   Actividad: $activityIndex")
+                println("   Foto: $photoUri")
+
+                val state = _state.value
+                val activity = state.currentSectionActivities[activityIndex]
+
+                println("🔍 Activity obtenida: ${activity.activity.description}")
+                println("   ¿Tiene progress? ${activity.progress != null}")
+                println("   ¿ID del progress? ${activity.progress?.id}")
+
+                // 🆕 CRÍTICO: Si no tiene progress, completar la actividad PRIMERO
+                val progressId = if (activity.progress == null) {
+                    println("⚠️ Actividad no tiene progress, completando primero...")
+                    completeActivityUseCase.invoke(
+                        assignedServiceId = serviceId,
+                        sectionIndex = state.currentSectionIndex,
+                        activityIndex = activityIndex,
+                        description = activity.activity.description,
+                        requiresEvidence = activity.activity.requiresEvidence
+                    )
+                } else {
+                    activity.progress.id
+                }
+
+                println("✅ Progress ID obtenido: $progressId")
+
+                // Guardar foto en Room
+                println("💾 Guardando foto en Room...")
+                saveActivityEvidenceUseCase.invoke(
+                    id = 0,
+                    activityProgressId = progressId,
+                    filePath = photoUri,
+                    fileType = "image"
+                )
+
+                println("✅ Foto guardada en Room")
+
+                // 🆕 ESPERAR a que Room guarde
+                delay(500)
+
+                val file = File(photoUri)
+                println("📁 VERIFICACIÓN DE ARCHIVO:")
+                println("   Ruta: $photoUri")
+                println("   Existe: ${file.exists()}")
+                println("   Legible: ${file.canRead()}")
+                println("   Tamaño: ${file.length()} bytes")
+
+                // 🆕 Recargar evidencias
+                println("🔄 Recargando evidencias...")
+                val evidencesFromRoom = getEvidenceForActivityUseCase.invoke(
+                    activityProgressId = progressId
+                )
+
+                println("✅ Evidencias en Room: ${evidencesFromRoom.size}")
+
+                // 🆕 Actualizar estado
+                val updatedActivities = state.currentSectionActivities.toMutableList()
+
+                val newProgress = if (activity.progress == null) {
+                    ActivityProgressEntity(
+                        id = progressId,
+                        assignedServiceId = serviceId,
+                        sectionIndex = state.currentSectionIndex,
+                        activityIndex = activityIndex,
+                        activityDescription = activity.activity.description,
+                        requiresEvidence = activity.activity.requiresEvidence,
+                        completed = true
+                    )
+                } else {
+                    activity.progress
+                }
+
+                val updatedActivity = activity.copy(
+                    progress = newProgress,
+                    evidence = evidencesFromRoom.map { it.toEntity() }
+                )
+
+                updatedActivities[activityIndex] = updatedActivity
+
+                println("🎨 Actualizando UI con ${updatedActivity.evidence.size} foto(s)")
+
+                _state.value = state.copy(
+                    currentSectionActivities = updatedActivities
+                )
+
+                println("✅ UI actualizada completamente")
+
+            } catch (e: Exception) {
+                println("❌ Error en viewModelScope.launch: ${e.message}")
+                println("   Stack: ${e.stackTrace.take(5).joinToString("\n")}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteActivityEvidence(activityIndex: Int, evidenceId: Long) {
         viewModelScope.launch {
             try {
                 val state = _state.value
                 val activity = state.currentSectionActivities[activityIndex]
 
-                activity.progress?.let { progress ->
-                    println("📷 Guardando foto para actividad $activityIndex: $photoUri")
+                println("🗑️ Eliminando evidencia: $evidenceId")
 
-
-                    saveActivityEvidenceUseCase.invoke(
-                        id = 0,
-                        activityProgressId = progress.id,
-                        filePath = photoUri,
-                        fileType = "image"
-                    )
-/*
-                    checklistRepository.saveActivityEvidence(
-                        activityProgressId = progress.id,
-                        filePath = photoUri,
-                        fileType = "image"
-                    )
- */
-
-                    println("✅ Foto guardada")
+                // Eliminar del archivo físico también si quieres
+                activity.evidence.find { it.id == evidenceId }?.let { evidence ->
+                    File(evidence.filePath).delete()
+                    println("🗑️ Archivo eliminado: ${evidence.filePath}")
                 }
+
+                // Eliminar de Room
+                // deleteActivityEvidenceUseCase.invoke(evidenceId)
+                // O usar un repository si lo tienes
+
+                println("✅ Evidencia eliminada")
+
+                // Recargar evidencias
+                val updatedActivities = state.currentSectionActivities.toMutableList()
+                val updatedActivity = activity.copy(
+                    evidence = activity.evidence.filter { it.id != evidenceId }
+                )
+                updatedActivities[activityIndex] = updatedActivity
+
+                _state.value = state.copy(
+                    currentSectionActivities = updatedActivities
+                )
+
+                println("✅ UI actualizada sin foto")
+
             } catch (e: Exception) {
-                println("❌ Error guardando foto: ${e.message}")
+                println("❌ Error eliminando evidencia: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -529,6 +640,7 @@ class ChecklistViewModel @Inject constructor(
                 println("❌ Error: ${e.message}")
             }
         }
+        println("🟢 addPhotoToActivity: Método finalizado (launch asincrónico)")
     }
 
     // ═══════════════════════════════════════════════════════

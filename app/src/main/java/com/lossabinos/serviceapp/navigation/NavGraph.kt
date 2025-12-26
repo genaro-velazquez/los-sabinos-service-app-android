@@ -247,6 +247,7 @@ fun NavGraph(
                 ChecklistProgressScreen(
                     serviceId               = serviceId,
                     checklistTemplateJson   = checklistJsonString,
+                    navController           = navController,
                     onBackClick = {
                         navController.popBackStack()
                     },

@@ -109,4 +109,7 @@ dependencies {
     // 🆕 Permisos
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
 
+    // Coil para cargar imágenes
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 }
