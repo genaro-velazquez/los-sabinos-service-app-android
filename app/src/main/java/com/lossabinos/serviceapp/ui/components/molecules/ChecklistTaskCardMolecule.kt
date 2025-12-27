@@ -23,9 +23,11 @@ fun ChecklistTaskCardMolecule(
     requiresEvidence: Boolean,
     hasPhoto: Boolean = false,
     photoUri: String? = null,
+    evidenceId: Long = 0L,
     onCheckedChange: (String, Boolean) -> Unit,
     onCameraClick: (String) -> Unit,
     onAddPhoto: (String) -> Unit,
+    onRemovePhoto: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -68,7 +70,8 @@ fun ChecklistTaskCardMolecule(
                         onAddPhoto(taskId)
                     },
                     onRemovePhoto = {
-                        val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@EvidenceUploadMolecule
+                        onRemovePhoto(evidenceId)
+                        //val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@EvidenceUploadMolecule
                         // Obtener el ID de la evidencia para eliminar
                         // Necesitas pasar esto desde el ViewModel
                         // viewModel.deleteActivityEvidence(index, evidenceId)

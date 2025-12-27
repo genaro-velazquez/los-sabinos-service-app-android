@@ -19,7 +19,8 @@ data class ActivityTaskItem(
     val completed: Boolean,
     val requiresEvidence: Boolean,
     val hasPhoto: Boolean = false,
-    val photoUri: String? = null
+    val photoUri: String? = null,
+    val evidenceId: Long = 0L
 )
 
 @Composable
@@ -28,6 +29,7 @@ fun ActivitiesListOrganism(
     onTaskCheckedChange: (String, Boolean) -> Unit,
     onCameraClick: (String) -> Unit,
     onAddPhoto: (String) -> Unit,
+    onRemovePhoto: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -53,9 +55,11 @@ fun ActivitiesListOrganism(
                 requiresEvidence = task.requiresEvidence,
                 hasPhoto = task.hasPhoto,
                 photoUri = task.photoUri,
+                evidenceId = task.evidenceId,
                 onCheckedChange = onTaskCheckedChange,
                 onCameraClick = onCameraClick,
-                onAddPhoto = onAddPhoto
+                onAddPhoto = onAddPhoto,
+                onRemovePhoto = onRemovePhoto
             )
         }
     }

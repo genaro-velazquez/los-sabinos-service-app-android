@@ -152,6 +152,12 @@ interface ActivityEvidenceDao {
 
     @Delete
     suspend fun deleteEvidence(evidence: ActivityEvidenceEntity)
+
+    @Query("DELETE FROM activity_evidence WHERE id = :evidenceId")
+    suspend fun deleteEvidenceById(evidenceId: Long)
+
+    @Query("SELECT * FROM activity_evidence WHERE id = :evidenceId LIMIT 1")
+    suspend fun getEvidenceById(evidenceId: Long): ActivityEvidenceEntity?
 }
 
 // 3️⃣ DAO para Observation Response

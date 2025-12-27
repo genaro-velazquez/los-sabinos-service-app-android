@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -90,6 +91,9 @@ fun ChecklistProgressScreen(
             }
         )
     } else {
+
+        var currentEvidenceId = remember { mutableLongStateOf(0L) }
+
         // Pantalla normal de checklist
         ChecklistProgressTemplate(
             serviceName = uiState.currentSectionName,
@@ -104,7 +108,10 @@ fun ChecklistProgressScreen(
                     completed = activityUI.progress?.completed ?: false,
                     requiresEvidence = activityUI.activity.requiresEvidence,
                     hasPhoto = activityUI.evidence.isNotEmpty(),
-                    photoUri = activityUI.evidence.firstOrNull()?.filePath
+                    photoUri = activityUI.evidence.firstOrNull()?.filePath?.let {
+                        "file://$it"
+                    },
+                    evidenceId = activityUI.evidence.firstOrNull()?.id ?: 0L
                 )
             },
             observations = observations,
@@ -128,6 +135,14 @@ fun ChecklistProgressScreen(
                 val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
                 currentActivityIndex.value = index
                 showCamera.value = true
+            },
+            onRemovePhoto = { evidenceId ->  // 🆕 NUEVO CALLBACK
+                val index = uiState.currentSectionActivities.indexOfFirst {
+                    it.evidence.any { ev -> ev.id == evidenceId }
+                }
+                if (index >= 0) {
+                    viewModel.deleteActivityEvidence(evidenceId =  evidenceId)
+                }
             },
             onContinueClick = {
                 if (uiState.allSectionsComplete) {

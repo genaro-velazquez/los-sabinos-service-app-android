@@ -15,6 +15,7 @@ import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -74,6 +75,9 @@ class ChecklistRepositoryImpl(
             .map { it.toDomain() }
     }
 
+    //**************************************
+    // Activity evidence : activity_evidence
+    //**************************************
     override suspend fun getEvidenceForActivity(
         activityProgressId: Long
     ): List<ActivityEvidence> {
@@ -101,6 +105,15 @@ class ChecklistRepositoryImpl(
         return activityEvidenceDao.insertActivityEvidence(
             evidence = activityEvidence
         )
+    }
+
+    override suspend fun deleteActivityEvidenceById(evidenceId: Long) {
+        //activityEvidenceDao.deleteEvidenceById(evidenceId = evidenceId)
+        val evidence = activityEvidenceDao.getEvidenceById(evidenceId = evidenceId)
+        evidence?.let {
+            File(it.filePath).delete()
+        }
+        activityEvidenceDao.deleteEvidenceById(evidenceId = evidenceId)
     }
 
     private fun Long.toISO8601String(): String {

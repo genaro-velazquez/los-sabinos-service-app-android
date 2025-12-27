@@ -8,6 +8,7 @@ import com.lossabinos.data.local.mappers.toEntity
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
+import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
 import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
@@ -29,6 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -66,6 +68,7 @@ class ChecklistViewModel @Inject constructor(
     private val getActivitiesProgressForSectionUseCase:  GetActivitiesProgressForSectionUseCase,
     private val getEvidenceForActivityUseCase: GetEvidenceForActivityUseCase,
     private val saveActivityEvidenceUseCase: SaveActivityEvidenceUseCase,
+    private val deleteActivityEvidenceByIdUseCase: DeleteActivityEvidenceByIdUseCase,
     private val saveObservationResponseUseCase: SaveObservationResponseUseCase
 ) : ViewModel() {
 /*
@@ -567,45 +570,75 @@ class ChecklistViewModel @Inject constructor(
         }
     }
 
-    fun deleteActivityEvidence(activityIndex: Int, evidenceId: Long) {
+    fun deleteActivityEvidence(evidenceId: Long) {
         viewModelScope.launch {
             try {
-                val state = _state.value
-                val activity = state.currentSectionActivities[activityIndex]
+                deleteActivityEvidenceByIdUseCase(evidenceId)
 
-                println("🗑️ Eliminando evidencia: $evidenceId")
-
-                // Eliminar del archivo físico también si quieres
-                activity.evidence.find { it.id == evidenceId }?.let { evidence ->
-                    File(evidence.filePath).delete()
-                    println("🗑️ Archivo eliminado: ${evidence.filePath}")
+                _state.update { state ->
+                    state.copy(
+                        currentSectionActivities = state.currentSectionActivities.map { activity ->
+                            activity.copy(
+                                evidence = activity.evidence.filterNot { it.id == evidenceId }
+                            )
+                        }
+                    )
                 }
-
-                // Eliminar de Room
-                // deleteActivityEvidenceUseCase.invoke(evidenceId)
-                // O usar un repository si lo tienes
-
-                println("✅ Evidencia eliminada")
-
-                // Recargar evidencias
-                val updatedActivities = state.currentSectionActivities.toMutableList()
-                val updatedActivity = activity.copy(
-                    evidence = activity.evidence.filter { it.id != evidenceId }
-                )
-                updatedActivities[activityIndex] = updatedActivity
-
-                _state.value = state.copy(
-                    currentSectionActivities = updatedActivities
-                )
-
                 println("✅ UI actualizada sin foto")
-
-            } catch (e: Exception) {
+            }
+            catch (e: java.lang.Exception){
                 println("❌ Error eliminando evidencia: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
+
+    /*
+        fun deleteActivityEvidence(activityIndex: Int, evidenceId: Long) {
+            viewModelScope.launch {
+                try {
+                    val state = _state.value
+                    val activity = state.currentSectionActivities[activityIndex]
+
+                    println("🗑️ Eliminando evidencia: $evidenceId")
+
+                    // Eliminar del archivo físico también si quieres -> Se paso a  RepositoryImp
+                    //¿Por qué?
+                    //El ViewModel no debería tocar el filesystem
+                    //Eso es Data layer
+                    /*
+                    activity.evidence.find { it.id == evidenceId }?.let { evidence ->
+                        File(evidence.filePath).delete()
+                        println("🗑️ Archivo eliminado: ${evidence.filePath}")
+                    }
+                    */
+
+                    // Eliminar de Room
+                    deleteActivityEvidenceByIdUseCase.invoke(evidenceId = evidenceId)
+                    // O usar un repository si lo tienes
+
+                    println("✅ Evidencia eliminada")
+
+                    // Recargar evidencias
+                    val updatedActivities = state.currentSectionActivities.toMutableList()
+                    val updatedActivity = activity.copy(
+                        evidence = activity.evidence.filter { it.id != evidenceId }
+                    )
+                    updatedActivities[activityIndex] = updatedActivity
+
+                    _state.value = state.copy(
+                        currentSectionActivities = updatedActivities
+                    )
+
+                    println("✅ UI actualizada sin foto")
+
+                } catch (e: Exception) {
+                    println("❌ Error eliminando evidencia: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
+     */
 
     // ═══════════════════════════════════════════════════════
     // 7. GUARDAR OBSERVACIONES

@@ -6,6 +6,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
+import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
 import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
@@ -229,4 +230,13 @@ object UseCaseModule {
         )
     }
 
+    @Singleton
+    @Provides
+    fun provideDeleteActivityEvidenceByIdUseCase(
+        repository: ChecklistRepository
+    ) : DeleteActivityEvidenceByIdUseCase{
+        return DeleteActivityEvidenceByIdUseCase(
+            checklistRepository = repository
+        )
+    }
 }

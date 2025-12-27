@@ -29,6 +29,9 @@ interface ChecklistRepository {
         sectionIndex: Int
     ): List<ActivityProgress>
 
+    /*******************************************
+     * evidence_activity (guardar fotos/video)
+     ******************************************/
     suspend fun getEvidenceForActivity(
         activityProgressId: Long
     ): List<ActivityEvidence>
@@ -39,6 +42,8 @@ interface ChecklistRepository {
         filePath: String,
         fileType: String = "image"
     ): Long
+
+    suspend fun deleteActivityEvidenceById(evidenceId: Long)
 
     suspend fun saveObservationResponse(
         assignedServiceId: String,

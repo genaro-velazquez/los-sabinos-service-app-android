@@ -43,6 +43,7 @@ fun ChecklistProgressTemplate(
     onTaskCheckedChange: (String, Boolean) -> Unit = { _, _ -> },
     onCameraClick: (String) -> Unit = {},
     onAddPhoto: (String) -> Unit = {},
+    onRemovePhoto: (Long) -> Unit = {},
     onContinueClick: () -> Unit = {},
     isLoading: Boolean = false,
     onBackClick: () -> Unit = {}
@@ -91,6 +92,7 @@ fun ChecklistProgressTemplate(
                 onTaskCheckedChange = onTaskCheckedChange,
                 onCameraClick = onCameraClick,
                 onAddPhoto = onAddPhoto,
+                onRemovePhoto = onRemovePhoto,
                 modifier = Modifier.padding(16.dp)
             )
 
