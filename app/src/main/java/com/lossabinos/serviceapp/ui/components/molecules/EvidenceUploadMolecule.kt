@@ -25,6 +25,7 @@ fun EvidenceUploadMolecule(
     photoUri: String? = null,
     onAddPhoto: () -> Unit,
     onRemovePhoto: (() -> Unit)? = null,
+    onPhotoClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -38,7 +39,10 @@ fun EvidenceUploadMolecule(
             // Mostrar foto capturada
             //TaskPhotoItem(imageUri = photoUri)
             Box(modifier = Modifier.fillMaxWidth()) {
-                TaskPhotoItem(imageUri = photoUri)
+                TaskPhotoItem(
+                    imageUri = photoUri,
+                    onPhotoClick = onPhotoClick
+                )
 
                 // Botón eliminar (esquina superior derecha)
                 if (onRemovePhoto != null) {

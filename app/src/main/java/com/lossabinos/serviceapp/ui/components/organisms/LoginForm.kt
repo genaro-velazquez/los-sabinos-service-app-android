@@ -47,13 +47,13 @@ fun LoginForm(
 
         // Logo
         LogoCard(
-            size = 180,
+            size = 200,
             modifier = Modifier //Modifier.padding(top = 32.dp, bottom = 40.dp)
         )
 
         // Título
         HeadlineText(
-            text = "Inicia Sesión",
+            text = "",
             modifier = Modifier.padding(bottom = 40.dp)
         )
 
@@ -94,7 +94,7 @@ fun LoginForm(
 
         // Login Button
         PrimaryButton(
-            text = "Iniciar Sesión",
+            text = "Login",
             onClick = onLoginClick,
             enabled = !isLoading,
             isLoading = isLoading,

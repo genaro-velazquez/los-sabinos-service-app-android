@@ -20,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,8 +35,10 @@ import com.lossabinos.serviceapp.ui.components.organisms.ActivityTaskItem
 import com.lossabinos.serviceapp.ui.components.templates.ChecklistProgressTemplate
 import com.lossabinos.serviceapp.viewmodel.ChecklistViewModel
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.serviceapp.screens.camera.CameraScreen
+import com.lossabinos.serviceapp.screens.dialogs.PhotoViewerDialog
 import kotlinx.coroutines.isActive
 
 
@@ -53,6 +56,11 @@ fun ChecklistProgressScreen(
     println("🎯 Abriendo ChecklistProgressScreen")
     println("   - serviceId: $serviceId")
     println("   - checklistTemplateJson: ${checklistTemplateJson.take(50)}...")
+
+    // Picture Dialog
+    var showPhotoViewer by remember { mutableStateOf(false) }
+    var selectedPhotoIndex by remember { mutableStateOf(0) }
+    var allPhotoPaths by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // 1️⃣ ESTADOS
     val uiState         = viewModel.state.collectAsStateWithLifecycle().value
@@ -241,6 +249,79 @@ fun ChecklistProgressScreen(
                     viewModel.deleteActivityEvidence(evidenceId =  evidenceId)
                 }
             },
+            onPhotoClick = { photoPath ->
+                println("📸 Click en foto: $photoPath")
+
+                // ✅ LIMPIAR: Remover file:// si existe
+                val cleanPhotoPath = if (photoPath.startsWith("file://")) {
+                    photoPath.removePrefix("file://")
+                } else {
+                    photoPath
+                }
+
+                val photosOfActivity = uiState.currentSectionActivities
+                    .flatMap { activity -> activity.evidence }
+                    .map { it.filePath }
+
+                println("📋 Total fotos disponibles: ${photosOfActivity.size}")
+                println("🔍 Buscando (limpia): $cleanPhotoPath")
+
+                val index = photosOfActivity.indexOf(cleanPhotoPath)
+                println("📌 Índice encontrado: $index")
+
+                if (index >= 0 && photosOfActivity.isNotEmpty()) {
+                    selectedPhotoIndex = index
+                    allPhotoPaths = photosOfActivity
+                    showPhotoViewer = true
+                    println("✅ Visor abierto")
+                } else {
+                    println("❌ No coincide - revisa las rutas")
+                }
+                /*
+                println("📸 Click en foto: $photoPath")
+
+                // ✅ LIMPIAR: Remover file:// si existe
+                val cleanPhotoPath = if (photoPath.startsWith("file://")) {
+                    photoPath.removePrefix("file://")
+                } else {
+                    photoPath
+                }
+
+                // Obtener todas las fotos de la actividad actual
+                val photosOfActivity = uiState.currentSectionActivities
+                    .flatMap { activity -> activity.evidence }
+                    .map { it.filePath }
+
+                println("📋 Total fotos disponibles: ${photosOfActivity.size}")
+                photosOfActivity.forEachIndexed { idx, path ->
+                    println("   [$idx] $path")
+                    println("       ¿Coincide? ${path == photoPath}")
+                }
+
+                println("📋 Total fotos disponibles: ${photosOfActivity.size}")
+                println("🔍 Buscando (limpia): $cleanPhotoPath")
+
+                val index = photosOfActivity.indexOf(cleanPhotoPath)
+                println("🔍 Índice encontrado: $index")
+
+                if (index >= 0 && photosOfActivity.isNotEmpty()) {
+                    selectedPhotoIndex = index
+                    allPhotoPaths = photosOfActivity
+                    showPhotoViewer = true
+                    println("✅ Abriendo visor con foto en índice: $index")
+                } else {
+                    println("❌ Foto no encontrada en lista")
+                    println("   - Buscando: $photoPath")
+                    println("   - En lista: $photosOfActivity")
+                }
+                */
+
+                /*
+                selectedPhotoIndex = photosOfActivity.indexOf(photoPath)
+                allPhotoPaths = photosOfActivity
+                showPhotoViewer = true
+                */
+            },
             continueButtonText = continueButtonText,
             onContinueClick = {
                 // 🆕 SOLO LLAMAR ESTE MÉTODO
@@ -270,6 +351,17 @@ fun ChecklistProgressScreen(
             isLoading = isLoading,
             onBackClick = onBackClick
         )
+
+        // Mostrar visor al final
+        if (showPhotoViewer && allPhotoPaths.isNotEmpty()) {
+            PhotoViewerDialog(
+                photoPaths = allPhotoPaths,
+                initialIndex = selectedPhotoIndex,
+                onDismiss = { showPhotoViewer = false },
+                showDeleteButton = true
+            )
+        }
+
     }
 /*
     ChecklistProgressTemplate(

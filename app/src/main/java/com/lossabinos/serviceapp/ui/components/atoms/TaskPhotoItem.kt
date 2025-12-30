@@ -2,6 +2,7 @@ package com.lossabinos.serviceapp.ui.components.atoms
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,7 +39,8 @@ import java.io.File
 @Composable
 fun TaskPhotoItem(
     imageUri: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPhotoClick: (String) -> Unit = {}
 ) {
     println("📸 TaskPhotoItem cargando: $imageUri")
 
@@ -67,7 +69,10 @@ fun TaskPhotoItem(
             .background(
                 color = Color.LightGray,
                 shape = RoundedCornerShape(8.dp)
-            ),
+            )
+            .clickable{
+                onPhotoClick(imageUri)
+            },
         contentAlignment = Alignment.BottomEnd
     ) {
         // Mostrar imagen

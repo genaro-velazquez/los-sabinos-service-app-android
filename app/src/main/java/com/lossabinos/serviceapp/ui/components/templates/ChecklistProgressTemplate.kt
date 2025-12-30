@@ -44,6 +44,7 @@ fun ChecklistProgressTemplate(
     onCameraClick: (String) -> Unit = {},
     onAddPhoto: (String) -> Unit = {},
     onRemovePhoto: (Long) -> Unit = {},
+    onPhotoClick: (String) -> Unit = {},
     continueButtonText: String = "Continuar",
     onContinueClick: () -> Unit = {},
     isLoading: Boolean = false,
@@ -94,6 +95,7 @@ fun ChecklistProgressTemplate(
                 onCameraClick = onCameraClick,
                 onAddPhoto = onAddPhoto,
                 onRemovePhoto = onRemovePhoto,
+                onPhotoClick = onPhotoClick,
                 modifier = Modifier.padding(16.dp)
             )
 

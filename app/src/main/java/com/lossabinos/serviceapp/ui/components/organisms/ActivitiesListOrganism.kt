@@ -30,6 +30,7 @@ fun ActivitiesListOrganism(
     onCameraClick: (String) -> Unit,
     onAddPhoto: (String) -> Unit,
     onRemovePhoto: (Long) -> Unit = {},
+    onPhotoClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -59,7 +60,8 @@ fun ActivitiesListOrganism(
                 onCheckedChange = onTaskCheckedChange,
                 onCameraClick = onCameraClick,
                 onAddPhoto = onAddPhoto,
-                onRemovePhoto = onRemovePhoto
+                onRemovePhoto = onRemovePhoto,
+                onPhotoClick = onPhotoClick
             )
         }
     }
