@@ -142,13 +142,17 @@ private fun captureImage(
         return
     }
 
-    val photoDir = File(context.cacheDir, "evidence_photos")
+    //val photoDir = File(context.cacheDir, "evidence_photos")
+    val photoDir = File(context.filesDir, "evidence_photos")
     if (!photoDir.exists()) {
         photoDir.mkdirs()
     }
 
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis())
     val photoFile = File(photoDir, "evidence_${timestamp}.jpg")
+
+    println("📸 Guardando foto en: ${photoFile.absolutePath}")
+    println("   Carpeta existe: ${photoDir.exists()}")
 
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -158,7 +162,17 @@ private fun captureImage(
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 println("✅ Evidencia guardada: ${photoFile.absolutePath}")
-                onPhotoCaptured(photoFile.absolutePath)
+                println("   ¿Archivo existe ahora? ${photoFile.exists()}")
+                println("   Tamaño: ${photoFile.length()} bytes")
+
+                // ✅ Pasar RUTA ABSOLUTA sin file://
+                val absolutePath = photoFile.absolutePath
+                println("   Pasando ruta: $absolutePath")
+                onPhotoCaptured(absolutePath)
+
+
+                //println("✅ Evidencia guardada: ${photoFile.absolutePath}")
+                //onPhotoCaptured(photoFile.absolutePath)
             }
 
             override fun onError(exception: ImageCaptureException) {

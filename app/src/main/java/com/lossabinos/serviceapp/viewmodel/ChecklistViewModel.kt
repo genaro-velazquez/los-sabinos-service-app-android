@@ -181,7 +181,28 @@ class ChecklistViewModel @Inject constructor(
                 _isLoading.value = true
                 serviceId = serviceIdParam
 
-                println("🔄 Deserializando template...")
+                println("📋 Cargando template para servicio: $serviceIdParam")
+
+                // 🆕 LOG: Verificar datos en Room
+                val activitiesFromRoom = getActivitiesProgressForSectionUseCase.invoke(
+                    assignedServiceId = serviceIdParam,
+                    sectionIndex = 0
+                )
+
+                println("📊 Actividades en Room (sección 0): ${activitiesFromRoom.size}")
+                activitiesFromRoom.forEach { activity ->
+                    println("   - ${activity.activityDescription}: ${activity.completed}")
+                }
+
+                val evidencesFromRoom = getEvidenceForActivityUseCase.invoke(
+                    activityProgressId = activitiesFromRoom.firstOrNull()?.id ?: 0L
+                )
+
+
+                println("📸 Evidencias en Room: ${evidencesFromRoom.size}")
+                evidencesFromRoom.forEach { evidence ->
+                    println("   - ${evidence.filePath}")
+                }
 
                 // ✨ PASO 1: Deserializar JSON → Domain
                 template = Json.decodeFromString(checklistTemplateJson)
@@ -390,9 +411,9 @@ class ChecklistViewModel @Inject constructor(
         return activities.all { it.progress?.completed == true }
     }
 
-    // ═══════════════════════════════════════════════════════
-    // 5. MARCAR ACTIVIDAD COMPLETADA
-    // ═══════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════════════════════════
+    // 5. MARCAR ACTIVIDAD COMPLETADA (NO SE USA, SE SUSTUTIYO POR saveAllCompletedActivities)
+    // ═════════════════════════════════════════════════════════════════════════════════════════
     fun completeActivity(activityIndex: Int) {
         viewModelScope.launch {
             try {
@@ -761,6 +782,173 @@ class ChecklistViewModel @Inject constructor(
             } catch (e: Exception) {
                 _isLoading.value = false
                 println("❌ Error: ${e.message}")
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🆕 GUARDAR TODAS LAS ACTIVIDADES COMPLETADAS (al click "Continuar")
+    // ═══════════════════════════════════════════════════════
+    fun saveAllCompletedActivities(completedIndices: List<Int>) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                val state = _state.value
+
+                println("💾 Guardando ${completedIndices.size} actividades completadas...")
+
+                // 1️⃣ Guardar cada actividad en Room
+                completedIndices.forEach { activityIndex ->
+                    val activity = state.currentSectionActivities.getOrNull(activityIndex)
+
+                    if (activity != null && activity.progress == null) {
+                        println("   - Guardando actividad $activityIndex")
+
+                        completeActivityUseCase.invoke(
+                            assignedServiceId = serviceId,
+                            sectionIndex = state.currentSectionIndex,
+                            activityIndex = activityIndex,
+                            description = activity.activity.description,
+                            requiresEvidence = activity.activity.requiresEvidence
+                        )
+                    }
+                }
+
+                println("✅ Todas las actividades guardadas en Room")
+
+                delay(500)
+
+                // 2️⃣ SOLO recalcular totales (NO cargar siguiente sección)
+                val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(
+                    assignedServiceId = serviceId
+                )
+                val newPercentage = (totalCompleted * 100) / state.totalActivities
+
+                // 3️⃣ Recalcular de la sección actual
+                val currentSectionActivities = state.currentSectionActivities.map { activityUI ->
+                    if (completedIndices.contains(state.currentSectionActivities.indexOf(activityUI))) {
+                        activityUI.copy(
+                            progress = ActivityProgressEntity(
+                                id = 0, // Temporal
+                                assignedServiceId = serviceId,
+                                sectionIndex = state.currentSectionIndex,
+                                activityIndex = state.currentSectionActivities.indexOf(activityUI),
+                                activityDescription = activityUI.activity.description,
+                                requiresEvidence = activityUI.activity.requiresEvidence,
+                                completed = true
+                            )
+                        )
+                    } else {
+                        activityUI
+                    }
+                }
+
+                val newSectionCompletedActivities = currentSectionActivities.count {
+                    it.progress?.completed == true
+                }
+                val newSectionProgressPercentage = if (state.sectionTotalActivities > 0) {
+                    (newSectionCompletedActivities * 100) / state.sectionTotalActivities
+                } else {
+                    0
+                }
+
+                _state.value = state.copy(
+                    completedActivities = totalCompleted,
+                    progressPercentage = newPercentage,
+                    sectionCompletedActivities = newSectionCompletedActivities,
+                    sectionProgressPercentage = newSectionProgressPercentage
+                )
+
+                println("✅ Estado actualizado:")
+                println("   - Completadas: $totalCompleted/${state.totalActivities}")
+                println("   - Progreso: $newPercentage%")
+                println("   - Sección: $newSectionCompletedActivities/${state.sectionTotalActivities}")
+
+                _isLoading.value = false
+
+            } catch (e: Exception) {
+                println("❌ Error guardando actividades: ${e.message}")
+                _isLoading.value = false
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun saveAndNavigateToNextSection(completedIndices: List<Int>) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                val state = _state.value
+
+                println("💾 Guardando ${completedIndices.size} actividades completadas...")
+
+                // 1️⃣ Guardar actividades
+                completedIndices.forEach { activityIndex ->
+                    val activity = state.currentSectionActivities.getOrNull(activityIndex)
+                    if (activity != null && activity.progress == null) {
+                        completeActivityUseCase.invoke(
+                            assignedServiceId = serviceId,
+                            sectionIndex = state.currentSectionIndex,
+                            activityIndex = activityIndex,
+                            description = activity.activity.description,
+                            requiresEvidence = activity.activity.requiresEvidence
+                        )
+                    }
+                }
+
+                println("✅ Todas las actividades guardadas")
+                delay(500)
+
+                // 2️⃣ Recalcular
+                val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(
+                    assignedServiceId = serviceId
+                )
+                val newPercentage = (totalCompleted * 100) / state.totalActivities
+
+                _state.value = state.copy(
+                    completedActivities = totalCompleted,
+                    progressPercentage = newPercentage
+                )
+
+                // 3️⃣ AHORA SÍ, navegar a siguiente sección
+                // (Después de guardar, no antes)
+                val nextIndex = state.currentSectionIndex + 1
+
+                if (nextIndex < state.totalSections) {
+                    template?.let { tmpl ->
+                        val nextSectionUI = loadSectionUIModel(
+                            template = tmpl,
+                            sectionIndex = nextIndex,
+                            serviceId = serviceId
+                        )
+
+                        saveObservations(_observations.value)
+
+                        _state.value = state.copy(
+                            currentSectionIndex = nextIndex,  // ✅ Navega DESPUÉS de guardar
+                            currentSectionName = nextSectionUI.section.name,
+                            currentSectionActivities = nextSectionUI.activities,
+                            canContinue = false,
+                            observations = ""
+                        )
+
+                        println("✅ Siguiente sección: ${nextSectionUI.section.name}")
+                    }
+                } else {
+                    _state.value = state.copy(
+                        allSectionsComplete = true
+                    )
+                    println("✅ TODAS LAS SECCIONES COMPLETADAS")
+                }
+
+                _isLoading.value = false
+
+            } catch (e: Exception) {
+                println("❌ Error: ${e.message}")
+                _isLoading.value = false
+                e.printStackTrace()
             }
         }
     }

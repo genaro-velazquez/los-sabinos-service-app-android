@@ -19,7 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,17 +49,103 @@ fun ChecklistProgressScreen(
     viewModel: ChecklistViewModel = hiltViewModel()
 
 ) {
+    // 🆕 AGREGAR AQUÍ - Al inicio, antes de todo
+    println("🎯 Abriendo ChecklistProgressScreen")
+    println("   - serviceId: $serviceId")
+    println("   - checklistTemplateJson: ${checklistTemplateJson.take(50)}...")
+
+    // 1️⃣ ESTADOS
     val uiState         = viewModel.state.collectAsStateWithLifecycle().value
     val observations    = viewModel.observations.collectAsStateWithLifecycle().value
     val isLoading       = viewModel.isLoading.collectAsStateWithLifecycle().value
 
+    // 2️⃣ LOGS
+    println("📱 ChecklistProgressScreen recompone")
+    println("   - currentSectionIndex: ${uiState.currentSectionIndex}")
+    println("   - totalSections: ${uiState.totalSections}")
+    println("   - currentActivities: ${uiState.currentSectionActivities.size}")
+    println("   - isLoading: $isLoading")
+
+    // 3️⃣ VARIABLES
+    val isLastSection = uiState.currentSectionIndex == uiState.totalSections - 1
+    val continueButtonText = if (isLastSection) {
+        "Guardar y enviar"
+    } else {
+        "Continuar"
+    }
+
     // 🆕 Estado para mostrar cámara
     var showCamera = remember { mutableStateOf(false) }
     var currentActivityIndex = remember { mutableStateOf(-1) }
+    val localCompletedActivities = remember {
+        mutableStateMapOf<Int, Boolean>()
+    }
 
-    // ✨ CARGAR TEMPLATE AL ABRIR
-    LaunchedEffect(Unit) {
-        println("📱 ChecklistProgressScreen abierto")
+    /*
+    // 🆕 INICIALIZAR CON DATOS DE ROOM (solo se ejecuta cuando cambias de sección)
+    LaunchedEffect(uiState.currentSectionIndex, uiState.currentSectionActivities) {
+        println("🔄 Inicializando actividades completadas de Room (segunda sesión)...")
+
+        localCompletedActivities.clear()
+
+        uiState.currentSectionActivities.forEachIndexed { index, activityUI ->
+            val isCompleted = activityUI.progress?.completed ?: false
+            if (isCompleted) {
+                localCompletedActivities[index] = true
+                println("   ✅ Actividad $index completada (de Room)")
+            }
+        }
+
+        val totalCompleted = localCompletedActivities.count { it.value }
+        println("📊 Total: $totalCompleted/${uiState.currentSectionActivities.size}")
+    }
+    */
+
+// ✅ CORRECTO - Solo se ejecuta cuando REALMENTE cambian los datos
+    LaunchedEffect(
+        key1 = uiState.currentSectionIndex,
+        key2 = uiState.currentSectionActivities.hashCode()  // Detecta cambios en la lista
+    ) {
+        println("🔄 LaunchedEffect: Sincronizando actividades...")
+
+        if (uiState.currentSectionActivities.isNotEmpty()) {
+            localCompletedActivities.clear()
+
+            uiState.currentSectionActivities.forEachIndexed { index, activityUI ->
+                val isCompleted = activityUI.progress?.completed ?: false
+                if (isCompleted) {
+                    localCompletedActivities[index] = true
+                    println("   ✅ Actividad $index = $isCompleted")
+                }
+            }
+
+            println("📊 Total: ${localCompletedActivities.size}/${uiState.currentSectionActivities.size}")
+        }
+    }
+
+
+    // 4️⃣ CALCULAR PROGRESO
+    val sectionActivitiesCount = uiState.currentSectionActivities.size
+    val localCompletedCount = localCompletedActivities.count { it.value }
+    val localProgressPercentage = if (sectionActivitiesCount > 0) {
+        (localCompletedCount * 100) / sectionActivitiesCount
+    } else {
+        0
+    }
+    /*
+    val localCompletedCount = localCompletedActivities.count { it.value }
+    val localProgressPercentage = if (uiState.sectionTotalActivities > 0) {
+        (localCompletedCount * 100) / uiState.sectionTotalActivities
+    } else {
+        0
+    }
+    */
+
+
+    // 5️⃣ LAUNCHED EFFECT PARA CARGAR TEMPLATE
+    LaunchedEffect(serviceId, checklistTemplateJson) {
+        // Solo ejecutar si cambio serviceId o json
+        println("🔄 Cargando template...")
         viewModel.loadTemplate(
             checklistTemplateJson = checklistTemplateJson,
             serviceIdParam = serviceId
@@ -92,20 +180,22 @@ fun ChecklistProgressScreen(
         )
     } else {
 
-        var currentEvidenceId = remember { mutableLongStateOf(0L) }
-
         // Pantalla normal de checklist
         ChecklistProgressTemplate(
             serviceName = uiState.currentSectionName,
             templateName = uiState.templateName,
             currentProgress = uiState.currentSectionIndex + 1,
             totalTasks = uiState.totalActivities,
-            progressPercentage = uiState.sectionProgressPercentage,
+            progressPercentage = localProgressPercentage,//uiState.sectionProgressPercentage,
             tasks = uiState.currentSectionActivities.mapIndexed { index, activityUI ->
+                // 🆕 USAR estado local para checkboxes
+                val isLocalCompleted = localCompletedActivities[index]
+                    ?: activityUI.progress?.completed ?: false
+
                 ActivityTaskItem(
                     id = "activity_$index",
                     description = activityUI.activity.description,
-                    completed = activityUI.progress?.completed ?: false,
+                    completed = isLocalCompleted, /*activityUI.progress?.completed ?: false,*/
                     requiresEvidence = activityUI.activity.requiresEvidence,
                     hasPhoto = activityUI.evidence.isNotEmpty(),
                     photoUri = activityUI.evidence.firstOrNull()?.filePath?.let {
@@ -119,10 +209,17 @@ fun ChecklistProgressScreen(
                 viewModel.updateObservations(text = newText)
             },
             onTaskCheckedChange = { taskId, completed ->
+                /*
                 val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
                 if (completed) {
                     viewModel.completeActivity(index)
                 }
+                */
+                // 🆕 CAMBIO: Solo actualizar estado local, NO guardar
+                val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
+                localCompletedActivities[index] = completed
+
+                println("✏️ Checkbox marcado: $index = $completed (NO guardado aún)")
             },
             onCameraClick = { taskId ->
                 println("📷 Abriendo cámara para $taskId")
@@ -144,12 +241,31 @@ fun ChecklistProgressScreen(
                     viewModel.deleteActivityEvidence(evidenceId =  evidenceId)
                 }
             },
+            continueButtonText = continueButtonText,
             onContinueClick = {
+                // 🆕 SOLO LLAMAR ESTE MÉTODO
+                viewModel.saveAndNavigateToNextSection(
+                    completedIndices = localCompletedActivities.filter { it.value }.keys.toList()
+                )
+                /*
                 if (uiState.allSectionsComplete) {
                     viewModel.onContinueClicked()
                 } else {
                     viewModel.nextSection()
                 }
+                */
+                // 🆕 AQUÍ: Guardar todos los checkboxes marcados
+                /*
+                viewModel.saveAllCompletedActivities(
+                    completedIndices = localCompletedActivities.filter { it.value }.keys.toList()
+                )
+
+                if (uiState.allSectionsComplete) {
+                    viewModel.onContinueClicked()
+                } else {
+                    viewModel.nextSection()
+                }
+                */
             },
             isLoading = isLoading,
             onBackClick = onBackClick

@@ -44,6 +44,7 @@ fun ChecklistProgressTemplate(
     onCameraClick: (String) -> Unit = {},
     onAddPhoto: (String) -> Unit = {},
     onRemovePhoto: (Long) -> Unit = {},
+    continueButtonText: String = "Continuar",
     onContinueClick: () -> Unit = {},
     isLoading: Boolean = false,
     onBackClick: () -> Unit = {}
@@ -115,7 +116,8 @@ fun ChecklistProgressTemplate(
             ContinueActionOrganism(
                 onClick = onContinueClick,
                 enabled = tasks.isNotEmpty(),
-                isLoading = isLoading
+                isLoading = isLoading,
+                text = continueButtonText  // 🆕 PASAR AQUÍ
             )
 
             Spacer(modifier = Modifier.height(32.dp))

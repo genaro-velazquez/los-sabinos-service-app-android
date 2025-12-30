@@ -14,6 +14,7 @@ fun ContinueActionOrganism(
     onClick: () -> Unit,
     enabled: Boolean = true,
     isLoading: Boolean = false,
+    text: String = "Continuar",
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -26,7 +27,7 @@ fun ContinueActionOrganism(
         // Botón Continuar
         // ═══════════════════════════════════════
         ContinueButtonMolecule(
-            text = "Continuar",
+            text = text,
             onClick = onClick,
             enabled = enabled,
             isLoading = isLoading
