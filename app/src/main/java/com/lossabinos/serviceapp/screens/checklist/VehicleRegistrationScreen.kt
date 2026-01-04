@@ -26,7 +26,7 @@ fun VehicleRegistrationScreen(
     val mechanicsViewModel: MechanicsViewModel = hiltViewModel()
     val services = mechanicsViewModel.assignedServices
         .collectAsStateWithLifecycle().value
-    val selectedService = services.find { it.id == serviceId }
+    val selectedService = services.find { it.assignedService.id == serviceId }
 
 
     LaunchedEffect(checklistTemplateJson, serviceId) {
@@ -35,8 +35,8 @@ fun VehicleRegistrationScreen(
 
         // 🆕 Establecer el vehicleId del servicio en el ViewModel
         selectedService?.let { service ->
-            viewModel.setServiceVehicleId(service.vehicle.id)  // Asumiendo que tiene vehicleId
-            println("🚗 VehicleId configurado en ViewModel: ${service.vehicle.id}")
+            viewModel.setServiceVehicleId(service.assignedService.vehicle.id)  // Asumiendo que tiene vehicleId
+            println("🚗 VehicleId configurado en ViewModel: ${service.assignedService.vehicle.id}")
         }
 
     }

@@ -9,6 +9,7 @@ import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.local.database.dao.InitialDataDao
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
+import com.lossabinos.data.local.database.entities.ServiceProgressEntity
 import com.lossabinos.data.local.database.entities.ServiceTypeEntity
 import com.lossabinos.data.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.local.mappers.toDomain
@@ -21,6 +22,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import com.lossabinos.domain.valueobjects.Template
@@ -232,7 +234,20 @@ class MechanicsRetrofitRepository(
     // ============================================================
     // 2️⃣ ASSIGNED SERVICES FLOW
     // ============================================================
-    override fun getAssignedServicesFlow(): Flow<List<AssignedService>> {
+    override fun getAssignedServicesFlow(): Flow<List<AssignedServiceProgress>> {
+
+        return initialDataDao.getAllAssignedServicesWithProgressFlow()
+            .map { entitiesWithProgress ->
+                entitiesWithProgress.map { item ->
+                    item.toDomain()
+                }
+            }
+            .catch { exception ->
+                println("❌ [REPO] Error en getAssignedServicesFlow: ${exception.message}")
+                throw exception
+            }
+
+/*
         return initialDataDao.getAllAssignedServicesFlow()
             .map { serviceEntities ->
                 serviceEntities.map { entity ->
@@ -243,7 +258,49 @@ class MechanicsRetrofitRepository(
                 println("❌ [REPO] Error en AssignedServicesFlow: ${exception.message}")
                 throw exception
             }
+ */
     }
+
+    // ============================================================
+    // 3️⃣ ACTUALIZAR PROGRESO
+    // ============================================================
+    override suspend fun updateServiceProgress(
+        serviceId: String,
+        completedActivities: Int,
+        totalActivities: Int
+    ) {
+        try {
+            val completedPercentage = if (totalActivities > 0) {
+                (completedActivities * 100) / totalActivities
+            } else {
+                0
+            }
+
+            val status = when {
+                totalActivities == 0 -> "pending"
+                completedActivities == totalActivities && totalActivities > 0 -> "completed"
+                completedActivities > 0 -> "in_progress"
+                else -> "pending"
+            }
+
+            val progress = ServiceProgressEntity(
+                assignedServiceId = serviceId,
+                completedActivities = completedActivities,
+                totalActivities = totalActivities,
+                completedPercentage = completedPercentage,
+                status = status,
+                syncStatus = "PENDING"
+            )
+
+            initialDataDao.insertServiceProgress(progress)
+            println("✅ Progreso actualizado para servicio: $serviceId")
+        }
+        catch (e: Exception){
+            println("❌ Error actualizando progreso: ${e.message}")
+            throw e
+        }
+    }
+
 
     // ============================================================
     // 3️⃣ SERVICE TYPES FLOW

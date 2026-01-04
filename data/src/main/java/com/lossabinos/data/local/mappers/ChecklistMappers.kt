@@ -2,13 +2,18 @@ package com.lossabinos.data.local.mappers
 
 import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.valueobjects.AssignedServiceProgress
+import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.FieldType
+import com.lossabinos.domain.valueobjects.Template
+import kotlinx.serialization.json.Json
 
 
 //++++++++++++++++++++++++++++
@@ -130,3 +135,48 @@ private fun String.toFieldType(): FieldType {
     }
 }
 
+//*************************
+// AssignedServiceProgress
+//*************************
+fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
+    // Convertir entity a domain model
+    val assignedService = this.assignedService.toDomain()
+
+    // Deserializar Template desde JSON
+    val checklistTemplate = this.assignedService.checklistTemplateJson?.let {
+        try {
+            Json.decodeFromString<ChecklistTemplate>(it)
+        } catch (e: Exception) {
+            println("❌ Error deserializando template: ${e.message}")
+            ChecklistTemplate(name = "", version = "0.0", template = Template(name = "", sections = emptyList(), serviceFields = emptyList()))
+        }
+    } ?: ChecklistTemplate(name = "", version = "0.0", template = Template(name = "", sections = emptyList(), serviceFields = emptyList()))
+
+    // Obtener total de actividades
+    val totalActivities = checklistTemplate.template.sections.sumOf { it.activities.size }
+    val completedActivities = this.completedCount
+
+    // Calcular porcentaje
+    val completedPercentage = if (totalActivities > 0) {
+        (completedActivities * 100) / totalActivities
+    } else {
+        0
+    }
+
+    // Determinar estado actual
+    val currentStatus = when {
+        totalActivities == 0 -> assignedService.status
+        completedActivities == totalActivities && totalActivities > 0 -> "completed"
+        completedActivities > 0 -> "in_progress"
+        else -> "pending"
+    }
+
+    return AssignedServiceProgress(
+        assignedService = assignedService,
+        totalActivities = totalActivities,
+        completedActivities = completedActivities,
+        completedPercentage = completedPercentage,
+        currentStatus = currentStatus
+    )
+
+}

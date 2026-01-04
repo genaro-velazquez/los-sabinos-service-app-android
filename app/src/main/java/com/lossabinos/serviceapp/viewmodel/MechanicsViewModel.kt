@@ -16,6 +16,7 @@ import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
 import com.lossabinos.domain.usecases.mechanics.GetServiceTypesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
+import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -160,7 +161,7 @@ class MechanicsViewModel @Inject constructor(
     // ============================================================
     // ASSIGNED SERVICES (de Room)
     // ============================================================
-    val assignedServices: StateFlow<List<AssignedService>> =
+    val assignedServices: StateFlow<List<AssignedServiceProgress>> =
         getAssignedServicesFlowUseCase()
             .catch { exception ->
                 println("❌ [VM] Error en assignedServices Flow: ${exception.message}")

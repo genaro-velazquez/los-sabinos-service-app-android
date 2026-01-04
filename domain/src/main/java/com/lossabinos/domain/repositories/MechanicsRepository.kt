@@ -7,6 +7,7 @@ import com.lossabinos.domain.entities.Vehicle
 import com.lossabinos.domain.responses.AssignedServicesResponse
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import kotlinx.coroutines.flow.Flow
 
@@ -27,9 +28,16 @@ interface MechanicsRepository {
 
     // Room Flows (leyendo datos locales)
     fun getMechanicFlow(): Flow<Mechanic?>
-    fun getAssignedServicesFlow(): Flow<List<AssignedService>>
+    //fun getAssignedServicesFlow(): Flow<List<AssignedService>>
+    fun getAssignedServicesFlow(): Flow<List<AssignedServiceProgress>>
     fun getServiceTypesFlow(): Flow<List<ServiceType>>
     fun getSyncMetadataFlow(): Flow<SyncMetadata?>
+
+    suspend fun updateServiceProgress(
+        serviceId: String,
+        completedActivities: Int,
+        totalActivities: Int
+    )
 
     suspend fun getQRVehicle(
         vehicleId:String

@@ -22,6 +22,72 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private val MIGRATION_6_TO_7 = object : Migration(
+        startVersion = 6,
+        endVersion = 7
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS service_progress (
+                        assignedServiceId TEXT PRIMARY KEY NOT NULL,
+                        completedActivities INTEGER NOT NULL DEFAULT 0,
+                        totalActivities INTEGER NOT NULL DEFAULT 0,
+                        completedPercentage INTEGER NOT NULL DEFAULT 0,
+                        status TEXT NOT NULL,
+                        lastUpdatedAt INTEGER NOT NULL DEFAULT 0,
+                        syncStatus TEXT NOT NULL DEFAULT 'PENDING'
+                    )
+                """)
+        }
+    }
+
+    private val MIGRATION_5_TO_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Agregar 2 columnas nuevas a service_types
+            db.execSQL("""
+            ALTER TABLE service_types 
+            ADD COLUMN code TEXT NOT NULL DEFAULT ''
+        """)
+
+            db.execSQL("""
+            ALTER TABLE service_types 
+            ADD COLUMN category TEXT NOT NULL DEFAULT ''
+        """)
+        }
+    }
+
+    private val MIGRATION_4_TO_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+            CREATE TABLE IF NOT EXISTS sync_metadata (
+                id TEXT PRIMARY KEY NOT NULL,
+                serverTimestamp TEXT NOT NULL,
+                totalServices INTEGER NOT NULL,
+                pendingServices INTEGER NOT NULL,
+                inProgressServices INTEGER NOT NULL,
+                lastSync TEXT,
+                updatedAt TEXT NOT NULL
+            )
+        """)
+        }
+    }
+
+    private val MIGRATION_3_TO_4 = object : Migration(3,4){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Agregar 2 columnas nuevas a mechanics
+            db.execSQL("""
+            ALTER TABLE mechanics 
+            ADD COLUMN zoneId TEXT NOT NULL DEFAULT ''
+        """)
+
+            db.execSQL("""
+            ALTER TABLE mechanics 
+            ADD COLUMN zoneName TEXT NOT NULL DEFAULT ''
+        """)
+
+        }
+    }
+
     private val MIGRATION_2_TO_3 = object : Migration(2,3){
         override fun migrate(db: SupportSQLiteDatabase) {
             // Tabla: activity_progress (camelCase)
@@ -125,55 +191,6 @@ object DatabaseModule {
         }
     }
 
-    private val MIGRATION_3_TO_4 = object : Migration(3,4){
-        override fun migrate(db: SupportSQLiteDatabase) {
-            // Agregar 2 columnas nuevas a mechanics
-            db.execSQL("""
-            ALTER TABLE mechanics 
-            ADD COLUMN zoneId TEXT NOT NULL DEFAULT ''
-        """)
-
-            db.execSQL("""
-            ALTER TABLE mechanics 
-            ADD COLUMN zoneName TEXT NOT NULL DEFAULT ''
-        """)
-
-        }
-    }
-
-    private val MIGRATION_5_TO_6 = object : Migration(5, 6) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            // Agregar 2 columnas nuevas a service_types
-            db.execSQL("""
-            ALTER TABLE service_types 
-            ADD COLUMN code TEXT NOT NULL DEFAULT ''
-        """)
-
-            db.execSQL("""
-            ALTER TABLE service_types 
-            ADD COLUMN category TEXT NOT NULL DEFAULT ''
-        """)
-        }
-    }
-
-
-    private val MIGRATION_4_TO_5 = object : Migration(4, 5) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("""
-            CREATE TABLE IF NOT EXISTS sync_metadata (
-                id TEXT PRIMARY KEY NOT NULL,
-                serverTimestamp TEXT NOT NULL,
-                totalServices INTEGER NOT NULL,
-                pendingServices INTEGER NOT NULL,
-                inProgressServices INTEGER NOT NULL,
-                lastSync TEXT,
-                updatedAt TEXT NOT NULL
-            )
-        """)
-        }
-    }
-
-
     @Singleton
     @Provides
     fun provideAppDatabase(
@@ -187,7 +204,8 @@ object DatabaseModule {
             .addMigrations(MIGRATION_2_TO_3,
                 MIGRATION_3_TO_4,
                 MIGRATION_4_TO_5,
-                MIGRATION_5_TO_6)
+                MIGRATION_5_TO_6,
+                MIGRATION_6_TO_7)
             .fallbackToDestructiveMigration(true)
             .build()
     }

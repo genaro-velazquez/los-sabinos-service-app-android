@@ -228,9 +228,9 @@ fun NavGraph(
             //println("📊 Tipos cargados: ${types.size}")
 
             //Encontrar el servicio específico
-            val selectedService = services.find { it.id == serviceId }
+            val selectedService = services.find { it.assignedService.id == serviceId }
 
-            println("🎯 Servicio encontrado: ${selectedService?.serviceTypeName}")
+            println("🎯 Servicio encontrado: ${selectedService?.assignedService?.serviceTypeName}")
 
             if (selectedService != null) {
                 /*
@@ -239,7 +239,7 @@ fun NavGraph(
                     ?: "Servicio"
                  */
 
-                val checklistJsonString = Json.encodeToString(selectedService.checklistTemplate.template)
+                val checklistJsonString = Json.encodeToString(selectedService.assignedService.checklistTemplate.template)
 
                 println("✅ ChecklistTemplate serializado a JSON")
                 println("📋 JSON: ${checklistJsonString.take(100)}...")
@@ -280,10 +280,10 @@ fun NavGraph(
             val mechanicsViewModel: MechanicsViewModel = hiltViewModel()
             val services = mechanicsViewModel.assignedServices
                 .collectAsStateWithLifecycle().value
-            val selectedService = services.find { it.id == serviceId }
+            val selectedService = services.find { it.assignedService.id == serviceId }
 
             if (selectedService != null) {
-                val checklistJsonString = Json.encodeToString(selectedService.checklistTemplate.template)
+                val checklistJsonString = Json.encodeToString(selectedService.assignedService.checklistTemplate.template)
 
                 VehicleRegistrationScreen(
                     checklistTemplateJson = checklistJsonString,  // 🆕 PASA EL JSON

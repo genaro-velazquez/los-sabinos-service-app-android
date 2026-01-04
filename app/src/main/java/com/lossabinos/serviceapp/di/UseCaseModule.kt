@@ -24,6 +24,7 @@ import com.lossabinos.domain.usecases.mechanics.GetMechanicsServicesUseCase
 import com.lossabinos.domain.usecases.mechanics.GetServiceTypesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
+import com.lossabinos.domain.usecases.mechanics.UpdateServiceProgressUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import dagger.Module
 import dagger.Provides
@@ -125,6 +126,16 @@ object UseCaseModule {
         repository: MechanicsRepository
     ): GetSyncMetadataFlowUseCase {
         return GetSyncMetadataFlowUseCase(repository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideUpdateServiceProgressUseCase(
+        repository: MechanicsRepository
+    ) : UpdateServiceProgressUseCase{
+        return UpdateServiceProgressUseCase(
+            repository = repository
+        )
     }
 
     //******************************

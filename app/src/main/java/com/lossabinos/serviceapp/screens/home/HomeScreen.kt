@@ -299,26 +299,26 @@ fun HomeScreen(
 
                     val serviceCards = services.map { service ->
                         val serviceTypeName = types
-                            .find { it.id == service.serviceTypeId }?.name
+                            .find { it.id == service.assignedService.serviceTypeId }?.name
                             ?: "Servicio"
 
                         // 🆕 Obtener colores basados en el estado
-                        val statusColor = getStatusColor(service.status)
+                        val statusColor = getStatusColor(service.assignedService.status)
 
                         ServiceCardData(
-                            id = service.id,
-                            excecutionId = service.id,
+                            id = service.assignedService.id,
+                            excecutionId = service.assignedService.id,
                             title = serviceTypeName,
                             clientName = "Cliente",
                             icon = Icons.Filled.Build,
-                            status = service.status.replaceFirstChar { it.uppercase() },
+                            status = service.assignedService.status.replaceFirstChar { it.uppercase() },
                             statusBackgroundColor = statusColor.backgroundColor,  // 🆕
                             statusTextColor = statusColor.textColor,              // 🆕
-                            startTime = service.scheduledStart,
-                            endTime = service.scheduledEnd,
+                            startTime = service.assignedService.scheduledStart,
+                            endTime = service.assignedService.scheduledEnd,
                             duration = "N/A",
                             address = "N/A",
-                            priority = service.priority.replaceFirstChar { it.uppercase() },
+                            priority = service.assignedService.priority.replaceFirstChar { it.uppercase() },
                             note = ""
                         )
                     }

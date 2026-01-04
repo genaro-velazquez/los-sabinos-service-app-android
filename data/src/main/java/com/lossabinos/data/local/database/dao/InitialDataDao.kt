@@ -7,7 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
+import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
+import com.lossabinos.data.local.database.entities.ServiceProgressEntity
 import com.lossabinos.data.local.database.entities.ServiceTypeEntity
 import com.lossabinos.data.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.local.database.entities.VehicleEntity
@@ -67,6 +69,35 @@ interface InitialDataDao {
 
     @Delete
     suspend fun deleteAssignedService(assignedService: AssignedServiceEntity)
+
+    //===========================================
+    // ServiceProgressEntity -> service_progress
+    //===========================================
+    // Insertar/actualizar progreso
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertServiceProgress(progress: ServiceProgressEntity)
+
+    // Obtener progreso de un servicio
+    @Query("SELECT * FROM service_progress WHERE assignedServiceId = :serviceId")
+    suspend fun getServiceProgress(serviceId: String): ServiceProgressEntity?
+
+    // Obtener todos los servicios con su progreso
+    @Query("""
+        SELECT 
+            a.*,
+            COALESCE(sp.completedActivities, 0) as completedActivities,
+            COALESCE(sp.totalActivities, 0) as totalActivities,
+            COALESCE(sp.completedPercentage, 0) as completedPercentage,
+            COUNT(DISTINCT ap.id) as activityProgressCount,
+            SUM(CASE WHEN ap.completed = 1 THEN 1 ELSE 0 END) as completedCount
+        FROM assigned_services a
+        LEFT JOIN service_progress sp ON a.id = sp.assignedServiceId
+        LEFT JOIN activity_progress ap ON a.id = ap.assignedServiceId
+        GROUP BY a.id
+        ORDER BY a.status
+    """)
+    fun getAllAssignedServicesWithProgressFlow(): Flow<List<AssignedServiceWithProgressEntity>>
+
 
     // ==============
     // service_types

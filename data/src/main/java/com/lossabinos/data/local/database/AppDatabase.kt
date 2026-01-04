@@ -13,6 +13,7 @@ import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.MechanicEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.local.database.entities.ServiceProgressEntity
 import com.lossabinos.data.local.database.entities.ServiceTypeEntity
 import com.lossabinos.data.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.local.database.entities.VehicleEntity
@@ -31,9 +32,10 @@ import com.lossabinos.data.local.database.entities.ZoneEntity
         ActivityEvidenceEntity::class,
         ObservationResponseEntity::class,
         ServiceFieldValueEntity::class,
-        SyncMetadataEntity::class
+        SyncMetadataEntity::class,
+        ServiceProgressEntity::class
     ],
-    version = 6
+    version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun initialDataDao(): InitialDataDao

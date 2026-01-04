@@ -1,5 +1,7 @@
 package com.lossabinos.data.local.database.entities
 
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -99,3 +101,37 @@ data class ServiceFieldValueEntity(
     val value: String? = null,
     val timestamp: String? = null
 )
+
+@Entity(tableName = "service_progress")
+data class ServiceProgressEntity(
+    @PrimaryKey
+    val assignedServiceId: String,
+    val completedActivities: Int = 0,
+    val totalActivities: Int = 0,
+    val completedPercentage: Int = 0,
+    val status: String, // "pending", "in_progress", "completed"
+    val lastUpdatedAt: Long = System.currentTimeMillis(),
+    val syncStatus: String = "PENDING" // PENDING, SYNCED, ERROR
+)
+
+// Union tablas : assigned_services, service_progress, activity_progress
+data class AssignedServiceWithProgressEntity(
+    @Embedded
+    val assignedService: AssignedServiceEntity,
+
+    @ColumnInfo(name = "completedActivities")
+    val completedActivities: Int = 0,
+
+    @ColumnInfo(name = "totalActivities")
+    val totalActivities: Int = 0,
+
+    @ColumnInfo(name = "completedPercentage")
+    val completedPercentage: Int = 0,
+
+    @ColumnInfo(name = "activityProgressCount")
+    val activityProgressCount: Int = 0,
+
+    @ColumnInfo(name = "completedCount")
+    val completedCount: Int = 0
+)
+
