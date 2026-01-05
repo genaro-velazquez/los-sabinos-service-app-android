@@ -12,6 +12,8 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.FieldType
+import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.valueobjects.SyncStatus
 import com.lossabinos.domain.valueobjects.Template
 import kotlinx.serialization.json.Json
 
@@ -135,9 +137,9 @@ private fun String.toFieldType(): FieldType {
     }
 }
 
-//*************************
-// AssignedServiceProgress
-//*************************
+//**********************************
+// AssignedServiceProgress (Domain)
+//***********************************
 fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
     // Convertir entity a domain model
     val assignedService = this.assignedService.toDomain()
@@ -163,12 +165,29 @@ fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
         0
     }
 
+    // ✅ CONVERTIR STRING → ENUM para serviceStatus
+    val serviceStatusEnum = when {
+        totalActivities == 0 -> ServiceStatus.PENDING
+        completedActivities == totalActivities && totalActivities > 0 -> ServiceStatus.COMPLETED
+        completedActivities > 0 -> ServiceStatus.IN_PROGRESS
+        else -> ServiceStatus.PENDING
+    }
+
+    // ✅ CONVERTIR STRING → ENUM para syncStatus
+    val syncStatusEnum = when (this.syncStatus) {
+        "SYNCED" -> SyncStatus.SYNCED
+        "PENDING" -> SyncStatus.PENDING
+        //"ERROR" -> SyncStatus.ERROR
+        else -> SyncStatus.PENDING
+    }
+
+
     // Determinar estado actual
-    val currentStatus = when {
-        totalActivities == 0 -> assignedService.status
-        completedActivities == totalActivities && totalActivities > 0 -> "completed"
-        completedActivities > 0 -> "in_progress"
-        else -> "pending"
+    val serviceStatus = when {
+        totalActivities == 0 -> ServiceStatus.PENDING
+        completedActivities == totalActivities && totalActivities > 0 -> ServiceStatus.COMPLETED
+        completedActivities > 0 -> ServiceStatus.IN_PROGRESS
+        else -> ServiceStatus.PENDING
     }
 
     return AssignedServiceProgress(
@@ -176,7 +195,8 @@ fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
         totalActivities = totalActivities,
         completedActivities = completedActivities,
         completedPercentage = completedPercentage,
-        currentStatus = currentStatus
+        serviceStatus = serviceStatus,
+        syncStatus = syncStatusEnum
     )
 
 }

@@ -10,14 +10,18 @@ class CompleteActivityUseCase(
         sectionIndex: Int,
         activityIndex: Int,
         description: String,
-        requiresEvidence: Boolean
+        requiresEvidence: Boolean,
+        completed: Boolean = true,
+        completedAt: String = System.currentTimeMillis().toString()
     ) : Long{
         return checklistRepository.saveActivityProgress(
             assignedServiceId = assignedServiceId,
             sectionIndex = sectionIndex,
             activityIndex = activityIndex,
             description = description,
-            requiresEvidence = requiresEvidence
+            requiresEvidence = requiresEvidence,
+            completed = completed,
+            completedAt = completedAt
         )
     }
 }

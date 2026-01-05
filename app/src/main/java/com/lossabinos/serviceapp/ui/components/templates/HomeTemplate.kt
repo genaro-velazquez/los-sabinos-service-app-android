@@ -58,7 +58,7 @@ fun HomeTemplate(
     serviceListSection: @Composable (() -> Unit)? = null,  // ✨ NUEVO
     modifier: Modifier = Modifier,
     topPadding: Dp = 20.dp,
-    sectionSpacing: Dp = 20.dp,
+    sectionSpacing: Dp = 10.dp,
 ) {
     Box(
         modifier = modifier
@@ -69,9 +69,9 @@ fun HomeTemplate(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .border(8.dp, PrimaryBlue, RoundedCornerShape(24.dp))
+                //.border(8.dp, PrimaryBlue, RoundedCornerShape(24.dp))
                 .background(BackgroundLight),
-            contentPadding = PaddingValues(16.dp)
+            contentPadding = PaddingValues(8.dp)
         ) {
             // ✅ ESPACIADOR en la parte superior
             item {

@@ -77,10 +77,6 @@ interface InitialDataDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertServiceProgress(progress: ServiceProgressEntity)
 
-    // Obtener progreso de un servicio
-    @Query("SELECT * FROM service_progress WHERE assignedServiceId = :serviceId")
-    suspend fun getServiceProgress(serviceId: String): ServiceProgressEntity?
-
     // Obtener todos los servicios con su progreso
     @Query("""
         SELECT 
@@ -88,6 +84,7 @@ interface InitialDataDao {
             COALESCE(sp.completedActivities, 0) as completedActivities,
             COALESCE(sp.totalActivities, 0) as totalActivities,
             COALESCE(sp.completedPercentage, 0) as completedPercentage,
+            COALESCE(sp.syncStatus, 'PENDING') as syncStatus,
             COUNT(DISTINCT ap.id) as activityProgressCount,
             SUM(CASE WHEN ap.completed = 1 THEN 1 ELSE 0 END) as completedCount
         FROM assigned_services a
@@ -97,7 +94,6 @@ interface InitialDataDao {
         ORDER BY a.status
     """)
     fun getAllAssignedServicesWithProgressFlow(): Flow<List<AssignedServiceWithProgressEntity>>
-
 
     // ==============
     // service_types

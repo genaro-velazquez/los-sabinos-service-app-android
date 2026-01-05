@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.lossabinos.serviceapp.ui.components.atoms.SyncStatusBadge
 import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 
 
@@ -52,7 +53,8 @@ fun ServiceHeaderMolecule(
     status: String,
     statusBackgroundColor: Color = Color(0xFFE0E0E0),
     statusTextColor: Color = Color(0xFF424242),
-    clientName: String
+    clientName: String,
+    syncStatus: String = "SYNCED"
 ) {
     Row(
         modifier = Modifier
@@ -76,37 +78,106 @@ fun ServiceHeaderMolecule(
                 .wrapContentHeight(),  // ✅ Permite que crezca
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),  // ✅ Permite que crezca en altura
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top  // ✅ Cambiar a Top para alinear mejor
-            ) {
-                // ✅ MEJORADO: Título con múltiples líneas
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),  // ✅ Espacio antes del badge
-                    maxLines = 2,  // ✅ Permitir hasta 2 líneas
-                    overflow = TextOverflow.Ellipsis  // ✅ ... si es muy largo
-                )
+            // ← FILA 1: Solo título (más espacio)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
 
-                // ✅ MEJORADO: Badge flexible
+            // ← FILA 2: Cliente
+            ServiceSubtitle(text = "Cliente: $clientName")
+
+            // ← FILA 3: Badges (en su propio renglón)
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 ServiceBadge(
                     text = status,
                     backgroundColor = statusBackgroundColor,
-                    textColor = statusTextColor,
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .padding(start = 4.dp)  // ✅ Pequeño padding
+                    textColor = statusTextColor
+                )
+                if (syncStatus.isNotEmpty()) {
+                    SyncStatusBadge(syncStatus = syncStatus)
+                }
+            }
+
+
+            /*
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ServiceBadge(
+                    text = status,
+                    backgroundColor = statusBackgroundColor,
+                    textColor = statusTextColor
+                )
+
+                SyncStatusBadge(
+                    syncStatus = syncStatus
                 )
             }
-            ServiceSubtitle(text = "Cliente: $clientName")
+            */
+
+            /*
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),  // ✅ Permite que crezca en altura
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top  // ✅ Cambiar a Top para alinear mejor
+                        ) {
+                            // ✅ MEJORADO: Título con múltiples líneas
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp),  // ✅ Espacio antes del badge
+                                maxLines = 2,  // ✅ Permitir hasta 2 líneas
+                                overflow = TextOverflow.Ellipsis  // ✅ ... si es muy largo
+                            )
+
+                            // ← AGREGAR: Ambos badges
+                            Row(
+                                modifier = Modifier.wrapContentWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                // Badge 1: Status del servicio
+                                ServiceBadge(
+                                    text = status,
+                                    backgroundColor = statusBackgroundColor,
+                                    textColor = statusTextColor
+                                )
+
+                                // Badge 2: Status de sincronización
+                                SyncStatusBadge(
+                                    syncStatus = syncStatus
+                                )
+                            }
+
+
+                            /*
+                            // ✅ MEJORADO: Badge flexible
+                            ServiceBadge(
+                                text = status,
+                                backgroundColor = statusBackgroundColor,
+                                textColor = statusTextColor,
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .padding(start = 4.dp)  // ✅ Pequeño padding
+                            )
+                            */
+                        }
+                        ServiceSubtitle(text = "Cliente: $clientName")
+             */
         }
     }
 }
@@ -268,7 +339,8 @@ fun ActionButtonsGroupMolecule(
             backgroundColor = Color(0xFFFFC107),  // Amarillo
             textColor = Color.Black,
             icon = Icons.Filled.Check,
-            onClick = onCompleteClick
+            onClick = onCompleteClick,
+            modifier = Modifier.fillMaxWidth()
         )
 
         // Botón Reprogramar
@@ -277,7 +349,8 @@ fun ActionButtonsGroupMolecule(
             backgroundColor = Color(0xFFE0E0E0),  // Gris
             textColor = Color.Black,
             icon = Icons.Filled.Schedule,
-            onClick = onRescheduleClick
+            onClick = onRescheduleClick,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

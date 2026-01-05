@@ -8,5 +8,6 @@ class AssignedServiceProgress(
     val totalActivities: Int = 0,
     val completedActivities: Int = 0,
     val completedPercentage: Int = 0,
-    val currentStatus: String = assignedService.status
+    val serviceStatus: ServiceStatus = ServiceStatus.PENDING,
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 ): DomainEntity()

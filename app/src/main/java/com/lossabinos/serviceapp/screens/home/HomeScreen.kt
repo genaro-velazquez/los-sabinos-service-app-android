@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lossabinos.domain.responses.DetailedServiceResponse
+import com.lossabinos.domain.valueobjects.ServiceStatus
 import com.lossabinos.serviceapp.utils.getStatusColor
 
 
@@ -311,7 +312,7 @@ fun HomeScreen(
                             title = serviceTypeName,
                             clientName = "Cliente",
                             icon = Icons.Filled.Build,
-                            status = service.assignedService.status.replaceFirstChar { it.uppercase() },
+                            status = service.serviceStatus.name.replaceFirstChar { it.uppercase() },
                             statusBackgroundColor = statusColor.backgroundColor,  // 🆕
                             statusTextColor = statusColor.textColor,              // 🆕
                             startTime = service.assignedService.scheduledStart,
@@ -319,8 +320,15 @@ fun HomeScreen(
                             duration = "N/A",
                             address = "N/A",
                             priority = service.assignedService.priority.replaceFirstChar { it.uppercase() },
-                            note = ""
-                        )
+                            note = "",
+                            //syncStatus = service.syncStatus.name
+                            // ← AQUÍ: Solo mostrar syncStatus si está COMPLETED
+                            syncStatus = if (service.serviceStatus == ServiceStatus.COMPLETED) {
+                                service.syncStatus.name
+                            } else {
+                                ""  // Empty = no mostrar badge
+                            },
+                            )
                     }
 
                     ServiceListSectionOrganism(

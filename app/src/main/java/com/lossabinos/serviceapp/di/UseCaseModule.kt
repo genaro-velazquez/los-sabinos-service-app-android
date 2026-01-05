@@ -16,6 +16,7 @@ import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
@@ -247,6 +248,16 @@ object UseCaseModule {
         repository: ChecklistRepository
     ) : DeleteActivityEvidenceByIdUseCase{
         return DeleteActivityEvidenceByIdUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveServiceProgressUseCase(
+        repository: ChecklistRepository
+    ) : SaveServiceProgressUseCase{
+        return SaveServiceProgressUseCase(
             checklistRepository = repository
         )
     }

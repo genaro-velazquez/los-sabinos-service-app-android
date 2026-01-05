@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 
 /**
@@ -25,9 +26,12 @@ fun ActionTitle(
     Text(
         text = text,
         modifier = modifier,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.onSurface,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        maxLines = 1,  // ← NO se quiebra
+        overflow = TextOverflow.Ellipsis  // ← Si es muy largo: "Reportes..."
+
     )
 }
 

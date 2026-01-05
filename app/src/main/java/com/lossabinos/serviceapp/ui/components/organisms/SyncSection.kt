@@ -53,7 +53,8 @@ fun SyncSection(
             title = unsyncTitle,
             details = unsyncDetails,
             onSyncNowClick = onSyncNowClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            showSyncButton = false
         )
     }
 }

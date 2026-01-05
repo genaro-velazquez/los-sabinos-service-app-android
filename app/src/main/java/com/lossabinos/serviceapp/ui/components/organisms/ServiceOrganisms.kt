@@ -47,18 +47,19 @@ import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 data class ServiceCardData(
     val id: String,
     val excecutionId:String,
-    val title: String,
-    val clientName: String,
     val icon: ImageVector,
+    val title: String,
     val status: String,
     val statusBackgroundColor: Color = Color(0xFFE0E0E0),  // 🆕
     val statusTextColor: Color = Color(0xFF424242),        // 🆕
+    val clientName: String,
     val startTime: String,
     val endTime: String,
     val duration: String,
     val address: String,
     val priority: String,
     val note: String,
+    val syncStatus: String = "SYNCED",         // "SYNCED", "PENDING", "ERROR"
     val onCompleteClick: () -> Unit = {},
     val onRescheduleClick: () -> Unit = {}
 )
@@ -92,7 +93,8 @@ fun ServiceCardOrganism(
                 status = service.status,
                 statusBackgroundColor = service.statusBackgroundColor,
                 statusTextColor = service.statusTextColor,
-                clientName = service.clientName
+                clientName = service.clientName,
+                syncStatus = service.syncStatus
             )
 
             // 2. Separador

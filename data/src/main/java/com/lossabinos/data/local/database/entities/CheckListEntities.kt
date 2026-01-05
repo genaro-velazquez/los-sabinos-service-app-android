@@ -128,6 +128,9 @@ data class AssignedServiceWithProgressEntity(
     @ColumnInfo(name = "completedPercentage")
     val completedPercentage: Int = 0,
 
+    @ColumnInfo(name = "syncStatus")
+    val syncStatus: String = "PENDING",
+
     @ColumnInfo(name = "activityProgressCount")
     val activityProgressCount: Int = 0,
 

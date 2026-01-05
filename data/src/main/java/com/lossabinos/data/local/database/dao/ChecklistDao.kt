@@ -9,8 +9,11 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.local.database.entities.ServiceProgressEntity
+import kotlinx.coroutines.flow.Flow
 
 
 // 1️⃣ DAO para Activity Progress
@@ -105,6 +108,19 @@ interface ActivityProgressDao {
 
     @Delete
     suspend fun deleteActivityProgress(activity: ActivityProgressEntity)
+
+    //===========================================
+    // ServiceProgressEntity -> service_progress
+    //===========================================
+    // Insertar/actualizar progreso
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertServiceProgress(progress: ServiceProgressEntity)
+
+    // Obtener progreso de un servicio
+    @Query("SELECT * FROM service_progress WHERE assignedServiceId = :serviceId")
+    suspend fun getServiceProgress(serviceId: String): ServiceProgressEntity?
+
+
 }
 
 // 2️⃣ DAO para Activity Evidence

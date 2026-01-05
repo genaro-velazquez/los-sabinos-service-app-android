@@ -4,6 +4,8 @@ import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
+import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.valueobjects.SyncStatus
 
 interface ChecklistRepository {
 
@@ -12,7 +14,9 @@ interface ChecklistRepository {
         sectionIndex: Int,
         activityIndex: Int,
         description: String,
-        requiresEvidence: Boolean
+        requiresEvidence: Boolean,
+        completed: Boolean = true,
+        completedAt: String = System.currentTimeMillis().toString()
     ): Long
 
     suspend fun getTotalCompletedActivities(
@@ -73,6 +77,19 @@ interface ChecklistRepository {
     suspend fun getServiceFieldValues(
         assignedServiceId: String
     ) : List<ServiceFieldValue>
+
+    //****************************+***
+    // Service_progress
+    //********************************
+    suspend fun saveServiceProgress(
+        assignedServiceId: String,
+        completedActivities: Int = 0,
+        totalActivities: Int = 0,
+        completedPercentage: Int = 0,
+        status: ServiceStatus, // "pending", "in_progress", "completed"
+        lastUpdatedAt: Long, //= System.currentTimeMillis(),
+        syncStatus: SyncStatus //= "PENDING"
+    )
 }
 
 

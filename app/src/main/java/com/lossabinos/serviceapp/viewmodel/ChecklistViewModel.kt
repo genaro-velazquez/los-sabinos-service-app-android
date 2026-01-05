@@ -17,6 +17,9 @@ import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
+import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
+import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.valueobjects.SyncStatus
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
@@ -69,7 +72,8 @@ class ChecklistViewModel @Inject constructor(
     private val getEvidenceForActivityUseCase: GetEvidenceForActivityUseCase,
     private val saveActivityEvidenceUseCase: SaveActivityEvidenceUseCase,
     private val deleteActivityEvidenceByIdUseCase: DeleteActivityEvidenceByIdUseCase,
-    private val saveObservationResponseUseCase: SaveObservationResponseUseCase
+    private val saveObservationResponseUseCase: SaveObservationResponseUseCase,
+    private val saveServiceProgressUseCase: SaveServiceProgressUseCase
 ) : ViewModel() {
 /*
     /***** Service Field Value *****/
@@ -146,6 +150,7 @@ class ChecklistViewModel @Inject constructor(
 
     private var template: Template? = null
     private var serviceId:String = ""
+    private var totalActivitiesInService: Int = 0
 
     fun updateTaskProgress(serviceId: String, taskId: String, completed: Boolean) {
         viewModelScope.launch {
@@ -209,6 +214,11 @@ class ChecklistViewModel @Inject constructor(
 
                 template?.let { tmpl ->
                     println("✅ Template deserializado: ${tmpl.sections.size} secciones")
+
+                    // ✅ CALCULAR TOTAL DE TODAS LAS ACTIVIDADES DEL SERVICIO
+                    totalActivitiesInService = tmpl.sections.sumOf { section ->
+                        section.activities.size
+                    }
 
                     // ✨ PASO 2: Cargar progreso previo de Room
                     //val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
@@ -893,7 +903,9 @@ class ChecklistViewModel @Inject constructor(
                             sectionIndex = state.currentSectionIndex,
                             activityIndex = activityIndex,
                             description = activity.activity.description,
-                            requiresEvidence = activity.activity.requiresEvidence
+                            requiresEvidence = activity.activity.requiresEvidence,
+                            completed = true,
+                            completedAt = System.currentTimeMillis().toString()
                         )
                     }
                 }
@@ -905,7 +917,33 @@ class ChecklistViewModel @Inject constructor(
                 val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(
                     assignedServiceId = serviceId
                 )
-                val newPercentage = (totalCompleted * 100) / state.totalActivities
+                val newPercentage =
+                    if (totalActivitiesInService > 0)
+                        (totalCompleted * 100) / totalActivitiesInService
+                    else 0
+
+                val status = when {
+                    totalCompleted == totalActivitiesInService -> ServiceStatus.COMPLETED
+                    totalCompleted > 0 -> ServiceStatus.IN_PROGRESS
+                    else -> ServiceStatus.PENDING
+                }
+
+                // 3️⃣ Guardar progreso del servicio
+                try {
+                    saveServiceProgressUseCase.invoke(
+                        assignedServiceId = serviceId,
+                        completedActivities = totalCompleted,
+                        totalActivities = totalActivitiesInService,
+                        completedPercentage = newPercentage,
+                        status = status,
+                        syncStatus = SyncStatus.PENDING,
+                        lastUpdatedAt = System.currentTimeMillis()
+                    )
+                    println("✅ Progreso del servicio guardado checklistViewModel")
+                }
+                catch (e: Exception){
+                    println("❌ Error guardando progreso: ${e.message}")
+                }
 
                 _state.value = state.copy(
                     completedActivities = totalCompleted,
@@ -924,7 +962,12 @@ class ChecklistViewModel @Inject constructor(
                             serviceId = serviceId
                         )
 
-                        saveObservations(_observations.value)
+                        try {
+                            saveObservations(_observations.value)
+                        }
+                        catch (e: Exception){
+                            println("⚠️ Error guardando observaciones: ${e.message}")
+                        }
 
                         _state.value = state.copy(
                             currentSectionIndex = nextIndex,  // ✅ Navega DESPUÉS de guardar

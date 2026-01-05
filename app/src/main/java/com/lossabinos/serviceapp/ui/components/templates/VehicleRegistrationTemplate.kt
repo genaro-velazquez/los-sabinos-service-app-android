@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +44,9 @@ fun VehicleRegistrationTemplate(
     onBackClick: () -> Unit = {},
     isEnabled: Boolean = true
 ) {
+
+    val scrollState = rememberScrollState()  // ← AGREGAR
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,7 +67,8 @@ fun VehicleRegistrationTemplate(
                 .fillMaxSize()
                 .background(Color(0xFFFAFAFA))
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(scrollState),  // ← AGREGAR ESTO
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 🆕 Mostrar contenido según el estado
@@ -83,8 +89,12 @@ fun VehicleRegistrationTemplate(
                     )
 
                     // Botón continuar (al final)
-                    androidx.compose.foundation.layout.Spacer(
+                    Spacer(
                         modifier = Modifier.weight(1f)
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(32.dp)
                     )
 
                     ContinueButtonAtom(
@@ -104,63 +114,3 @@ fun VehicleRegistrationTemplate(
         }
     }
 }
-
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun VehicleRegistrationTemplate(
-    fields: List<VehicleRegistrationFieldUIModel> = emptyList(),  // 🆕 Nuevo parámetro
-    onFieldChange: (fieldId: String, newValue: String) -> Unit = { _, _ -> },  // 🆕 Nuevo
-    onContinueClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},
-    isEnabled: Boolean = true
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Registro de Vehículo",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás"
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFAFAFA))
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 🆕 Pasa la lista de campos
-                VehicleRegistrationFormOrganism(
-                    fields = fields,
-                    onFieldChange = onFieldChange,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-
-            VehicleRegistrationActionOrganism(
-                onContinueClick = onContinueClick,
-                isEnabled = isEnabled
-            )
-        }
-    }
-}
-*/

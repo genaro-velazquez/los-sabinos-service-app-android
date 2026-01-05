@@ -8,6 +8,7 @@ import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.local.database.entities.ServiceProgressEntity
 import com.lossabinos.data.local.mappers.toDomain
 import com.lossabinos.data.local.mappers.toEntity
 import com.lossabinos.domain.entities.ActivityEvidence
@@ -15,6 +16,8 @@ import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
+import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.valueobjects.SyncStatus
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -31,7 +34,9 @@ class ChecklistRepositoryImpl(
         sectionIndex: Int,
         activityIndex: Int,
         description: String,
-        requiresEvidence: Boolean
+        requiresEvidence: Boolean,
+        completed: Boolean ,
+        completedAt: String
     ): Long {
         return activityProgressDao.insertActivityProgress(
             ActivityProgressEntity(
@@ -40,7 +45,8 @@ class ChecklistRepositoryImpl(
                 activityIndex = activityIndex,
                 activityDescription = description,
                 requiresEvidence = requiresEvidence,
-                completed = true
+                completed = true,
+                completedAt = completedAt
             )
         )
     }
@@ -242,5 +248,35 @@ class ChecklistRepositoryImpl(
             assignedServiceId = assignedServiceId
         )
             .map { it.toDomain() }
+    }
+
+    override suspend fun saveServiceProgress(
+        assignedServiceId: String,
+        completedActivities: Int,
+        totalActivities: Int,
+        completedPercentage: Int,
+        status: ServiceStatus,
+        lastUpdatedAt: Long,
+        syncStatus: SyncStatus
+    ) {
+        try {
+            val serviceProgressEntity = ServiceProgressEntity(
+                assignedServiceId = assignedServiceId,
+                completedActivities = completedActivities,
+                totalActivities = totalActivities,
+                completedPercentage = completedPercentage,
+                status = status.name,
+                lastUpdatedAt = lastUpdatedAt,
+                syncStatus = syncStatus.name
+            )
+            activityProgressDao.insertServiceProgress(
+                progress = serviceProgressEntity
+            )
+
+            println("✅ Progreso guardado CHecklistRepositoryImp: $assignedServiceId")
+        }catch (e: Exception){
+            println("❌ Error guardando progreso: ${e.message}")
+            throw e
+        }
     }
 }
