@@ -2,8 +2,10 @@ package com.lossabinos.serviceapp.di
 
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
+import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
+import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
@@ -259,6 +261,19 @@ object UseCaseModule {
     ) : SaveServiceProgressUseCase{
         return SaveServiceProgressUseCase(
             checklistRepository = repository
+        )
+    }
+
+    //******************************
+    // UseCases LocalDataRepository
+    //******************************
+    @Singleton
+    @Provides
+    fun provideClearAllUseCase(
+        repository: LocalDataRepository
+    ) : ClearAllUseCase{
+        return ClearAllUseCase(
+            localDataRepository = repository
         )
     }
 }

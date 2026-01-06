@@ -3,6 +3,7 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +46,8 @@ sealed class HomeEvent {
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getUserPreferencesUseCase: GetUserPreferencesUseCase
+    private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
+    private val clearAllUseCase: ClearAllUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -99,8 +101,21 @@ class HomeViewModel @Inject constructor(
             }
             is HomeEvent.ConfirmLogout -> {
                 // Confirmar logout y navegar a login
-                _state.update { it.copy(showLogoutDialog = false) }
-                _navigationEvent.value = NavigationEvent.NavigateToLogin
+//                _state.update { it.copy(showLogoutDialog = false) }
+//                _navigationEvent.value = NavigationEvent.NavigateToLogin
+                viewModelScope.launch {
+                    try {
+                        println("🧹 [LOGOUT] Limpiando base de datos local")
+                        clearAllUseCase() // ✅ BORRA ROOM
+                        println("✅ [LOGOUT] Datos locales eliminados")
+                        _state.update { it.copy(showLogoutDialog = false) }
+                        _navigationEvent.value = NavigationEvent.NavigateToLogin
+
+                    } catch (e: Exception) {
+                        println("❌ Error limpiando datos: ${e.message}")
+                    }
+                }
+
             }
             is HomeEvent.CancelLogout -> {
                 // Cancelar logout y cerrar dialog

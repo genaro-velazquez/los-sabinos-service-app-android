@@ -9,6 +9,7 @@ import com.lossabinos.data.local.database.dao.InitialDataDao
 import com.lossabinos.data.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.local.repositories.ChecklistRepositoryImpl
+import com.lossabinos.data.local.repositories.LocalDataRepositoryImp
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
@@ -16,6 +17,7 @@ import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepo
 import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsServices
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
+import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
@@ -110,4 +112,22 @@ object RepositoryModule {
         )
     }
 
+    // ============== LOCAL DATA REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideLocalDataRepository(
+        initialDataDao: InitialDataDao,
+        activityProgressDao: ActivityProgressDao,
+        activityEvidenceDao: ActivityEvidenceDao,
+        observationResponseDao: ObservationResponseDao,
+        serviceFieldValueDao: ServiceFieldValueDao
+    ) : LocalDataRepository{
+        return LocalDataRepositoryImp(
+            initialDataDao = initialDataDao,
+            activityProgressDao = activityProgressDao,
+            activityEvidenceDao = activityEvidenceDao,
+            observationResponseDao = observationResponseDao,
+            serviceFieldValueDao = serviceFieldValueDao
+        )
+    }
 }

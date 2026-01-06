@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.lossabinos.data.local.database.entities.AssignedServiceEntity
 import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
@@ -199,5 +200,20 @@ interface InitialDataDao {
 
     @Delete
     suspend fun deleteWorkOrder(workOrder: WorkOrderEntity)
+
+
+    // ==============
+    // Delete All
+    // ==============
+    @Transaction
+    suspend fun deleteAllData(){
+        deleteAllMechanics()
+        deleteAllAssignedServices()
+        deleteAllServiceTypes()
+        deleteSyncMetadata()
+        deleteAllZones()
+        deleteAllVehicles()
+        deleteAllWorkOrders()
+    }
 
 }
