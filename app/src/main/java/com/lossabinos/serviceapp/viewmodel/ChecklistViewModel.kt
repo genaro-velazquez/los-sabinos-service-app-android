@@ -28,6 +28,7 @@ import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
 import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
 import com.lossabinos.serviceapp.models.toDomain
+import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,6 @@ data class ChecklistUIState(
 
 @HiltViewModel
 class ChecklistViewModel @Inject constructor(
-//    private val checklistRepository: ChecklistRepository,
     private val completeActivityUseCase: CompleteActivityUseCase,
     private val getTotalCompletedActivitiesUseCase: GetTotalCompletedActivitiesUseCase,
     private val getObservationResponsesForSectionUseCase: GetObservationResponsesForSectionUseCase,
@@ -75,69 +75,36 @@ class ChecklistViewModel @Inject constructor(
     private val saveObservationResponseUseCase: SaveObservationResponseUseCase,
     private val saveServiceProgressUseCase: SaveServiceProgressUseCase
 ) : ViewModel() {
-/*
-    /***** Service Field Value *****/
-    private val _kilometrage = MutableStateFlow("")
-    val kilometrage: StateFlow<String> = _kilometrage.asStateFlow()
-    private val _oilType = MutableStateFlow("")
-    val oilType: StateFlow<String> = _oilType.asStateFlow()
-    private val _serviceFields = MutableStateFlow<List<VehicleRegistrationFieldUIModel>>(emptyList())
-    val serviceFields: StateFlow<List<VehicleRegistrationFieldUIModel>> = _serviceFields.asStateFlow()
-    /********************************/
 
-    fun saveVehicleRegistration(
-        assignedServiceId: String,
-        uiFields: List<VehicleRegistrationFieldUIModel>
-    ){
+    private val _showSignDialog = MutableStateFlow(false)
+    val showSignDialog: StateFlow<Boolean> = _showSignDialog.asStateFlow()
+
+    private val _navigationEvent = MutableStateFlow<NavigationEvent?>(null)
+    val navigationEvent: StateFlow<NavigationEvent?> = _navigationEvent.asStateFlow()
+
+    // ← AGREGAR ESTOS MÉTODOS
+    fun onSignChecklistClicked() {
+        _showSignDialog.value = true
+        println("📋 [CHECKLIST] Abriendo diálogo de firma")
+    }
+
+    fun onConfirmSign() {
+        _showSignDialog.value = false
         viewModelScope.launch {
             try {
-                _isLoading.value = true
-                val domainFields = uiFields.map { it.toDomain() }
-                saveServiceFieldValuesUseCase.invoke(
-                    assignedServiceId = assignedServiceId,
-                    fields = domainFields
-                )
-            }
-            catch (e: Exception){
-                _isLoading.value = false
+                println("✍️ [CHECKLIST] Confirmando firma...")
+                _navigationEvent.value = NavigationEvent.NavigateToHome
+            } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
             }
         }
     }
 
-    fun saveVehicleData(
-        assignedServiceId: String,
-        fieldIndex: Int,
-        fieldLabel: String,
-        fieldType: String,
-        required: Boolean,
-        value: String?
-    ){
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                println("💾 Guardando datos del vehículo...")
-                println("   Servicio: $assignedServiceId")
-                println("   Campos: ${_serviceFields.value.size}")
-
-                // 🆕 Guardar en Room usando el UseCase
-                saveServiceFieldValueUseCase.invoke(
-                    assignedServiceId = assignedServiceId,
-                    fieldIndex = fieldIndex,
-                    fieldLabel = fieldLabel,
-                    fieldType = fieldType,
-                    required = required,
-                    value = value
-                )
-                _isLoading.value = false
-            }
-            catch (e: Exception) {
-                _isLoading.value = false
-                println("❌ Error: ${e.message}")
-            }
-        }
+    fun onCancelSign() {
+        _showSignDialog.value = false
+        println("🚫 [CHECKLIST] Firma cancelada")
     }
-*/
+
 
     private val _state = MutableStateFlow(ChecklistUIState())
     val state: StateFlow<ChecklistUIState> = _state.asStateFlow()

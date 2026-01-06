@@ -168,24 +168,25 @@ fun HomeScreen(
     // 4️⃣ ACCIONES RÁPIDAS
     // ==========================================
     val actionCards = listOf(
+        /*
         ActionCardModel(
             id = "camera",
             title = "Cámara",
             icon = Icons.Filled.Camera,
             onClick = onCameraClick
-        ),
+        ),*/
         ActionCardModel(
             id = "reports",
             title = "Reportes",
             icon = Icons.Filled.BarChart,
             onClick = onReportsClick
-        ),
+        )/*,
         ActionCardModel(
             id = "location",
             title = "Ubicación",
             icon = Icons.Filled.LocationOn,
             onClick = onLocationClick
-        )
+        )*/
     )
 
     // ===================
