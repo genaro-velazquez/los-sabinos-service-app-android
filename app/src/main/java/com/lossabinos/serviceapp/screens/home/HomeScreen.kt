@@ -328,7 +328,11 @@ fun HomeScreen(
                             } else {
                                 ""  // Empty = no mostrar badge
                             },
-                            )
+                            serviceStatus = service.serviceStatus,
+                            onCompleteClick = { },
+                            onRescheduleClick = { },
+                            onSyncClick = { }
+                        )
                     }
 
                     ServiceListSectionOrganism(

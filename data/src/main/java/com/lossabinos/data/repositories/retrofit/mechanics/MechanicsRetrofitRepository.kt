@@ -84,9 +84,27 @@ class MechanicsRetrofitRepository(
             )
 
             // Guardar AssignedServices
-            initialDataDao.insertAssignedServices(
-                assignedServices = data.assignedServices.map { it.toRoomEntity() }
-            )
+            //initialDataDao.insertAssignedServices(
+            //    assignedServices = data.assignedServices.map { it.toRoomEntity() }
+            //)
+
+            data.assignedServices.forEach { serviceDto ->
+                val existing = initialDataDao.getAssignedServiceById(serviceDto.id)
+
+                if (existing == null) {
+                    // ✅ No existe → Insertar (nuevo servicio)
+                    println("✅ [ROOM] Insertando servicio nuevo: ${serviceDto.id}")
+                    initialDataDao.insertAssignedServices(
+                        listOf(serviceDto.toRoomEntity())
+                    )
+                } else {
+                    // ✅ Existe → Actualizar (cambios del servidor, sin tocar BD local)
+                    println("✅ [ROOM] Actualizando servicio existente: ${serviceDto.id}")
+                    initialDataDao.updateAssignedService(
+                        serviceDto.toRoomEntity()
+                    )
+                }
+            }
 
             // Guardar AsyncMetadata
             initialDataDao.insertSyncMetadata(

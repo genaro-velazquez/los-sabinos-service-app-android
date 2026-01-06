@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.lossabinos.domain.valueobjects.ServiceStatus
 import com.lossabinos.serviceapp.ui.components.atoms.SyncStatusBadge
 import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 
@@ -326,33 +328,81 @@ fun ServiceNoteMolecule(
  */
 @Composable
 fun ActionButtonsGroupMolecule(
+    serviceStatus: ServiceStatus,
+    syncStatus: String = "SYNCED",
     onCompleteClick: () -> Unit,
+    onSyncClick: () -> Unit = {},
     onRescheduleClick: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Botón Completar
-        ActionButtonAtom(
-            text = "Completar",
-            backgroundColor = Color(0xFFFFC107),  // Amarillo
-            textColor = Color.Black,
-            icon = Icons.Filled.Check,
-            onClick = onCompleteClick,
-            modifier = Modifier.fillMaxWidth()
-        )
+        // Botón inteligente (cambia según estado)
+        when (serviceStatus) {
+            ServiceStatus.COMPLETED -> {
+                // Estado: COMPLETADO → Botón Sincronizar
+                ActionButtonAtom(
+                    text = if (syncStatus == "SYNCED")
+                        "Sincronizado" else "Sincronizar",
+                    backgroundColor = if (syncStatus == "SYNCED")
+                        Color(0xFFCCCCCC) else Color(0xFFFFC107),
+                    textColor = Color.Black,
+                    icon = Icons.Default.Sync,
+                    onClick = onSyncClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            else -> {
+                // Estado: EN_PROGRESO/PENDIENTE → Botón Completar
+                ActionButtonAtom(
+                    text = "Completar",
+                    backgroundColor = Color(0xFFFFC107),
+                    textColor = Color.Black,
+                    icon = Icons.Default.Check,
+                    onClick = onCompleteClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
 
-        // Botón Reprogramar
+        // Botón Reprogramar (siempre visible)
         ActionButtonAtom(
             text = "Reprogramar",
-            backgroundColor = Color(0xFFE0E0E0),  // Gris
+            backgroundColor = Color(0xFFE0E0E0),
             textColor = Color.Black,
-            icon = Icons.Filled.Schedule,
+            icon = Icons.Default.Schedule,
             onClick = onRescheduleClick,
             modifier = Modifier.fillMaxWidth()
         )
     }
+
+    /*
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Botón Completar
+            ActionButtonAtom(
+                text = "Completar",
+                backgroundColor = Color(0xFFFFC107),  // Amarillo
+                textColor = Color.Black,
+                icon = Icons.Filled.Check,
+                onClick = onCompleteClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Botón Reprogramar
+            ActionButtonAtom(
+                text = "Reprogramar",
+                backgroundColor = Color(0xFFE0E0E0),  // Gris
+                textColor = Color.Black,
+                icon = Icons.Filled.Schedule,
+                onClick = onRescheduleClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+     */
 }
 
 // ==========================================

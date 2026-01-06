@@ -61,6 +61,10 @@ interface InitialDataDao {
     @Query("SELECT * FROM assigned_services WHERE workOrderId = :workOrderId")
     suspend fun getAssignedServicesByWorkOrder(workOrderId: String): List<AssignedServiceEntity>
 
+    // Actualizar un servicio (no usar REPLACE)
+    @Update
+    suspend fun updateAssignedService(service: AssignedServiceEntity)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAssignedServices(assignedServices: List<AssignedServiceEntity>)
 

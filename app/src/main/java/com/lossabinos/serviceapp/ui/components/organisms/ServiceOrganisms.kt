@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp  // ✅ AGREGADO: Import para sp()
 import androidx.compose.ui.unit.times
+import com.lossabinos.domain.valueobjects.ServiceStatus
 import com.lossabinos.serviceapp.ui.components.molecules.ActionButtonsGroupMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceHeaderMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceNoteMolecule
@@ -60,8 +61,11 @@ data class ServiceCardData(
     val priority: String,
     val note: String,
     val syncStatus: String = "SYNCED",         // "SYNCED", "PENDING", "ERROR"
+    val serviceStatus: ServiceStatus = ServiceStatus.PENDING,
     val onCompleteClick: () -> Unit = {},
-    val onRescheduleClick: () -> Unit = {}
+    val onRescheduleClick: () -> Unit = {},
+    val onSyncClick: () -> Unit = {}  // ← AGREGAR
+
 )
 
 // ==========================================
@@ -73,8 +77,12 @@ data class ServiceCardData(
  */
 @Composable
 fun ServiceCardOrganism(
-    service: ServiceCardData
+    service: ServiceCardData,
+    serviceStatus: ServiceStatus,      // ← AGREGAR
+    syncStatus: String = "SYNCED",     // ← AGREGAR
+    onSyncClick: () -> Unit = {}       // ← AGREGAR
 ) {
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,11 +135,75 @@ fun ServiceCardOrganism(
 
             // 6. Botones de acción
             ActionButtonsGroupMolecule(
+                serviceStatus = serviceStatus,           // ← PASAR
+                syncStatus = syncStatus,                 // ← PASAR
                 onCompleteClick = service.onCompleteClick,
+                onSyncClick = onSyncClick,               // ← PASAR
                 onRescheduleClick = service.onRescheduleClick
             )
         }
     }
+
+    /*
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 1. Encabezado (Icono + Título + Badge)
+                ServiceHeaderMolecule(
+                    icon = service.icon,
+                    title = service.title,
+                    status = service.status,
+                    statusBackgroundColor = service.statusBackgroundColor,
+                    statusTextColor = service.statusTextColor,
+                    clientName = service.clientName,
+                    syncStatus = service.syncStatus
+                )
+
+                // 2. Separador
+                HorizontalDivider(
+                    color = Color(0xFFE0E0E0),
+                    thickness = 1.dp
+                )
+
+                // 3. Información: Hora + Ubicación + Prioridad
+                ServiceSummaryMolecule(
+                    title = service.title,
+                    clientName = service.clientName,
+                    startTime = service.startTime,
+                    endTime = service.endTime,
+                    duration = service.duration,
+                    address = service.address,
+                    priority = service.priority
+                )
+
+                // 4. Separador
+                HorizontalDivider(
+                    color = Color(0xFFE0E0E0),
+                    thickness = 1.dp
+                )
+
+                // 5. Nota (si existe)
+                if (service.note.isNotEmpty()) {
+                    ServiceNoteMolecule(note = service.note)
+                }
+
+                // 6. Botones de acción
+                ActionButtonsGroupMolecule(
+                    onCompleteClick = service.onCompleteClick,
+                    onRescheduleClick = service.onRescheduleClick
+                )
+            }
+        }
+
+     */
 }
 
 // ==========================================
@@ -246,7 +318,8 @@ fun ServiceListSectionOrganism(
     services: List<ServiceCardData>,
     onServiceClick: (String) -> Unit = {},
     onCompleteClick: (String) -> Unit = {},
-    onRescheduleClick: (String) -> Unit = {}
+    onRescheduleClick: (String) -> Unit = {},
+    onSyncClick: (String) -> Unit = {}
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -288,9 +361,30 @@ fun ServiceListSectionOrganism(
                     ServiceCardOrganism(
                         service = service.copy(
                             onCompleteClick = { onCompleteClick(service.excecutionId) },
+                            onRescheduleClick = { onRescheduleClick(service.excecutionId) },
+                            onSyncClick = { onSyncClick(service.excecutionId) }
+                        ),
+                        /*
+                        service = service.copy(
+                            onCompleteClick = { onCompleteClick(service.excecutionId) },
+                            onRescheduleClick = { onRescheduleClick(service.excecutionId) },
+                            onSyncClick = { onSyncClick(service.excecutionId) }
+                        ),
+                        */
+                        serviceStatus = service.serviceStatus,
+                        syncStatus = service.syncStatus,
+                        onSyncClick = { onSyncClick(service.excecutionId) }
+                    )
+
+                    /*
+                    ServiceCardOrganism(
+                        service = service.copy(
+                            onCompleteClick = { onCompleteClick(service.excecutionId) },
                             onRescheduleClick = { onRescheduleClick(service.excecutionId) }
                         )
                     )
+
+                     */
                 }
             }
         }
