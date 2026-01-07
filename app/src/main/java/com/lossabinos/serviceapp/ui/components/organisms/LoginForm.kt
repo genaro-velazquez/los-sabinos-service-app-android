@@ -6,9 +6,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lossabinos.serviceapp.ui.components.atoms.buttons.PrimaryButton
 import com.lossabinos.serviceapp.ui.components.atoms.spacers.SpacerLarge
@@ -36,6 +43,10 @@ fun LoginForm(
     isLoading: Boolean = false,
     isError: Boolean = false
 ) {
+
+    val emailFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -62,9 +73,19 @@ fun LoginForm(
             value = email,
             onValueChange = onEmailChange,
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusRequester(emailFocusRequester),
                 //.padding(horizontal = 16.dp),
-            isError = isError
+            isError = isError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next  // ← SIGUIENTE
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    passwordFocusRequester.requestFocus()  // ← SALTAR A PASSWORD
+                }
+            )
         )
 
         SpacerMedium()
@@ -74,9 +95,19 @@ fun LoginForm(
             value = password,
             onValueChange = onPasswordChange,
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusRequester(passwordFocusRequester),
                 //.padding(horizontal = 16.dp),
-            isError = isError
+            isError = isError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done  // ← HECHO/ACEPTAR
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onLoginClick()  // ← HACER LOGIN AL PRESIONAR DONE
+                }
+            )
         )
 
         SpacerMedium()

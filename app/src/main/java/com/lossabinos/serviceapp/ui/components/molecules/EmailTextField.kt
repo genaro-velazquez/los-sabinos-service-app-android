@@ -1,6 +1,7 @@
 // presentation/ui/components/molecules/EmailTextField.kt
 package com.lossabinos.serviceapp.ui.components.molecules
 
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -18,7 +19,12 @@ fun EmailTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    isError: Boolean = false
+    isError: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Email,
+        imeAction = ImeAction.Next
+    ),
+    keyboardActions: KeyboardActions = KeyboardActions()
 ) {
     IconTextField(
         value = value,
@@ -26,10 +32,8 @@ fun EmailTextField(
         placeholder = "Correo electrónico",
         leadingIcon = AppIcons.Email,
         modifier = modifier,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
-        ),
-        isError = isError
+        isError = isError,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
     )
 }

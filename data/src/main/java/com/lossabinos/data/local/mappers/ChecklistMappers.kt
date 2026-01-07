@@ -158,6 +158,17 @@ fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
     val totalActivities = checklistTemplate.template.sections.sumOf { it.activities.size }
     val completedActivities = this.completedCount
 
+    println("\n📊 ═══════════════════════════════════════════════════")
+    println("📊 [MAPPER] Servicio: ${assignedService.id}")
+    println("   - Estado servidor: ${assignedService.status}")
+    println("   - totalActivities: $totalActivities")
+    println("   - completedActivities (completedCount): $completedActivities")
+    println("   - completedCount value: ${this.completedCount}")
+    println("   - activityProgressCount: ${this.activityProgressCount}")
+    println("   - service_progress syncStatus: ${this.syncStatus}")
+    println("📊 ═══════════════════════════════════════════════════\n")
+
+
     // Calcular porcentaje
     val completedPercentage = if (totalActivities > 0) {
         (completedActivities * 100) / totalActivities
@@ -182,13 +193,40 @@ fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
     }
 
 
-    // Determinar estado actual
     val serviceStatus = when {
-        totalActivities == 0 -> ServiceStatus.PENDING
-        completedActivities == totalActivities && totalActivities > 0 -> ServiceStatus.COMPLETED
-        completedActivities > 0 -> ServiceStatus.IN_PROGRESS
-        else -> ServiceStatus.PENDING
+        totalActivities > 0 -> {
+            when {
+                completedActivities == totalActivities -> {
+                    println("   → COMPLETED (${completedActivities} == ${totalActivities})")
+                    ServiceStatus.COMPLETED
+                }
+                completedActivities > 0 -> {
+                    println("   → IN_PROGRESS (${completedActivities} > 0)")
+                    ServiceStatus.IN_PROGRESS
+                }
+                // ← CAMBIAR: Si no hay completadas pero hay checklist,
+                // usar estado del servidor
+                else -> {
+                    println("   ⚠️ Sin datos locales, usando servidor: ${assignedService.status}")
+                    when (assignedService.status.lowercase()) {
+                        "in_progress" -> ServiceStatus.IN_PROGRESS  // ← AQUÍ
+                        "completed" -> ServiceStatus.COMPLETED
+                        else -> ServiceStatus.PENDING
+                    }
+                }
+            }
+        }
+
+        else -> {
+            println("   👉 RAMA 2: totalActivities == 0, usando servidor")
+            when (assignedService.status.lowercase()) {
+                "in_progress" -> ServiceStatus.IN_PROGRESS
+                "completed" -> ServiceStatus.COMPLETED
+                else -> ServiceStatus.PENDING
+            }
+        }
     }
+
 
     return AssignedServiceProgress(
         assignedService = assignedService,

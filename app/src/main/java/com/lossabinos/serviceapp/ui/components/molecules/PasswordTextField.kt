@@ -2,6 +2,7 @@
 package com.lossabinos.serviceapp.ui.components.molecules
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +27,12 @@ fun PasswordTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    isError: Boolean = false
+    isError: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Password,
+        imeAction = ImeAction.Done
+    ),
+    keyboardActions: KeyboardActions = KeyboardActions()
 ) {
     val passwordVisible = remember { mutableStateOf(false) }
 
@@ -36,18 +42,14 @@ fun PasswordTextField(
         placeholder = "Contraseña",
         leadingIcon = AppIcons.Lock,
         modifier = modifier,
-
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         // ✅ AGREGAR ESTO - Cambiar visualTransformation según visibilidad
         visualTransformation = if (passwordVisible.value) {
             VisualTransformation.None  // ← Muestra: MiPassword123
         } else {
             PasswordVisualTransformation()  // ← Muestra: •••••••••
         },
-
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
         trailingIcon = {
             Icon(
                 imageVector = if (passwordVisible.value) {
