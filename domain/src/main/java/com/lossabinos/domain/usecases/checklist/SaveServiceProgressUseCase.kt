@@ -1,8 +1,8 @@
 package com.lossabinos.domain.usecases.checklist
 
 import com.lossabinos.domain.repositories.ChecklistRepository
-import com.lossabinos.domain.valueobjects.ServiceStatus
-import com.lossabinos.domain.valueobjects.SyncStatus
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 
 class SaveServiceProgressUseCase(
     private val checklistRepository: ChecklistRepository

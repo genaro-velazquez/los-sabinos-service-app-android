@@ -233,6 +233,7 @@ fun ChecklistProgressScreen(
                 )
             },
             observations = observations,
+            metadata = uiState.currentSectionMetadata,
             onObservationsChange = { newText ->
                 viewModel.updateObservations(text = newText)
             },

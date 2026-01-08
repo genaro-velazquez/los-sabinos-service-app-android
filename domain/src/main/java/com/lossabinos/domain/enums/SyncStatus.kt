@@ -1,4 +1,4 @@
-package com.lossabinos.domain.valueobjects
+package com.lossabinos.domain.enums
 
 enum class SyncStatus {
     PENDING, SYNCED

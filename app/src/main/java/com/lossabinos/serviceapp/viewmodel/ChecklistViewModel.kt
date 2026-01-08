@@ -18,11 +18,12 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
-import com.lossabinos.domain.valueobjects.ServiceStatus
-import com.lossabinos.domain.valueobjects.SyncStatus
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
+import com.lossabinos.serviceapp.models.MetadataModel
 import com.lossabinos.serviceapp.models.ObservationUIModel
 import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
@@ -45,6 +46,7 @@ data class ChecklistUIState(
     val totalSections: Int = 0,
     val currentSectionName: String = "",
     val templateName:String = "",
+    val currentSectionMetadata: List<MetadataModel> = emptyList(),
     val currentSectionActivities: List<ActivityUIModel> = emptyList(),  // ✨ NUEVO: Con UI Model
     val currentSectionObservations: List<ObservationUIModel> = emptyList(),  // ✨ NUEVO
     // Progreso GLOBAL (todo el servicio)
@@ -182,13 +184,14 @@ class ChecklistViewModel @Inject constructor(
                 template?.let { tmpl ->
                     println("✅ Template deserializado: ${tmpl.sections.size} secciones")
 
-                    // ✅ CALCULAR TOTAL DE TODAS LAS ACTIVIDADES DEL SERVICIO
+                    // ✅ CALCULAR TOTAL DE TODAS LAS ACTIVIDADES DE UNA SECCIÓN
                     totalActivitiesInService = tmpl.sections.sumOf { section ->
                         section.activities.size
                     }
 
-                    // ✨ PASO 2: Cargar progreso previo de Room
-                    //val totalCompleted = checklistRepository.getTotalCompletedActivities(serviceId)
+                    //✅      SELECT COUNT(*) FROM activity_progress
+                    //        WHERE assignedServiceId = :assignedServiceId
+                    //        AND completed = 1
                     val totalCompleted = getTotalCompletedActivitiesUseCase.invoke(assignedServiceId = serviceId)
                     println("✅ Actividades completadas previas: $totalCompleted")
 
@@ -239,6 +242,7 @@ class ChecklistViewModel @Inject constructor(
                         totalSections = tmpl.sections.size,
                         currentSectionName = sectionUIModel.section.name,
                         templateName = tmpl.name,
+                        currentSectionMetadata = sectionUIModel.section.metadata,
                         currentSectionActivities = sectionUIModel.activities,
                         //currentSectionObservations = emptyList(), /*sectionUIModel.observations*/,
                         totalActivities = totalActivities,
@@ -342,7 +346,7 @@ class ChecklistViewModel @Inject constructor(
             //println("     • Respuesta: ${response?.response?.take(30) ?: "Sin respuesta"}")
 
             ObservationUIModel(
-                observation = observation,
+                observation = "",
                 response = response?.toEntity()
             )
         }
@@ -939,12 +943,15 @@ class ChecklistViewModel @Inject constructor(
                         _state.value = state.copy(
                             currentSectionIndex = nextIndex,  // ✅ Navega DESPUÉS de guardar
                             currentSectionName = nextSectionUI.section.name,
+                            currentSectionMetadata = nextSectionUI.section.metadata,
                             currentSectionActivities = nextSectionUI.activities,
                             canContinue = false,
                             observations = ""
                         )
 
                         println("✅ Siguiente sección: ${nextSectionUI.section.name}")
+                        println("✅ Siguiente sección.metadata: ${nextSectionUI.section.metadata}")
+
                     }
                 } else {
                     _state.value = state.copy(

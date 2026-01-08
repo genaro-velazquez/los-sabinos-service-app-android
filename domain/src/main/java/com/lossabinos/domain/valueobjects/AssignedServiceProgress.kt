@@ -2,6 +2,8 @@ package com.lossabinos.domain.valueobjects
 
 import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.DomainEntity
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 
 class AssignedServiceProgress(
     val assignedService: AssignedService,

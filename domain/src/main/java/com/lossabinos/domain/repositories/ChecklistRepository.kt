@@ -4,8 +4,8 @@ import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
-import com.lossabinos.domain.valueobjects.ServiceStatus
-import com.lossabinos.domain.valueobjects.SyncStatus
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 
 interface ChecklistRepository {
 

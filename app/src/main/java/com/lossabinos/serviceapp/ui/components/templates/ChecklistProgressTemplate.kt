@@ -10,7 +10,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Note
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Note
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,10 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lossabinos.domain.entities.Metadata
+import com.lossabinos.serviceapp.models.MetadataModel
 import com.lossabinos.serviceapp.ui.components.organisms.ActivitiesListOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ActivityTaskItem
 import com.lossabinos.serviceapp.ui.components.organisms.ChecklistProgressHeaderOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ContinueActionOrganism
+import com.lossabinos.serviceapp.ui.components.organisms.MetadataListOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ObservationsOrganism
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +45,7 @@ fun ChecklistProgressTemplate(
     progressPercentage: Int,
     tasks: List<ActivityTaskItem> = emptyList(),
     observations: String = "",
+    metadata: List<MetadataModel> = emptyList(),  // ← AGREGAR
     onObservationsChange: (String) -> Unit = {},
     onTaskCheckedChange: (String, Boolean) -> Unit = { _, _ -> },
     onCameraClick: (String) -> Unit = {},
@@ -81,6 +88,19 @@ fun ChecklistProgressTemplate(
                 currentProgress = currentProgress,
                 totalTasks = totalTasks,
                 progressPercentage = progressPercentage,
+                modifier = Modifier.padding(16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // ═════════════════════════════════════
+            // SECCIÓN 2: Header Progress
+            // ═════════════════════════════════════
+
+            MetadataListOrganism(
+                metadata = metadata,
+                title = "NOTAS Y REQUISITOS",
+                icon = Icons.AutoMirrored.Filled.Notes,
                 modifier = Modifier.padding(16.dp)
             )
 

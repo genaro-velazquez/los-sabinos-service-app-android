@@ -46,7 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lossabinos.domain.responses.DetailedServiceResponse
-import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.serviceapp.utils.getStatusColor
 
 

@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp  // ✅ AGREGADO: Import para sp()
 import androidx.compose.ui.unit.times
-import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.serviceapp.ui.components.molecules.ActionButtonsGroupMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceHeaderMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceNoteMolecule

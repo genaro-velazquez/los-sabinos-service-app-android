@@ -16,8 +16,8 @@ import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
-import com.lossabinos.domain.valueobjects.ServiceStatus
-import com.lossabinos.domain.valueobjects.SyncStatus
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

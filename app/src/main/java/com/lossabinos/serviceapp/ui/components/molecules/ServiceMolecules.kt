@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.lossabinos.domain.valueobjects.ServiceStatus
+import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.serviceapp.ui.components.atoms.SyncStatusBadge
 import com.lossabinos.serviceapp.ui.theme.LosabosTheme
 

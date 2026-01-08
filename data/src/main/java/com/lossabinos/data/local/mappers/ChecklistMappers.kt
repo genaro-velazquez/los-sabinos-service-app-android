@@ -12,8 +12,8 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.ChecklistTemplate
 import com.lossabinos.domain.valueobjects.FieldType
-import com.lossabinos.domain.valueobjects.ServiceStatus
-import com.lossabinos.domain.valueobjects.SyncStatus
+import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.valueobjects.Template
 import kotlinx.serialization.json.Json
 
