@@ -54,6 +54,7 @@ fun LoginScreen(
         }
     }
 
+    // Estados y callbacks
     LoginScreenContent(
         state = state.value,
         snackbarHostState = snackbarHostState,
@@ -64,7 +65,6 @@ fun LoginScreen(
     )
 }
 
-
 @Composable
 fun LoginScreenContent(
     state: LoginState,
@@ -74,10 +74,12 @@ fun LoginScreenContent(
     onLoginClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
+    // Layout genérico
     LoginTemplate(
         modifier = Modifier.fillMaxSize(),
         snackbarHostState = snackbarHostState,
         formContent = {
+            // UI
             LoginForm(
                 email = state.email,
                 password = state.password,
@@ -92,7 +94,6 @@ fun LoginScreenContent(
         }
     )
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -111,102 +112,3 @@ fun LoginScreenPreview() {
         onForgotPasswordClick = {}
     )
 }
-
-
-/*
-@Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel()
-) {
-    // ✅ Estado del login
-    val state = viewModel.state.collectAsState()
-
-    // ✅ SnackbarHostState para mostrar alertas
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    // ✅ LÓGICA: Mostrar Snackbar cuando hay error
-    LaunchedEffect(state.value.errorMessage) {
-        state.value.errorMessage?.let { mensaje ->
-            snackbarHostState.showSnackbar(mensaje)
-            // Limpiar después de mostrar
-            viewModel.onEvent(LoginEvent.ClearError)
-        }
-    }
-
-    // ✅ PANTALLA: LoginTemplate con LoginForm
-    LoginTemplate(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHostState = snackbarHostState,  // ← Pasa el snackbarHostState
-
-        // Contenido del formulario
-        formContent = {
-            LoginForm(
-                email = state.value.email,
-                password = state.value.password,
-
-                // Cambios en los campos
-                onEmailChange = { email ->
-                    viewModel.onEvent(LoginEvent.EmailChanged(email))
-                },
-                onPasswordChange = { password ->
-                    viewModel.onEvent(LoginEvent.PasswordChanged(password))
-                },
-
-                // Click en botón "Iniciar Sesión"
-                onLoginClick = {
-                    viewModel.onEvent(LoginEvent.LoginClicked)
-                },
-
-                // Click en "Olvide mi contraseña"
-                onForgotPasswordClick = {
-                    viewModel.onEvent(LoginEvent.ForgotPasswordClicked)
-                },
-
-                // Estados
-                isLoading = state.value.isLoading,
-                isError = state.value.isError,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        // NO pasas snackbarContent → LoginTemplate usa el por defecto (rojo)
-    )
-}
-*/
-/**
- * Preview para ver el diseño sin interactividad
- */
-
-/**
- * EXPLICACIÓN TÉCNICA:
- *
- * ¿Cómo funciona el Snackbar?
- *
- * 1. snackbarHostState = remember { SnackbarHostState() }
- *    ↓ Crea un estado que guarda los mensajes de snackbar
- *
- * 2. Lo pasas a LoginTemplate
- *    ↓ LoginTemplate lo usa en SnackbarHost()
- *
- * 3. ViewModel asigna errorMessage
- *    ↓ state.value.errorMessage = "Por favor ingresa un email"
- *
- * 4. LaunchedEffect detecta el cambio
- *    ↓ LaunchedEffect(state.value.errorMessage) { ... }
- *
- * 5. Llama a showSnackbar()
- *    ↓ snackbarHostState.showSnackbar(mensaje)
- *
- * 6. Snackbar aparece
- *    ↓ SnackbarHost renderiza el Snackbar rojo
- *
- * 7. Se muestra 4 segundos y desaparece automáticamente
- *    ↓ Comportamiento por defecto de Snackbar
- *
- * ¿Cuándo aparece?
- * - Cuando presiona botón SIN email → "Por favor ingresa un email"
- * - Cuando presiona botón CON email inválido → "Email inválido"
- * - Cuando presiona botón SIN contraseña → "Por favor ingresa una contraseña"
- * - Cuando presiona botón CON contraseña corta → "La contraseña debe..."
- * - Cuando presiona botón CON datos válidos → Muestra spinner 2s
- */

@@ -18,12 +18,15 @@ import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.SyncMetadata
+import com.lossabinos.serviceapp.mappers.toHomeMetrics
+import com.lossabinos.serviceapp.models.HomeMetricsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -171,6 +174,23 @@ class MechanicsViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = emptyList()
             )
+
+    // 👇 MÉTRICAS DERIVADAS
+    val homeMetrics: StateFlow<HomeMetricsModel> =
+        assignedServices
+            .map { services -> services.toHomeMetrics() }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = HomeMetricsModel(
+                    totalServices = 0,
+                    pendingServices = 0,
+                    inProgressServices = 0,
+                    completedServices = 0,
+                    efficiencyPercentage = "0"
+                )
+            )
+
 
     // ============================================================
     // SERVICE TYPES (de Room)

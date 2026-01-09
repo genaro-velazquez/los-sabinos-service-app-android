@@ -127,6 +127,8 @@ fun HomeScreen(
     val services    = mechanicsViewModel.assignedServices.collectAsStateWithLifecycle().value
     val types       = mechanicsViewModel.serviceTypes.collectAsStateWithLifecycle().value
     val metadata    = mechanicsViewModel.syncMetadata.collectAsStateWithLifecycle().value
+    val metrics =
+        mechanicsViewModel.homeMetrics.collectAsStateWithLifecycle().value
 
     // ==========================================
     // 2️⃣ CARGAR DATOS AL ABRIR PANTALLA
@@ -237,8 +239,9 @@ fun HomeScreen(
             SyncSection(
                 statusText = "Estás en línea",
                 lastSyncText = "Última sincronización: Hoy 10:45 AM",
-                unsyncTitle = "${metadata?.totalServices ?: 0} Servicios",
-                unsyncDetails = "${metadata?.pendingServices ?: 0} Pendientes, ${metadata?.inProgressServices ?: 0} En Progreso",
+                unsyncTitle = "${metrics.totalServices} servicios", //"${metadata?.totalServices ?: 0} Servicios",
+                unsyncDetails = "${metrics.pendingServices} pendientes, ${metrics.inProgressServices} en progreso",
+                    //"${metadata?.pendingServices ?: 0} Pendientes, ${metadata?.inProgressServices ?: 0} En Progreso",
                 onSyncClick = {
                     println("🔄 [SYNC] Usuario presionó sincronizar")
                     onSyncClick()
@@ -270,10 +273,10 @@ fun HomeScreen(
         // ─────────────────────────────────────────
         metricsSection = {
             MetricsSection(
-                completedCount = completed.toString(),
-                inProgressCount = inProgress.toString(),
-                pendingCount = pending.toString(),
-                efficiencyPercentage = "$efficiencyPercentage %"
+                completedCount = metrics.completedServices.toString() ,//completed.toString(),
+                inProgressCount = metrics.inProgressServices.toString() ,//inProgress.toString(),
+                pendingCount = metrics.pendingServices.toString() ,//pending.toString(),
+                efficiencyPercentage = "${metrics.efficiencyPercentage} %", //"$efficiencyPercentage %"
             )
         },
 
