@@ -32,7 +32,6 @@ import com.lossabinos.serviceapp.presentation.ui.components.organisms.ActionCard
 import com.lossabinos.serviceapp.ui.components.organisms.ConfirmationDialog
 import com.lossabinos.serviceapp.ui.components.organisms.HomeHeaderSection
 import com.lossabinos.serviceapp.ui.components.organisms.MetricsSection
-import com.lossabinos.serviceapp.ui.components.organisms.ServiceCardData
 import com.lossabinos.serviceapp.ui.components.organisms.ServiceListSectionOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.SyncSection
 import com.lossabinos.serviceapp.ui.templates.HomeTemplate
@@ -47,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.serviceapp.mappers.toServiceCardUiModel
+import com.lossabinos.serviceapp.models.ui.ServiceCardUiModel
 import com.lossabinos.serviceapp.utils.getStatusColor
 
 
@@ -126,7 +127,7 @@ fun HomeScreen(
     val mechanic    = mechanicsViewModel.mechanic.collectAsStateWithLifecycle().value
     val services    = mechanicsViewModel.assignedServices.collectAsStateWithLifecycle().value
     val types       = mechanicsViewModel.serviceTypes.collectAsStateWithLifecycle().value
-    val metadata    = mechanicsViewModel.syncMetadata.collectAsStateWithLifecycle().value
+    //val metadata    = mechanicsViewModel.syncMetadata.collectAsStateWithLifecycle().value
     val metrics =
         mechanicsViewModel.homeMetrics.collectAsStateWithLifecycle().value
 
@@ -191,6 +192,7 @@ fun HomeScreen(
         )*/
     )
 
+/*
     // ===================
     // % Eficiencia
     // ==================
@@ -209,7 +211,7 @@ fun HomeScreen(
         } else {
             "0"
         }
-
+*/
 
 
     // ==========================================
@@ -310,32 +312,9 @@ fun HomeScreen(
                         // 🆕 Obtener colores basados en el estado
                         val statusColor = getStatusColor(service.assignedService.status)
 
-                        ServiceCardData(
-                            id = service.assignedService.id,
-                            excecutionId = service.assignedService.id,
-                            title = serviceTypeName,
-                            clientName = "Cliente",
-                            icon = Icons.Filled.Build,
-                            status = service.serviceStatus.name.replaceFirstChar { it.uppercase() },
-                            statusBackgroundColor = statusColor.backgroundColor,  // 🆕
-                            statusTextColor = statusColor.textColor,              // 🆕
-                            startTime = service.assignedService.scheduledStart,
-                            endTime = service.assignedService.scheduledEnd,
-                            duration = "N/A",
-                            address = "N/A",
-                            priority = service.assignedService.priority.replaceFirstChar { it.uppercase() },
-                            note = "",
-                            //syncStatus = service.syncStatus.name
-                            // ← AQUÍ: Solo mostrar syncStatus si está COMPLETED
-                            syncStatus = if (service.serviceStatus == ServiceStatus.COMPLETED) {
-                                service.syncStatus.name
-                            } else {
-                                ""  // Empty = no mostrar badge
-                            },
-                            serviceStatus = service.serviceStatus,
-                            onCompleteClick = { },
-                            onRescheduleClick = { },
-                            onSyncClick = { }
+                        service.toServiceCardUiModel(
+                            serviceTypeName = serviceTypeName,
+                            statusColor = statusColor
                         )
                     }
 

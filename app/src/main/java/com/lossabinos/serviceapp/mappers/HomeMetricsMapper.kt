@@ -2,9 +2,9 @@ package com.lossabinos.serviceapp.mappers
 
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
-import com.lossabinos.serviceapp.models.HomeMetricsModel
+import com.lossabinos.serviceapp.models.ui.HomeMetricsUiModel
 
-fun List<AssignedServiceProgress>.toHomeMetrics(): HomeMetricsModel {
+fun List<AssignedServiceProgress>.toHomeMetrics(): HomeMetricsUiModel {
     val total = size
     val pending = count { it.serviceStatus == ServiceStatus.PENDING }
     val inProgress = count { it.serviceStatus == ServiceStatus.IN_PROGRESS }
@@ -17,7 +17,7 @@ fun List<AssignedServiceProgress>.toHomeMetrics(): HomeMetricsModel {
             "0"
         }
 
-    return HomeMetricsModel(
+    return HomeMetricsUiModel(
         totalServices = total,
         pendingServices = pending,
         inProgressServices = inProgress,

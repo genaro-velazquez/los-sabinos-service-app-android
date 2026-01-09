@@ -1,6 +1,6 @@
-package com.lossabinos.serviceapp.models
+package com.lossabinos.serviceapp.models.ui
 
-data class HomeMetricsModel(
+data class HomeMetricsUiModel(
     val totalServices: Int,
     val pendingServices: Int,
     val inProgressServices: Int,

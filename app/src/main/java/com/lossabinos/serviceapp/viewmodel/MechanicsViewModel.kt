@@ -2,11 +2,8 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
-import com.lossabinos.domain.responses.AssignedServicesResponse
-import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.responses.InitialDataResponse
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
@@ -19,7 +16,7 @@ import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
 import com.lossabinos.domain.valueobjects.SyncMetadata
 import com.lossabinos.serviceapp.mappers.toHomeMetrics
-import com.lossabinos.serviceapp.models.HomeMetricsModel
+import com.lossabinos.serviceapp.models.ui.HomeMetricsUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -176,13 +173,13 @@ class MechanicsViewModel @Inject constructor(
             )
 
     // 👇 MÉTRICAS DERIVADAS
-    val homeMetrics: StateFlow<HomeMetricsModel> =
+    val homeMetrics: StateFlow<HomeMetricsUiModel> =
         assignedServices
             .map { services -> services.toHomeMetrics() }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = HomeMetricsModel(
+                initialValue = HomeMetricsUiModel(
                     totalServices = 0,
                     pendingServices = 0,
                     inProgressServices = 0,

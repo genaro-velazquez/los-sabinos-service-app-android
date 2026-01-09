@@ -36,37 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp  // ✅ AGREGADO: Import para sp()
 import androidx.compose.ui.unit.times
 import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.serviceapp.models.ui.ServiceCardUiModel
 import com.lossabinos.serviceapp.ui.components.molecules.ActionButtonsGroupMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceHeaderMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceNoteMolecule
 import com.lossabinos.serviceapp.ui.components.molecules.ServiceSummaryMolecule
 import com.lossabinos.serviceapp.ui.theme.LosabosTheme
-
-// ==========================================
-// SERVICE CARD DATA CLASS
-// ==========================================
-data class ServiceCardData(
-    val id: String,
-    val excecutionId:String,
-    val icon: ImageVector,
-    val title: String,
-    val status: String,
-    val statusBackgroundColor: Color = Color(0xFFE0E0E0),  // 🆕
-    val statusTextColor: Color = Color(0xFF424242),        // 🆕
-    val clientName: String,
-    val startTime: String,
-    val endTime: String,
-    val duration: String,
-    val address: String,
-    val priority: String,
-    val note: String,
-    val syncStatus: String = "SYNCED",         // "SYNCED", "PENDING", "ERROR"
-    val serviceStatus: ServiceStatus = ServiceStatus.PENDING,
-    val onCompleteClick: () -> Unit = {},
-    val onRescheduleClick: () -> Unit = {},
-    val onSyncClick: () -> Unit = {}  // ← AGREGAR
-
-)
 
 // ==========================================
 // 1. SERVICE CARD ORGANISM
@@ -77,10 +52,12 @@ data class ServiceCardData(
  */
 @Composable
 fun ServiceCardOrganism(
-    service: ServiceCardData,
+    service: ServiceCardUiModel,
     serviceStatus: ServiceStatus,      // ← AGREGAR
     syncStatus: String = "SYNCED",     // ← AGREGAR
-    onSyncClick: () -> Unit = {}       // ← AGREGAR
+    onCompleteClick: () -> Unit = {},
+    onRescheduleClick: () -> Unit = {},
+    onSyncClick: () -> Unit = {}
 ) {
 
     Box(
@@ -137,9 +114,9 @@ fun ServiceCardOrganism(
             ActionButtonsGroupMolecule(
                 serviceStatus = serviceStatus,           // ← PASAR
                 syncStatus = syncStatus,                 // ← PASAR
-                onCompleteClick = service.onCompleteClick,
+                onCompleteClick = onCompleteClick, //service.onCompleteClick,
                 onSyncClick = onSyncClick,               // ← PASAR
-                onRescheduleClick = service.onRescheduleClick
+                onRescheduleClick = onRescheduleClick //service.onRescheduleClick
             )
         }
     }
@@ -215,7 +192,7 @@ fun ServiceCardOrganism(
  */
 @Composable
 fun ServiceListItemOrganism(
-    service: ServiceCardData,
+    service: ServiceCardUiModel,
     onCardClick: (String) -> Unit = {},
     onQuickCompleteClick: (String) -> Unit = {}
 ) {
@@ -315,7 +292,7 @@ fun ServiceListItemOrganism(
 @Composable
 fun ServiceListSectionOrganism(
     title: String = "Servicios Asignados",
-    services: List<ServiceCardData>,
+    services: List<ServiceCardUiModel>,
     onServiceClick: (String) -> Unit = {},
     onCompleteClick: (String) -> Unit = {},
     onRescheduleClick: (String) -> Unit = {},
@@ -359,23 +336,18 @@ fun ServiceListSectionOrganism(
             ) {
                 services.forEach { service ->
                     ServiceCardOrganism(
-                        service = service.copy(
-                            onCompleteClick = { onCompleteClick(service.excecutionId) },
-                            onRescheduleClick = { onRescheduleClick(service.excecutionId) },
-                            onSyncClick = { onSyncClick(service.excecutionId) }
-                        ),
                         /*
                         service = service.copy(
-                            onCompleteClick = { onCompleteClick(service.excecutionId) },
-                            onRescheduleClick = { onRescheduleClick(service.excecutionId) },
-                            onSyncClick = { onSyncClick(service.excecutionId) }
-                        ),
-                        */
+                            onCompleteClick = { onCompleteClick(service.executionId) },
+                            onRescheduleClick = { onRescheduleClick(service.executionId) },
+                            onSyncClick = { onSyncClick(service.executionId) }
+                        ),*/
+                        service = service,
                         serviceStatus = service.serviceStatus,
                         syncStatus = service.syncStatus,
-                        onSyncClick = { onSyncClick(service.excecutionId) }
-                    )
-
+                        onCompleteClick = { onCompleteClick(service.executionId) },
+                        onRescheduleClick = { onRescheduleClick(service.executionId) },
+                        onSyncClick = { onSyncClick(service.executionId) },                    )
                     /*
                     ServiceCardOrganism(
                         service = service.copy(
@@ -400,9 +372,9 @@ fun ServiceListSectionOrganism(
 fun ServiceListSectionOrganismPreview(){
     LosabosTheme {
         val services = listOf(
-            ServiceCardData(
+            ServiceCardUiModel(
                 id = "service_1",
-                excecutionId = "execution_service_1",
+                executionId = "execution_service_1",
                 title = "Mantenimiento Preventivo",
                 clientName = "Global Logistics",
                 icon = Icons.Filled.Build,
@@ -412,13 +384,11 @@ fun ServiceListSectionOrganismPreview(){
                 duration = "1 hr",
                 address = "Calle Falsa 123",
                 priority = "Media",
-                note = "No olvidar llevar equipo de seguridad adicional solicitado por el cliente.",
-                onCompleteClick = {  },
-                onRescheduleClick = {  }
+                note = "No olvidar llevar equipo de seguridad adicional solicitado por el cliente."
             ),
-            ServiceCardData(
+            ServiceCardUiModel(
                 id = "service_2",
-                excecutionId = "execution_service_2",
+                executionId = "execution_service_2",
                 title = "Reparación de Tubería",
                 clientName = "Tech Solutions Inc.",
                 icon = Icons.Filled.Plumbing,
@@ -428,13 +398,11 @@ fun ServiceListSectionOrganismPreview(){
                 duration = "1.5 hrs",
                 address = "Avenida Principal 456",
                 priority = "Alta",
-                note = "Cliente requiere atención especial al sistema de refrigeración.",
-                onCompleteClick = {  },
-                onRescheduleClick = {  }
+                note = "Cliente requiere atención especial al sistema de refrigeración."
             ),
-            ServiceCardData(
+            ServiceCardUiModel(
                 id = "service_3",
-                excecutionId = "execution_service_3",
+                executionId = "execution_service_3",
                 title = "Inspección General",
                 clientName = "Manufacturing Corp",
                 icon = Icons.Filled.Speed,
@@ -444,9 +412,7 @@ fun ServiceListSectionOrganismPreview(){
                 duration = "1 hr",
                 address = "Calle Industrial 789",
                 priority = "Baja",
-                note = "Realizar revisión completa del sistema.",
-                onCompleteClick = {  },
-                onRescheduleClick = { }
+                note = "Realizar revisión completa del sistema."
             )
         )
 
