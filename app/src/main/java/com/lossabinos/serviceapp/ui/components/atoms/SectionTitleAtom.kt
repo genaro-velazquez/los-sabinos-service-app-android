@@ -18,10 +18,10 @@ fun SectionTitleAtom(
 ) {
     Text(
         text = title,
-        fontSize = 20.sp,
+        fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
         color = Color.Black,
-        modifier = modifier.padding(bottom = 12.dp)
+        modifier = modifier.padding(start = 4.dp)
     )
 }
 

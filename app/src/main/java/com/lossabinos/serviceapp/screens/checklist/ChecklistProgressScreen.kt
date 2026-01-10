@@ -232,10 +232,11 @@ fun ChecklistProgressScreen(
                     evidenceId = activityUI.evidence.firstOrNull()?.id ?: 0L
                 )
             },
-            observations = observations,
+            observations = uiState.currentSectionObservations,  // ← CAMBIAR
+            observationResponses = uiState.observationResponses,  // ← AGREGAR
             metadata = uiState.currentSectionMetadata,
-            onObservationsChange = { newText ->
-                viewModel.updateObservations(text = newText)
+            onObservationChange = { observationId, value ->  // ← CAMBIAR
+                viewModel.updateObservationResponse(observationId, value)
             },
             onTaskCheckedChange = { taskId, completed ->
                 // 🆕 CAMBIO: Solo actualizar estado local, NO guardar

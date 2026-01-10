@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lossabinos.serviceapp.ui.components.atoms.SectionTitleAtom
 import com.lossabinos.serviceapp.ui.components.molecules.ChecklistTaskCardMolecule
 
 data class ActivityTaskItem(
@@ -39,12 +40,8 @@ fun ActivitiesListOrganism(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Título
-        Text(
-            text = "ACTIVIDADES",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(start = 4.dp)
+        SectionTitleAtom(
+            title = "ACTIVIDADES"
         )
 
         // Lista de tasks

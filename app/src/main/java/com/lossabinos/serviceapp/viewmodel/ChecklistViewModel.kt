@@ -7,6 +7,7 @@ import com.lossabinos.data.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.local.mappers.toEntity
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.domain.entities.ActivityEvidence
+import com.lossabinos.domain.entities.Observation
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
@@ -24,6 +25,7 @@ import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
 import com.lossabinos.serviceapp.models.MetadataModel
+import com.lossabinos.serviceapp.models.ObservationModel
 import com.lossabinos.serviceapp.models.ObservationUIModel
 import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
@@ -43,22 +45,23 @@ import javax.inject.Inject
 
 data class ChecklistUIState(
     val currentSectionIndex: Int = 0,
-    val totalSections: Int = 0,
     val currentSectionName: String = "",
-    val templateName:String = "",
     val currentSectionMetadata: List<MetadataModel> = emptyList(),
     val currentSectionActivities: List<ActivityUIModel> = emptyList(),  // ✨ NUEVO: Con UI Model
-    val currentSectionObservations: List<ObservationUIModel> = emptyList(),  // ✨ NUEVO
-    // Progreso GLOBAL (todo el servicio)
+    val currentSectionObservations: List<ObservationModel> = emptyList(),  // ✨ NUEVO
+    val observationResponses: Map<String, String> = emptyMap(),  // ← AGREGAR
     val totalActivities: Int = 0,
+    val totalSections: Int = 0,
+    val templateName:String = "",
+    val sectionProgressPercentage: Int = 0,   // Progreso SOLO de esta sección
+    val isLoading: Boolean = false,
+
+    // Progreso GLOBAL (todo el servicio)
     val completedActivities: Int = 0,
     val progressPercentage: Int = 0,
     // 🆕 AGREGAMOS: Progreso POR SECCIÓN
     val sectionTotalActivities: Int = 0,      // Tareas en la sección actual
     val sectionCompletedActivities: Int = 0,  // Tareas completadas en la sección actual
-    val sectionProgressPercentage: Int = 0,   // Progreso SOLO de esta sección
-
-    val isLoading: Boolean = false,
     val observations: String = "",
     val canContinue: Boolean = false,
     val allSectionsComplete: Boolean = false
@@ -83,6 +86,14 @@ class ChecklistViewModel @Inject constructor(
 
     private val _navigationEvent = MutableStateFlow<NavigationEvent?>(null)
     val navigationEvent: StateFlow<NavigationEvent?> = _navigationEvent.asStateFlow()
+
+    fun updateObservationResponse(observationId: String, value: String) {
+        _state.update { currentState ->
+            val newResponses = currentState.observationResponses.toMutableMap()
+            newResponses[observationId] = value
+            currentState.copy(observationResponses = newResponses)
+        }
+    }
 
     // ← AGREGAR ESTOS MÉTODOS
     fun onSignChecklistClicked() {
@@ -244,7 +255,7 @@ class ChecklistViewModel @Inject constructor(
                         templateName = tmpl.name,
                         currentSectionMetadata = sectionUIModel.section.metadata,
                         currentSectionActivities = sectionUIModel.activities,
-                        //currentSectionObservations = emptyList(), /*sectionUIModel.observations*/,
+                        currentSectionObservations = sectionUIModel.section.observations,
                         totalActivities = totalActivities,
                         completedActivities = totalCompleted,
                         progressPercentage = progressPercentage,
@@ -252,7 +263,8 @@ class ChecklistViewModel @Inject constructor(
                         sectionCompletedActivities = sectionCompletedActivities,
                         sectionProgressPercentage = sectionProgressPercentage,
                         canContinue = checkIfSectionComplete(sectionUIModel.activities),
-                        observations = "" //previousObservations
+                        observations = "", //previousObservations
+                        observationResponses = emptyMap()
                     )
 
                     _observations.value = ""//previousObservations
@@ -944,9 +956,11 @@ class ChecklistViewModel @Inject constructor(
                             currentSectionIndex = nextIndex,  // ✅ Navega DESPUÉS de guardar
                             currentSectionName = nextSectionUI.section.name,
                             currentSectionMetadata = nextSectionUI.section.metadata,
+                            currentSectionObservations = nextSectionUI.section.observations,
                             currentSectionActivities = nextSectionUI.activities,
                             canContinue = false,
-                            observations = ""
+                            observations = "",
+                            observationResponses = emptyMap()
                         )
 
                         println("✅ Siguiente sección: ${nextSectionUI.section.name}")
