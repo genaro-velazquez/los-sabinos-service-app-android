@@ -33,19 +33,20 @@ fun ObservationResponseEntity.toDomain(): ObservationAnswer{
         timestamp = timestamp
     )
 }
-
+/*
 fun ObservationAnswer.toEntity(): ObservationResponseEntity {
     return ObservationResponseEntity(
         id = id,
         assignedServiceId = assignedServiceId,
         sectionIndex = sectionIndex,
         observationIndex = observationIndex,
+        observationId = ob,
         observationDescription = observationDescription,
         response = answer,
         timestamp = timestamp
     )
 }
-
+*/
 //++++++++++++++++++++++++++++
 // ActivityProgressActivity
 //****************************

@@ -53,8 +53,11 @@ interface ChecklistRepository {
         assignedServiceId: String,
         sectionIndex: Int,
         observationIndex: Int,
+        observationId: String,
         observationDescription: String,
-        response: String
+        responseType: String,
+        response: String? = null,
+        requiresResponse: Boolean = false
     ): Long
 
     //****************************+***

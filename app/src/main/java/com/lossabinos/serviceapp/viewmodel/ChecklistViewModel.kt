@@ -350,6 +350,7 @@ class ChecklistViewModel @Inject constructor(
             sectionIndex = sectionIndex
         )
 */
+        /*
         val observationsUI = section.observations.mapIndexed { index, observation ->
             val response = observationResponses.find { it.observationIndex == index }
 
@@ -362,6 +363,7 @@ class ChecklistViewModel @Inject constructor(
                 response = response?.toEntity()
             )
         }
+        */
 
         return SectionUIModel(
             section = SectionModel(section = section),
@@ -657,37 +659,35 @@ class ChecklistViewModel @Inject constructor(
     // ═══════════════════════════════════════════════════════
     // 7. GUARDAR OBSERVACIONES
     // ═══════════════════════════════════════════════════════
-    fun saveObservations(observationText: String) {
-        viewModelScope.launch {
+    suspend fun saveObservations() {
             try {
                 val state = _state.value
 
-                state.currentSectionObservations.forEach { obsUI ->
+                println("💾 Guardando observaciones de sección ${state.currentSectionIndex}...")
+
+                // Iterar sobre las observaciones con sus respuestas
+                state.currentSectionObservations.forEachIndexed { obsIndex, observation ->
+                    val response = state.observationResponses[observation.id] ?: ""
+
+                    println("   - ${observation.description}: $response")
+
+                    // Guardar cada observación individualmente
                     saveObservationResponseUseCase.invoke(
                         assignedServiceId = serviceId,
                         sectionIndex = state.currentSectionIndex,
-                        observationIndex = state.currentSectionObservations.indexOf(obsUI),
-                        observationDescription = "", //obsUI.observation.description,
-                        response = observationText
+                        observationIndex = obsIndex,
+                        observationId = observation.id,  // ← AGREGAR
+                        observationDescription = observation.description,
+                        responseType = observation.responseType.name.lowercase(),  // ← AGREGAR
+                        response = response,
+                        requiresResponse = observation.requiresResponse  // ← AGREGAR
                     )
-
-/*
-                    checklistRepository.saveObservationResponse(
-                        assignedServiceId = serviceId,
-                        sectionIndex = state.currentSectionIndex,
-                        observationIndex = state.currentSectionObservations.indexOf(obsUI),
-                        observationDescription = "", //obsUI.observation.description,
-                        response = observationText
-                    )
- */
                 }
 
-                println("✅ Observaciones guardadas: ${observationText.take(30)}...")
+                println("✅ Observaciones guardadas: ...")
             } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
             }
-        }
-        println("🟢 addPhotoToActivity: Método finalizado (launch asincrónico)")
     }
 
     // ═══════════════════════════════════════════════════════
@@ -698,7 +698,7 @@ class ChecklistViewModel @Inject constructor(
             _observations.value = text
         }
     }
-
+/*
     // ═══════════════════════════════════════════════════════
     // 9. IR A SIGUIENTE SECCIÓN
     // ═══════════════════════════════════════════════════════
@@ -778,7 +778,7 @@ class ChecklistViewModel @Inject constructor(
             }
         }
     }
-
+*/
     // ═══════════════════════════════════════════════════════
     // 🆕 GUARDAR TODAS LAS ACTIVIDADES COMPLETADAS (al click "Continuar")
     // ═══════════════════════════════════════════════════════
@@ -933,8 +933,18 @@ class ChecklistViewModel @Inject constructor(
                     progressPercentage = newPercentage
                 )
 
-                // 3️⃣ AHORA SÍ, navegar a siguiente sección
-                // (Después de guardar, no antes)
+                // 4️⃣ GUARDAR OBSERVACIONES ANTES DE VERIFICAR SI HAY MÁS SECCIONES
+                try {
+                    println("💾 Guardando observaciones...")
+                    saveObservations()
+                    println("✅ Observaciones guardadas")
+                }
+                catch (e: Exception){
+                    println("⚠️ Error guardando observaciones: ${e.message}")
+                }
+
+
+                // 5️⃣ Verificar si hay siguiente sección
                 val nextIndex = state.currentSectionIndex + 1
 
                 if (nextIndex < state.totalSections) {
@@ -944,13 +954,6 @@ class ChecklistViewModel @Inject constructor(
                             sectionIndex = nextIndex,
                             serviceId = serviceId
                         )
-
-                        try {
-                            saveObservations(_observations.value)
-                        }
-                        catch (e: Exception){
-                            println("⚠️ Error guardando observaciones: ${e.message}")
-                        }
 
                         _state.value = state.copy(
                             currentSectionIndex = nextIndex,  // ✅ Navega DESPUÉS de guardar
@@ -965,7 +968,6 @@ class ChecklistViewModel @Inject constructor(
 
                         println("✅ Siguiente sección: ${nextSectionUI.section.name}")
                         println("✅ Siguiente sección.metadata: ${nextSectionUI.section.metadata}")
-
                     }
                 } else {
                     _state.value = state.copy(
@@ -983,5 +985,4 @@ class ChecklistViewModel @Inject constructor(
             }
         }
     }
-
 }

@@ -131,15 +131,21 @@ class ChecklistRepositoryImpl(
         assignedServiceId: String,
         sectionIndex: Int,
         observationIndex: Int,
+        observationId: String,
         observationDescription: String,
-        response: String
+        responseType: String,
+        response: String?,
+        requiresResponse: Boolean
     ): Long {
         val entity = ObservationResponseEntity(
             assignedServiceId = assignedServiceId,
             sectionIndex = sectionIndex,
             observationIndex = observationIndex,
+            observationId = observationId,
             observationDescription = observationDescription,
+            responseType = responseType,
             response = response,
+            requiresResponse = requiresResponse,
             timestamp = System.currentTimeMillis().toISO8601String()
         )
         return observationResponseDao.insertObservationResponse(

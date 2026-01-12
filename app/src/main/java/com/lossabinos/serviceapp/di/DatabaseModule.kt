@@ -22,6 +22,50 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private val MIGRATION_8_TO_9 = object : Migration(
+        startVersion = 7,
+        endVersion = 8
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Crear tabla temporal con nueva estructura
+            db.execSQL("""
+            CREATE TABLE observation_response_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                assignedServiceId TEXT NOT NULL,
+                sectionIndex INTEGER NOT NULL,
+                observationIndex INTEGER NOT NULL,
+                observationId TEXT NOT NULL,
+                observationDescription TEXT NOT NULL,
+                responseType TEXT NOT NULL,
+                response TEXT,
+                requiresResponse INTEGER NOT NULL DEFAULT 0,
+                timestamp TEXT NOT NULL,
+                FOREIGN KEY(assignedServiceId) REFERENCES assigned_services(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+
+            // Copiar datos de tabla antigua a nueva
+            db.execSQL("""
+            INSERT INTO observation_response_new (
+                id, assignedServiceId, sectionIndex, observationIndex,
+                observationId, observationDescription, responseType,
+                response, requiresResponse, timestamp
+            )
+            SELECT 
+                id, assignedServiceId, sectionIndex, observationIndex,
+                '', observationDescription, 'textarea',
+                response, 0, CURRENT_TIMESTAMP
+            FROM observation_response
+        """.trimIndent())
+
+            // Eliminar tabla antigua
+            db.execSQL("DROP TABLE observation_response")
+
+            // Renombrar tabla nueva
+            db.execSQL("ALTER TABLE observation_response_new RENAME TO observation_response")
+        }
+    }
+
     private val MIGRATION_6_TO_7 = object : Migration(
         startVersion = 6,
         endVersion = 7
@@ -187,7 +231,6 @@ object DatabaseModule {
                 ALTER TABLE assigned_services 
                 ADD COLUMN vehicleModelName TEXT
             """)
-
         }
     }
 
@@ -205,7 +248,8 @@ object DatabaseModule {
                 MIGRATION_3_TO_4,
                 MIGRATION_4_TO_5,
                 MIGRATION_5_TO_6,
-                MIGRATION_6_TO_7)
+                MIGRATION_6_TO_7,
+                MIGRATION_8_TO_9)
             .fallbackToDestructiveMigration(true)
             .build()
     }

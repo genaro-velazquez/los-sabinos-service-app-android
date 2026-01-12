@@ -9,15 +9,21 @@ class SaveObservationResponseUseCase(
         assignedServiceId: String,
         sectionIndex: Int,
         observationIndex: Int,
+        observationId: String,
         observationDescription: String,
-        response: String
+        responseType: String,
+        response: String? = null,
+        requiresResponse: Boolean = false
     ) : Long {
         return checklistRepository.saveObservationResponse(
             assignedServiceId = assignedServiceId,
             sectionIndex = sectionIndex,
             observationIndex = observationIndex,
+            observationId = observationId,
             observationDescription = observationDescription,
-            response = response
+            responseType = responseType,
+            response = response,
+            requiresResponse = requiresResponse
         )
     }
 }

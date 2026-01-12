@@ -67,8 +67,11 @@ data class ObservationResponseEntity(
     val assignedServiceId: String,  // FK (camelCase)
     val sectionIndex: Int,
     val observationIndex: Int,
+    val observationId:String,
     val observationDescription: String,
+    val responseType: String,  // ← AGREGAR (textarea, number, boolean)
     val response: String? = null,
+    val requiresResponse: Boolean = false,  // ← AGREGAR
     val timestamp: String? = null
 )
 
