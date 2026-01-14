@@ -3,18 +3,19 @@ package com.lossabinos.serviceapp.di
 import android.content.SharedPreferences
 import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
 import com.lossabinos.data.dto.utilities.HeadersMaker
-import com.lossabinos.data.local.database.dao.ActivityEvidenceDao
-import com.lossabinos.data.local.database.dao.ActivityProgressDao
-import com.lossabinos.data.local.database.dao.InitialDataDao
-import com.lossabinos.data.local.database.dao.ObservationResponseDao
-import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
-import com.lossabinos.data.local.repositories.ChecklistRepositoryImpl
-import com.lossabinos.data.local.repositories.LocalDataRepositoryImp
+import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
+import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
+import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
+import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.repositories.ChecklistRepositoryImpl
+import com.lossabinos.data.repositories.LocalDataRepositoryImp
+import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
+import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 //import com.lossabinos.data.repositories.local.ChecklistRepository
-import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
-import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
-import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsRetrofitRepository
-import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsServices
+import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
+import com.lossabinos.data.retrofit.AuthenticationServices
+import com.lossabinos.data.repositories.MechanicsRetrofitRepository
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
@@ -66,14 +67,12 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideMechanicsRepositoryImp(
-        mechanicsServices: MechanicsServices,
-        headersMaker: HeadersMaker,
-        initialDataDao: InitialDataDao
+        remoteDataSource : MechanicsRemoteDataSource,
+        localDataSource : MechanicsLocalDataSource
     ): MechanicsRepository{
         return MechanicsRetrofitRepository(
-            assignedServices = mechanicsServices,
-            headersMaker = headersMaker,
-            initialDataDao = initialDataDao
+            remoteDataSource = remoteDataSource,
+            localDataSource = localDataSource
         )
     }
 /*

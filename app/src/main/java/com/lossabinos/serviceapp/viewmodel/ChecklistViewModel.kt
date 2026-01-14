@@ -2,12 +2,10 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
-import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.local.mappers.toEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.mappers.toEntity
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.domain.entities.ActivityEvidence
-import com.lossabinos.domain.entities.Observation
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
@@ -16,8 +14,6 @@ import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectio
 import com.lossabinos.domain.usecases.checklist.GetTotalCompletedActivitiesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
-import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
-import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
@@ -26,11 +22,8 @@ import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
 import com.lossabinos.serviceapp.models.MetadataModel
 import com.lossabinos.serviceapp.models.ObservationModel
-import com.lossabinos.serviceapp.models.ObservationUIModel
 import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
-import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
-import com.lossabinos.serviceapp.models.toDomain
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay

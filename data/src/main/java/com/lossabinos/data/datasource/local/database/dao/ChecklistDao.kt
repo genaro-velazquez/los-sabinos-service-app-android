@@ -1,4 +1,4 @@
-package com.lossabinos.data.local.database.dao
+package com.lossabinos.data.datasource.local.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,13 +7,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Update
 import androidx.room.Query
 import androidx.room.Upsert
-import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
-import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
-import com.lossabinos.data.local.database.entities.ObservationResponseEntity
-import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
-import com.lossabinos.data.local.database.entities.ServiceProgressEntity
-import kotlinx.coroutines.flow.Flow
+import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
 
 
 // 1️⃣ DAO para Activity Progress

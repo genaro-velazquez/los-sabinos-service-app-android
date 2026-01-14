@@ -2,7 +2,6 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lossabinos.data.local.mappers.toEntity
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase

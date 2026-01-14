@@ -1,4 +1,4 @@
-package com.lossabinos.data.local.database.entities
+package com.lossabinos.data.datasource.local.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded

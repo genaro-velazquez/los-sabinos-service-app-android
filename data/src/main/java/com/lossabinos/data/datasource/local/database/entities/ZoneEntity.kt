@@ -1,4 +1,4 @@
-package com.lossabinos.data.local.database.entities
+package com.lossabinos.data.datasource.local.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

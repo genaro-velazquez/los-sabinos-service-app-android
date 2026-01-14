@@ -3,7 +3,7 @@ package com.lossabinos.data.dto.repositories.retrofit.authentication
 import com.lossabinos.data.dto.repositories.retrofit.RetrofitResponseValidator
 import com.lossabinos.data.dto.responses.LoginResponseDTO
 import com.lossabinos.data.dto.utilities.HeadersMaker
-import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
+import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.responses.LoginResponse
 import okhttp3.MediaType.Companion.toMediaType

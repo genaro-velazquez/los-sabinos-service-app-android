@@ -1,4 +1,4 @@
-package com.lossabinos.data.local.database.dao
+package com.lossabinos.data.datasource.local.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,15 +7,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.lossabinos.data.local.database.entities.AssignedServiceEntity
-import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
-import com.lossabinos.data.local.database.entities.MechanicEntity
-import com.lossabinos.data.local.database.entities.ServiceProgressEntity
-import com.lossabinos.data.local.database.entities.ServiceTypeEntity
-import com.lossabinos.data.local.database.entities.SyncMetadataEntity
-import com.lossabinos.data.local.database.entities.VehicleEntity
-import com.lossabinos.data.local.database.entities.WorkOrderEntity
-import com.lossabinos.data.local.database.entities.ZoneEntity
+import com.lossabinos.data.datasource.local.database.entities.AssignedServiceEntity
+import com.lossabinos.data.datasource.local.database.entities.AssignedServiceWithProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.MechanicEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceTypeEntity
+import com.lossabinos.data.datasource.local.database.entities.SyncMetadataEntity
+import com.lossabinos.data.datasource.local.database.entities.VehicleEntity
+import com.lossabinos.data.datasource.local.database.entities.WorkOrderEntity
+import com.lossabinos.data.datasource.local.database.entities.ZoneEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

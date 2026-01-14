@@ -1,8 +1,8 @@
 package com.lossabinos.serviceapp.models
 
-import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
-import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.local.database.entities.ObservationResponseEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 
 
 // ✨ Modelo UI para una actividad con su progreso

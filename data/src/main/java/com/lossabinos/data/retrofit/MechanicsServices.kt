@@ -1,4 +1,4 @@
-package com.lossabinos.data.repositories.retrofit.mechanics
+package com.lossabinos.data.retrofit
 
 import retrofit2.Response
 import retrofit2.http.GET
@@ -9,7 +9,7 @@ interface MechanicsServices {
     @GET("/api/v1/mechanics/me/assigned-services")
     suspend fun assignedServices(
         @HeaderMap headers: Map<String, String>
-    ):  Response<String>
+    ): Response<String>
 
     @GET("/api/v1/mechanics/services/{id_service}/template")
     suspend fun detailedService(

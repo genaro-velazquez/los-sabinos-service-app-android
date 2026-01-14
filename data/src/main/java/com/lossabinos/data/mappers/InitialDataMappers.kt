@@ -1,9 +1,9 @@
-package com.lossabinos.data.local.mappers
+package com.lossabinos.data.mappers
 
-import com.lossabinos.data.local.database.entities.AssignedServiceEntity
-import com.lossabinos.data.local.database.entities.MechanicEntity
-import com.lossabinos.data.local.database.entities.ServiceTypeEntity
-import com.lossabinos.data.local.database.entities.SyncMetadataEntity
+import com.lossabinos.data.datasource.local.database.entities.AssignedServiceEntity
+import com.lossabinos.data.datasource.local.database.entities.MechanicEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceTypeEntity
+import com.lossabinos.data.datasource.local.database.entities.SyncMetadataEntity
 import com.lossabinos.domain.entities.AssignedService
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
@@ -14,6 +14,7 @@ import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.domain.valueobjects.VehicleVersion
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 
 // ============ Mechanic: Domain → Room ============
 fun Mechanic.toRoomEntity(): MechanicEntity {
@@ -127,7 +128,7 @@ fun SyncMetadata.toRoomEntity(): SyncMetadataEntity {
         pendingServices = pendingServices,
         inProgressServices = inProgressServices,
         lastSync = lastSync,
-        updatedAt = java.time.Instant.now().toString()  // Timestamp actual
+        updatedAt = Instant.now().toString()  // Timestamp actual
     )
 }
 

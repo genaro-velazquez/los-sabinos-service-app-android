@@ -1,10 +1,8 @@
-package com.lossabinos.data.repositories.retrofit.authentication
+package com.lossabinos.data.retrofit
 
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.FieldMap
-import retrofit2.http.FormUrlEncoded
 import retrofit2.http.HeaderMap
 import retrofit2.http.POST
 
@@ -14,7 +12,7 @@ interface AuthenticationServices {
     suspend fun login(
         @Body request: RequestBody,
         @HeaderMap headers: Map<String, String>
-    ):  Response<String>
+    ): Response<String>
 
 /*
     @POST("/api/v1/auth/login")

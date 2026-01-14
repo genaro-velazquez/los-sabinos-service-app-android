@@ -1,8 +1,8 @@
-package com.lossabinos.data.repositories.local
+package com.lossabinos.data.repositories
 
 import android.content.SharedPreferences
-import com.lossabinos.domain.repositories.UserPreferencesRepository
 import androidx.core.content.edit
+import com.lossabinos.domain.repositories.UserPreferencesRepository
 
 class UserSharedPreferencesRepositoryImpl(
     private val sharedPreferences: SharedPreferences

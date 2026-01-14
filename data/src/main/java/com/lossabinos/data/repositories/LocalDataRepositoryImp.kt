@@ -1,10 +1,10 @@
-package com.lossabinos.data.local.repositories
+package com.lossabinos.data.repositories
 
-import com.lossabinos.data.local.database.dao.ActivityEvidenceDao
-import com.lossabinos.data.local.database.dao.ActivityProgressDao
-import com.lossabinos.data.local.database.dao.InitialDataDao
-import com.lossabinos.data.local.database.dao.ObservationResponseDao
-import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
+import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
+import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
+import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.domain.repositories.LocalDataRepository
 
 class LocalDataRepositoryImp(

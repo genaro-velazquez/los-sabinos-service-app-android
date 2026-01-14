@@ -1,7 +1,7 @@
 package com.lossabinos.serviceapp.di
 
-import com.lossabinos.data.repositories.retrofit.authentication.AuthenticationServices
-import com.lossabinos.data.repositories.retrofit.mechanics.MechanicsServices
+import com.lossabinos.data.retrofit.AuthenticationServices
+import com.lossabinos.data.retrofit.MechanicsServices
 import com.lossabinos.data.utilities.CurlLoggingInterceptor
 import dagger.Module
 import dagger.Provides
@@ -12,7 +12,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import javax.inject.Singleton
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import retrofit2.create
 
 @Module
 @InstallIn(SingletonComponent::class)

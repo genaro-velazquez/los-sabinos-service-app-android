@@ -2,7 +2,7 @@ package com.lossabinos.serviceapp.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.lossabinos.data.repositories.local.UserSharedPreferencesRepositoryImpl
+import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
 import dagger.Provides

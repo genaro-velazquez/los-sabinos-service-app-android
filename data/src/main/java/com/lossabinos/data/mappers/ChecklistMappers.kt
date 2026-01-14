@@ -1,10 +1,10 @@
-package com.lossabinos.data.local.mappers
+package com.lossabinos.data.mappers
 
-import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
-import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.local.database.entities.AssignedServiceWithProgressEntity
-import com.lossabinos.data.local.database.entities.ObservationResponseEntity
-import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.AssignedServiceWithProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer

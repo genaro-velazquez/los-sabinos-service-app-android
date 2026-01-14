@@ -1,16 +1,15 @@
-package com.lossabinos.data.local.repositories
+package com.lossabinos.data.repositories
 
-import com.lossabinos.data.local.database.dao.ActivityEvidenceDao
-import com.lossabinos.data.local.database.dao.ActivityProgressDao
-import com.lossabinos.data.local.database.dao.ObservationResponseDao
-import com.lossabinos.data.local.database.dao.ServiceFieldValueDao
-import com.lossabinos.data.local.database.entities.ActivityEvidenceEntity
-import com.lossabinos.data.local.database.entities.ActivityProgressEntity
-import com.lossabinos.data.local.database.entities.ObservationResponseEntity
-import com.lossabinos.data.local.database.entities.ServiceFieldValueEntity
-import com.lossabinos.data.local.database.entities.ServiceProgressEntity
-import com.lossabinos.data.local.mappers.toDomain
-import com.lossabinos.data.local.mappers.toEntity
+import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
+import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
+import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
+import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.mappers.toDomain
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
@@ -19,6 +18,7 @@ import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import java.io.File
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -123,7 +123,7 @@ class ChecklistRepositoryImpl(
     }
 
     private fun Long.toISO8601String(): String {
-        return java.time.Instant.ofEpochMilli(this)
+        return Instant.ofEpochMilli(this)
             .toString()
     }
 
