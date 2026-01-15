@@ -17,6 +17,7 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
@@ -73,7 +74,8 @@ class ChecklistViewModel @Inject constructor(
     private val deleteActivityEvidenceByIdUseCase: DeleteActivityEvidenceByIdUseCase,
     private val saveObservationResponseUseCase: SaveObservationResponseUseCase,
     private val saveServiceProgressUseCase: SaveServiceProgressUseCase,
-    private val syncChecklistUseCase: SyncChecklistUseCase
+    private val syncChecklistUseCase: SyncChecklistUseCase,
+    private val syncActivityChecklistEvidenceUseCase: SyncActivityChecklistEvidenceUseCase
 ) : ViewModel() {
 
     private val _showSignDialog = MutableStateFlow(false)
@@ -998,4 +1000,26 @@ class ChecklistViewModel @Inject constructor(
             }
         }
     }
+
+    fun syncEvidenceForActivity(activityId: String) {
+        viewModelScope.launch {
+            try {
+                println("📸 [ViewModel] Sincronizando evidencia de: $activityId")
+                _isLoading.value = true
+
+                syncActivityChecklistEvidenceUseCase(
+                    serviceId = serviceId,
+                    activityId = activityId
+                )
+
+                println("✅ [ViewModel] Evidencia sincronizada")
+                _isLoading.value = false
+
+            } catch (e: Exception) {
+                println("❌ [ViewModel] Error: ${e.message}")
+                _isLoading.value = false
+            }
+        }
+    }
+
 }

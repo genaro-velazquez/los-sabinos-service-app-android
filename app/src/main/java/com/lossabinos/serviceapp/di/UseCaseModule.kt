@@ -19,6 +19,7 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
+import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
@@ -271,6 +272,16 @@ object UseCaseModule {
         repository: ChecklistRepository
     ) : SyncChecklistUseCase{
         return SyncChecklistUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSyncActivityChecklistEvidenceUseCase(
+        repository: ChecklistRepository
+    ) : SyncActivityChecklistEvidenceUseCase{
+        return SyncActivityChecklistEvidenceUseCase(
             checklistRepository = repository
         )
     }

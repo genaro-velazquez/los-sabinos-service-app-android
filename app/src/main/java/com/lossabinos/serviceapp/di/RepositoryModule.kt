@@ -1,6 +1,7 @@
 package com.lossabinos.serviceapp.di
 
 import android.content.SharedPreferences
+import com.lossabinos.data.datasource.local.ChecklistLocalDataSource
 import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
 import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
@@ -106,8 +107,9 @@ object RepositoryModule {
     serviceFieldValueDao: ServiceFieldValueDao,
     initialDataDao: InitialDataDao,
     checklistProgressRequestMapper: ChecklistProgressRequestMapper,
-    checklistRemoteDataSource: ChecklistRemoteDataSource
-    ) : ChecklistRepository {
+    checklistRemoteDataSource: ChecklistRemoteDataSource,
+    checklistLocalDataSource: ChecklistLocalDataSource
+) : ChecklistRepository {
         return ChecklistRepositoryImpl(
             activityProgressDao = activityProgressDao,
             activityEvidenceDao = activityEvidenceDao,
@@ -115,7 +117,8 @@ object RepositoryModule {
             serviceFieldValueDao =  serviceFieldValueDao,
             initialDataDao = initialDataDao,
             checklistProgressRequestMapper = checklistProgressRequestMapper,
-            checklistRemoteDataSource = checklistRemoteDataSource
+            checklistRemoteDataSource = checklistRemoteDataSource,
+            checklistLocalDataSource = checklistLocalDataSource
         )
     }
 

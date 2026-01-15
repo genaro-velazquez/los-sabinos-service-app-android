@@ -2,8 +2,13 @@ package com.lossabinos.data.datasource.remoto
 
 import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.retrofit.SyncServices
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
+import java.io.File
 import javax.inject.Inject
 
 class ChecklistRemoteDataSource @Inject constructor(
@@ -22,4 +27,46 @@ class ChecklistRemoteDataSource @Inject constructor(
         )
     }
 
+    suspend fun syncProgressEvidence(
+        serviceId: String,
+        activityId: String,
+        photoFile: File,
+        photoType: String = "general",
+        description: String = ""
+    ) : Response<String>{
+        // Validar que el archivo existe
+        if (!photoFile.exists()) {
+            throw Exception("Archivo no encontrado: ${photoFile.absolutePath}")
+        }
+
+        println("📸 [DataSource] Enviando foto: ${photoFile.name}")
+        println("   - Tamaño: ${photoFile.length()} bytes")
+        println("   - Tipo: $photoType")
+        println("   - Descripción: $description")
+
+        // Crear el MultipartBody.Part para el archivo
+        val filePart = MultipartBody.Part.createFormData(
+            "file",                    // nombre del parámetro
+            photoFile.name,           // nombre del archivo
+            photoFile.asRequestBody("image/jpeg".toMediaType())  // tipo MIME
+        )
+
+        // Crear RequestBody para photo_type
+        val photoTypeBody = photoType.toRequestBody("text/plain".toMediaType())
+
+        // Crear RequestBody para description
+        val descriptionBody = description.toRequestBody("text/plain".toMediaType())
+
+        // Enviar
+        return syncServices.syncPhotos(
+            headers = headersMaker.build(),
+            serviceExecutionId = serviceId,
+            itemId = activityId,
+            file = filePart,
+            photoType = photoTypeBody,
+            description = descriptionBody
+        )
+
+
+    }
 }

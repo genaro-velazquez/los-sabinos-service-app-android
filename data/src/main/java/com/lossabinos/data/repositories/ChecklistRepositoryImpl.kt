@@ -1,5 +1,6 @@
 package com.lossabinos.data.repositories
 
+import com.lossabinos.data.datasource.local.ChecklistLocalDataSource
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
@@ -36,7 +37,8 @@ class ChecklistRepositoryImpl(
     private val serviceFieldValueDao: ServiceFieldValueDao,
     private val initialDataDao: InitialDataDao,
     private val checklistProgressRequestMapper: ChecklistProgressRequestMapper,
-    private val checklistRemoteDataSource: ChecklistRemoteDataSource
+    private val checklistRemoteDataSource: ChecklistRemoteDataSource,
+    private val checklistLocalDataSource: ChecklistLocalDataSource
     ) : ChecklistRepository {
 
     override suspend fun saveActivityProgress(
@@ -344,12 +346,6 @@ class ChecklistRepositoryImpl(
                 serviceId = serviceId,
                 request = requestBody
             )
-            /*
-            val response = checklistProgressApi.updateChecklistProgress(
-                serviceExecutionId = serviceId,
-                body = requestBody
-            )
-            */
 
             // 6️⃣ Procesar respuesta
             if (response.isSuccessful) {
@@ -367,6 +363,165 @@ class ChecklistRepositoryImpl(
 
                 throw Exception("Error sincronizando: ${response.code()}")
             }
+
+            // ═══════════════════════════════════════════════════════════════════════════════════
+            //  SEGUNDO: Sincronizar evidencias (fotos)
+            // ═══════════════════════════════════════════════════════════════════════════════════
+
+            println("\n📸 [Repo] Iniciando sincronización de evidencias...")
+
+            // Obtener todas las actividades con sus evidencias
+            //val allActivities = activityProgressDao.getActivityProgressByService(serviceId)
+            val allActivities = checklistLocalDataSource.getActivityProgressByService(serviceId)
+
+            println("📊 [Repo] Total de actividades: ${allActivities.size}")
+
+            // Filtrar actividades que tienen evidencias
+            val activitiesWithEvidence = allActivities.filter { activity ->
+                val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
+                evidences.isNotEmpty()
+            }
+
+            println("📸 [Repo] Actividades con fotos: ${activitiesWithEvidence.size}")
+
+            if (activitiesWithEvidence.isNotEmpty()) {
+                // Sincronizar fotos de cada actividad
+                activitiesWithEvidence.forEach { activity ->
+                    try {
+                        println("\n🔄 [Repo] Sincronizando fotos de: ${activity.activityDescription}")
+
+                        // Obtener fotos de esta actividad
+                        val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
+
+                        println("   📷 Total de fotos: ${evidences.size}")
+
+                        // Enviar cada foto
+                        evidences.forEach { evidence ->
+                            try {
+                                println("   📤 Enviando: ${evidence.filePath}")
+
+                                val photoFile = File(evidence.filePath)
+
+                                if (!photoFile.exists()) {
+                                    println("   ❌ Archivo no existe: ${evidence.filePath}")
+                                    return@forEach
+                                }
+
+                                // Enviar foto al servidor
+                                val photoResponse = checklistRemoteDataSource.syncProgressEvidence(
+                                    serviceId = serviceId,
+                                    activityId = activity.activityIndex.toString(),
+                                    photoFile = photoFile,
+                                    photoType = "general",
+                                    description = ""
+                                )
+
+                                if (photoResponse.isSuccessful) {
+                                    println("   ✅ Foto enviada exitosamente")
+                                    // Opcional: eliminar archivo después de sincronizar
+                                    // photoFile.delete()
+                                } else {
+                                    println("   ❌ Error enviando foto: ${photoResponse.code()}")
+                                    throw Exception("Error foto: ${photoResponse.code()}")
+                                }
+
+                            } catch (e: Exception) {
+                                println("   ❌ Exception en foto: ${e.message}")
+                                // Continuar con las siguientes fotos
+                            }
+                        }
+
+                    } catch (e: Exception) {
+                        println("❌ [Repo] Error en actividad: ${e.message}")
+                        // Continuar con las siguientes actividades
+                    }
+                }
+                println("\n✅ [Repo] Todas las fotos sincronizadas")
+            } else {
+                println("⚠️ [Repo] No hay evidencias para sincronizar")
+            }
+            println("\n✅ [Repo] Sincronización completa (checklist + evidencias)")
+
+        }
+        catch (e: Exception){
+            println("❌ [Repo] Exception: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
+    }
+
+    override suspend fun syncActivityChecklistEvidence(serviceId: String, activityId: String) {
+        try {
+            println("🔄 [Repo] Sincronizando evidencia de actividad: $activityId")
+
+            // 1️⃣ Obtener las actividades del servicio
+            //val activities = activityProgressDao.getActivityProgressByService(serviceId)
+            val activities = checklistLocalDataSource.getActivityProgressByService(serviceId)
+
+            // 2️⃣ Encontrar la actividad específica
+            val activity = activities.find {
+                it.activityIndex == activityId.toIntOrNull()  // Ajusta según tu estructura
+            } ?: throw Exception("Actividad no encontrada: $activityId")
+
+            println("✅ [Repo] Actividad encontrada: ${activity.activityDescription}")
+
+            // 3️⃣ Obtener las fotos asociadas a esta actividad
+            //val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
+            val evidences = checklistLocalDataSource.getEvidenceByActivityProgress(activity.id)
+
+            println("📸 [Repo] Total de fotos a sincronizar: ${evidences.size}")
+
+            if (evidences.isEmpty()) {
+                println("⚠️ [Repo] No hay fotos para sincronizar")
+                return
+            }
+
+            // 4️⃣ Enviar cada foto al servidor
+            evidences.forEach { evidence ->
+                try {
+                    println("\n📤 [Repo] Enviando foto: ${evidence.filePath}")
+
+                    val photoFile = File(evidence.filePath)
+
+                    // Validar archivo existe
+                    if (!photoFile.exists()) {
+                        println("❌ [Repo] Archivo no existe: ${evidence.filePath}")
+                        return@forEach
+                    }
+
+                    // Enviar foto
+                    val response = checklistRemoteDataSource.syncProgressEvidence(
+                        serviceId = serviceId,
+                        activityId = activityId,
+                        photoFile = photoFile,
+                        photoType = "general",  // Default
+                        description = ""        // Default vacío
+                    )
+
+                    // 5️⃣ Procesar respuesta
+                    if (response.isSuccessful) {
+                        println("✅ [Repo] Foto enviada exitosamente: ${evidence.filePath}")
+                        println("   Response: ${response}")
+
+                        // 6️⃣ Eliminar la foto de Room después de sincronizar
+                        // (Opcional: depende si quieres mantener un historial)
+                        // activityEvidenceDao.deleteEvidenceById(evidence.id)
+
+                    } else {
+                        val errorBody = response
+                        println("❌ [Repo] Error enviando foto: ${response.code()}")
+                        println("   Error: $errorBody")
+                        throw Exception("Error ${response.code()}: $errorBody")
+                    }
+
+                } catch (e: Exception) {
+                    println("❌ [Repo] Exception enviando foto: ${e.message}")
+                    e.printStackTrace()
+                    throw e
+                }
+            }
+
+            println("\n✅ [Repo] Todas las fotos sincronizadas correctamente")
         }
         catch (e: Exception){
             println("❌ [Repo] Exception: ${e.message}")

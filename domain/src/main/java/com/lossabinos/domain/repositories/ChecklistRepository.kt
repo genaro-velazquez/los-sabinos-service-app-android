@@ -100,6 +100,11 @@ interface ChecklistRepository {
     suspend fun syncChecklist(
         serviceId: String
     )
+
+    suspend fun syncActivityChecklistEvidence(
+        serviceId: String,
+        activityId: String
+    )
 }
 
 
