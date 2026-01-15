@@ -4,12 +4,14 @@ package com.lossabinos.serviceapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
+import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,6 +35,7 @@ sealed class HomeEvent {
     object ConfirmLogout : HomeEvent()
     object CancelLogout : HomeEvent()
     data class CompleteServiceClicked(val serviceId: String) : HomeEvent()
+    data class SyncServiceClicked(val serviceId: String) : HomeEvent()
 }
 
 /**
@@ -47,7 +50,8 @@ sealed class HomeEvent {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
-    private val clearAllUseCase: ClearAllUseCase
+    private val clearAllUseCase: ClearAllUseCase,
+    private val syncChecklistUseCase: SyncChecklistUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -126,6 +130,9 @@ class HomeViewModel @Inject constructor(
                 //_navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(event.serviceId)
                 _navigationEvent.value = NavigationEvent.NavigateToVehicleRegistration(event.serviceId)
             }
+            is HomeEvent.SyncServiceClicked -> {
+                syncService(event.serviceId)
+            }
         }
     }
 
@@ -140,6 +147,22 @@ class HomeViewModel @Inject constructor(
         _state.value = HomeState()
         _navigationEvent.value = null
     }
+
+    private fun syncService(serviceId: String) {
+        viewModelScope.launch {
+            try {
+                println("🔄 [HomeVM] Sincronizando: $serviceId")
+
+                syncChecklistUseCase(serviceId)
+
+                println("✅ [HomeVM] Sincronización exitosa")
+
+            } catch (e: Exception) {
+                println("❌ [HomeVM] Error: ${e.message}")
+            }
+        }
+    }
+
 }
 
 /**

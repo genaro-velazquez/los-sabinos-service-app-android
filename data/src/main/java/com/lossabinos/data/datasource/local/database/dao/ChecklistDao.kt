@@ -124,6 +124,12 @@ interface ActivityProgressDao {
     @Query("SELECT * FROM service_progress WHERE assignedServiceId = :serviceId")
     suspend fun getServiceProgress(serviceId: String): ServiceProgressEntity?
 
+    @Query("UPDATE service_progress SET syncStatus = :syncStatus WHERE assignedServiceId = :assignedServiceId")
+    suspend fun updateServiceProgressSyncStatus(
+        assignedServiceId: String,
+        syncStatus: String
+    )
+
 
 }
 

@@ -2,6 +2,7 @@ package com.lossabinos.data.repositories
 
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
@@ -9,7 +10,11 @@ import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEn
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
+import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
+import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 import com.lossabinos.data.mappers.toDomain
+import com.lossabinos.data.retrofit.SyncServices
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ObservationAnswer
@@ -17,6 +22,8 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
@@ -26,8 +33,11 @@ class ChecklistRepositoryImpl(
     private val activityProgressDao: ActivityProgressDao,
     private val activityEvidenceDao: ActivityEvidenceDao,
     private val observationResponseDao: ObservationResponseDao,
-    private val serviceFieldValueDao: ServiceFieldValueDao
-) : ChecklistRepository {
+    private val serviceFieldValueDao: ServiceFieldValueDao,
+    private val initialDataDao: InitialDataDao,
+    private val checklistProgressRequestMapper: ChecklistProgressRequestMapper,
+    private val checklistRemoteDataSource: ChecklistRemoteDataSource
+    ) : ChecklistRepository {
 
     override suspend fun saveActivityProgress(
         assignedServiceId: String,
@@ -282,6 +292,85 @@ class ChecklistRepositoryImpl(
             println("✅ Progreso guardado CHecklistRepositoryImp: $assignedServiceId")
         }catch (e: Exception){
             println("❌ Error guardando progreso: ${e.message}")
+            throw e
+        }
+    }
+
+    override suspend fun syncChecklist(serviceId: String) {
+        try {
+            println("🔄 [Repo] Sincronizando checklist: $serviceId")
+
+            // 1️⃣ Obtener el servicio (para conseguir el template JSON)
+            val assignedService = initialDataDao.getAssignedServiceById(id = serviceId)
+                ?:throw Exception("Servicio no eencontrado")
+
+            // Usar Elvis operator para manejar null
+            val templateJson = assignedService.checklistTemplateJson
+                ?: throw Exception("Template JSON no encontrado")
+
+            println("✅ [Repo] templateJson:$templateJson")
+            println("✅ [Repo] Servicio obtenido")
+
+            // 2️⃣ Obtener todos los datos de Room
+            val activities = activityProgressDao.getAllCompletedActivities(assignedServiceId = serviceId)
+            val observations = observationResponseDao.getObservationsByService(serviceId = serviceId)
+            val fields =  serviceFieldValueDao.getServiceFieldValuesByService(assignedServiceId = serviceId)
+
+            println("✅ [Repo] Datos obtenidos:")
+            println("   - Activities: ${activities.size}")
+            println("   - Observations: ${observations.size}")
+            println("   - Fields: ${fields.size}")
+
+            // 3️⃣ Construir el JSON correctamente usando el Mapper
+            val requestJSON = checklistProgressRequestMapper.buildChecklistProgressRequest(
+                templateJson = templateJson,
+                activities = activities.map { it.toDomain() },
+                observations = observations.map { it.toDomain() },
+                fields = fields.map { it.toDomain() }
+            )
+
+            println("✅ [Repo] JSON construido")
+            println("📋 [Repo] Payload:\n${requestJSON.toString(2)}")
+
+            // 4️⃣ Crear RequestBody
+            val requestBody = RequestBody.create(
+                "application/json".toMediaType(),
+                requestJSON.toString()
+            )
+
+            // 5️⃣ Enviar al servidor
+            println("🌐 [Repo] Enviando al servidor...")
+            val response = checklistRemoteDataSource.syncProgress(
+                serviceId = serviceId,
+                request = requestBody
+            )
+            /*
+            val response = checklistProgressApi.updateChecklistProgress(
+                serviceExecutionId = serviceId,
+                body = requestBody
+            )
+            */
+
+            // 6️⃣ Procesar respuesta
+            if (response.isSuccessful) {
+                println("✅ [Repo] Response exitosa: ${response.code()}")
+                // Marcar como sincronizado
+
+                // ✅ Actualizar solo syncStatus a SYNCED
+                activityProgressDao.updateServiceProgressSyncStatus(
+                    assignedServiceId = serviceId,
+                    syncStatus = SyncStatus.SYNCED.name
+                )
+
+                println("✅ [Repo] Servicio marcado como SYNCED")
+            } else {
+
+                throw Exception("Error sincronizando: ${response.code()}")
+            }
+        }
+        catch (e: Exception){
+            println("❌ [Repo] Exception: ${e.message}")
+            e.printStackTrace()
             throw e
         }
     }

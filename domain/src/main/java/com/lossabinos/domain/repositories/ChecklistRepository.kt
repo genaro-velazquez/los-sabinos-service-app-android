@@ -79,7 +79,7 @@ interface ChecklistRepository {
 
     suspend fun getServiceFieldValues(
         assignedServiceId: String
-    ) : List<ServiceFieldValue>
+    ): List<ServiceFieldValue>
 
     //****************************+***
     // Service_progress
@@ -92,6 +92,13 @@ interface ChecklistRepository {
         status: ServiceStatus, // "pending", "in_progress", "completed"
         lastUpdatedAt: Long, //= System.currentTimeMillis(),
         syncStatus: SyncStatus //= "PENDING"
+    )
+
+    //****************************+***
+    // SyncChecklist to server
+    //********************************
+    suspend fun syncChecklist(
+        serviceId: String
     )
 }
 

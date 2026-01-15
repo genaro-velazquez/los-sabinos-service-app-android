@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
@@ -37,7 +38,8 @@ class MechanicsViewModel @Inject constructor(
     getMechanicFlowUseCase: GetMechanicFlowUseCase,
     getAssignedServicesFlowUseCase: GetAssignedServicesFlowUseCase,
     getServiceTypesFlowUseCase: GetServiceTypesFlowUseCase,
-    getSyncMetadataFlowUseCase: GetSyncMetadataFlowUseCase
+    getSyncMetadataFlowUseCase: GetSyncMetadataFlowUseCase,
+    private val syncChecklistUseCase: SyncChecklistUseCase
 ) : ViewModel(){
 
 
@@ -216,6 +218,25 @@ class MechanicsViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = null
             )
+
+    fun syncService(serviceId: String) {
+        viewModelScope.launch {
+            try {
+                println("🔄 [HomeVM] Sincronizando: $serviceId")
+
+                // ← AQUÍ SINCRONIZA (como en Checklist)
+                syncChecklistUseCase(serviceId)
+
+                println("✅ [HomeVM] Sincronización exitosa")
+
+                // Recargar datos para actualizar la UI
+                loadInitialData()
+
+            } catch (e: Exception) {
+                println("❌ [HomeVM] Error: ${e.message}")
+            }
+        }
+    }
 
 }
 

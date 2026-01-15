@@ -17,6 +17,7 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
 import com.lossabinos.serviceapp.models.ActivityUIModel
@@ -71,7 +72,8 @@ class ChecklistViewModel @Inject constructor(
     private val saveActivityEvidenceUseCase: SaveActivityEvidenceUseCase,
     private val deleteActivityEvidenceByIdUseCase: DeleteActivityEvidenceByIdUseCase,
     private val saveObservationResponseUseCase: SaveObservationResponseUseCase,
-    private val saveServiceProgressUseCase: SaveServiceProgressUseCase
+    private val saveServiceProgressUseCase: SaveServiceProgressUseCase,
+    private val syncChecklistUseCase: SyncChecklistUseCase
 ) : ViewModel() {
 
     private val _showSignDialog = MutableStateFlow(false)
@@ -99,9 +101,27 @@ class ChecklistViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 println("✍️ [CHECKLIST] Confirmando firma...")
+
+                _isLoading.value = true
+
+                // Simple: solo llamar al UseCase
+                syncChecklistUseCase(serviceId = serviceId)
+
+                println("✅ [ViewModel] Sincronización completada")
+                delay(1000)
+
+                // Navegar a Home
                 _navigationEvent.value = NavigationEvent.NavigateToHome
+
+                _isLoading.value = false
+
             } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
+                _isLoading.value = false
+                // Mostrar error pero permitir continuar
+                delay(2000)
+                _navigationEvent.value = NavigationEvent.NavigateToHome
+
             }
         }
     }

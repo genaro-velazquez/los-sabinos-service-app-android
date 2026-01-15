@@ -2,6 +2,7 @@ package com.lossabinos.serviceapp.di
 
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.retrofit.MechanicsServices
+import com.lossabinos.data.retrofit.SyncServices
 import com.lossabinos.data.utilities.CurlLoggingInterceptor
 import dagger.Module
 import dagger.Provides
@@ -12,6 +13,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import javax.inject.Singleton
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import retrofit2.create
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -61,5 +63,11 @@ object NetworkModule {
     @Provides
     fun provideMechanicsServices(retrofit: Retrofit): MechanicsServices{
         return retrofit.create(MechanicsServices::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideSyncSyncServices(retrofit: Retrofit): SyncServices{
+        return retrofit.create(SyncServices::class.java)
     }
 }

@@ -331,6 +331,12 @@ fun HomeScreen(
                                 HomeEvent.CompleteServiceClicked(serviceId)
                             )
                         },
+                        onSyncClick = { serviceId ->
+                            println("🔄 Sincronizando: $serviceId")
+                            homeViewModel.onEvent(
+                                HomeEvent.SyncServiceClicked(serviceId)
+                            )
+                        },
                         onRescheduleClick = { serviceId ->
                             println("📅 [UI] Service reschedule: $serviceId")
                             onServiceReschedule(serviceId)

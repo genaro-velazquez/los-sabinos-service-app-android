@@ -11,7 +11,9 @@ import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.repositories.ChecklistRepositoryImpl
 import com.lossabinos.data.repositories.LocalDataRepositoryImp
 import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
+import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
+import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.retrofit.AuthenticationServices
@@ -98,16 +100,22 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideChecklistRepository(
-        activityProgressDao: ActivityProgressDao,
-        activityEvidenceDao: ActivityEvidenceDao,
-        observationResponseDao: ObservationResponseDao,
-        serviceFieldValueDao: ServiceFieldValueDao
+    activityProgressDao: ActivityProgressDao,
+    activityEvidenceDao: ActivityEvidenceDao,
+    observationResponseDao: ObservationResponseDao,
+    serviceFieldValueDao: ServiceFieldValueDao,
+    initialDataDao: InitialDataDao,
+    checklistProgressRequestMapper: ChecklistProgressRequestMapper,
+    checklistRemoteDataSource: ChecklistRemoteDataSource
     ) : ChecklistRepository {
         return ChecklistRepositoryImpl(
             activityProgressDao = activityProgressDao,
             activityEvidenceDao = activityEvidenceDao,
             observationResponseDao = observationResponseDao,
-            serviceFieldValueDao =  serviceFieldValueDao
+            serviceFieldValueDao =  serviceFieldValueDao,
+            initialDataDao = initialDataDao,
+            checklistProgressRequestMapper = checklistProgressRequestMapper,
+            checklistRemoteDataSource = checklistRemoteDataSource
         )
     }
 
