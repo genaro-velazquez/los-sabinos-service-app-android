@@ -7,6 +7,8 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
+import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
+import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
@@ -61,6 +63,28 @@ object UseCaseModule {
         userPreferencesRepository: UserPreferencesRepository
     ): EmailPasswordLoginUseCase {
         return EmailPasswordLoginUseCase(
+            authenticationRepository = authenticationRepository,
+            userPreferencesRepository = userPreferencesRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetRefreshTokenUseCase(
+        authenticationRepository: AuthenticationRepository
+    ) : GetRefreshTokenUseCase{
+        return GetRefreshTokenUseCase(
+            authenticationRepository = authenticationRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideRefreshSessionUseCase(
+        authenticationRepository: AuthenticationRepository,
+        userPreferencesRepository: UserPreferencesRepository
+    ) : RefreshSessionUseCase {
+        return RefreshSessionUseCase(
             authenticationRepository = authenticationRepository,
             userPreferencesRepository = userPreferencesRepository
         )

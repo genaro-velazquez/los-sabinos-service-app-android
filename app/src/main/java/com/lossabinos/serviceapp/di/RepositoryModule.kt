@@ -12,6 +12,7 @@ import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.repositories.ChecklistRepositoryImpl
 import com.lossabinos.data.repositories.LocalDataRepositoryImp
 import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
+import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
@@ -57,12 +58,12 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideAuthenticationRepository(
-        authenticationServices: AuthenticationServices,
-        headersMaker: HeadersMaker
+        remoteDataSource: AuthenticationRemoteDataSource,
+        userPreferencesRepository: UserPreferencesRepository
     ): AuthenticationRepository {
         return AuthenticationRetrofitRepository(
-            authenticationServices = authenticationServices,
-            headersMaker = headersMaker
+            remoteDataSource = remoteDataSource,
+            userPreferencesRepository = userPreferencesRepository
         )
     }
 

@@ -1,29 +1,28 @@
 package com.lossabinos.data.dto.repositories.retrofit.authentication
 
+import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.dto.repositories.retrofit.RetrofitResponseValidator
 import com.lossabinos.data.dto.responses.LoginResponseDTO
 import com.lossabinos.data.dto.utilities.HeadersMaker
+import com.lossabinos.data.dto.valueobjects.TokenDTO
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.domain.repositories.AuthenticationRepository
+import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.responses.LoginResponse
+import com.lossabinos.domain.valueobjects.Token
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 class AuthenticationRetrofitRepository(
-    private val authenticationServices: AuthenticationServices,
-    private val headersMaker: HeadersMaker
-) : AuthenticationRepository{
+    private val remoteDataSource: AuthenticationRemoteDataSource,
+    private val userPreferencesRepository: UserPreferencesRepository
+    ) : AuthenticationRepository{
 
     override suspend fun loginWithEmailAndPassword(
         email: String,
         password: String
     ): LoginResponse {
-        /*
-        val body = HashMap<String, String>()
-        body["email"] = email
-        body["password"] =
-        */
 
         val jsonObject = JSONObject().apply {
             put("email", email)
@@ -33,9 +32,29 @@ class AuthenticationRetrofitRepository(
         val requestBody = jsonObject.toString()
             .toRequestBody("application/json".toMediaType())
 
-        val response = authenticationServices.login(request = requestBody, headers = headersMaker.build())
-        val json = RetrofitResponseValidator.validate(response = response)
-        val dto = LoginResponseDTO(json = json)
+        val dto = remoteDataSource.loginWithEmailAndPassword(
+            requestBody = requestBody
+        )
+
         return dto.toEntity()
+    }
+
+    override suspend fun refreshToken(refreshToken: String): Token {
+
+        val jsonObject = JSONObject().apply {
+            put("refreshToken", refreshToken)
+        }
+        val requestBody = jsonObject.toString()
+            .toRequestBody("application/json".toMediaType())
+        val dto = remoteDataSource.refreshSession(requestBody = requestBody)
+        return dto.toEntity()
+    }
+
+    override fun getRefreshToken(): String {
+        return userPreferencesRepository.getRefreshToken()
+    }
+
+    override fun getAccessToken(): String {
+        return userPreferencesRepository.getAccessToken()
     }
 }

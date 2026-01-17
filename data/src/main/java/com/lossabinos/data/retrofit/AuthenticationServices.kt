@@ -14,6 +14,12 @@ interface AuthenticationServices {
         @HeaderMap headers: Map<String, String>
     ): Response<String>
 
+    @POST("/api/v1/auth/refresh")
+    suspend fun refreshToken(
+        @Body request: RequestBody,
+        @HeaderMap headers: Map<String, String>
+    ): Response<String>
+
 /*
     @POST("/api/v1/auth/login")
     @FormUrlEncoded
