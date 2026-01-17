@@ -26,7 +26,7 @@ interface SyncServices {
         @HeaderMap headers: Map<String, String>,
         @Path("service_execution_id") serviceExecutionId: String,
         @Path("item_id") itemId: String,
-        @Part("file") file: MultipartBody.Part,
+        @Part file: MultipartBody.Part,
         @Part("photo_type") photoType: RequestBody,
         @Part("description") description: RequestBody
     ): Response<String>

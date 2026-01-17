@@ -54,6 +54,17 @@ class HomeViewModel @Inject constructor(
     private val syncChecklistUseCase: SyncChecklistUseCase
 ) : ViewModel() {
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
@@ -152,13 +163,18 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 println("🔄 [HomeVM] Sincronizando: $serviceId")
+                _isLoading.value = true
+                _errorMessage.value = null
 
                 syncChecklistUseCase(serviceId)
 
                 println("✅ [HomeVM] Sincronización exitosa")
 
             } catch (e: Exception) {
-                println("❌ [HomeVM] Error: ${e.message}")
+                println("❌ [HomeVM] CATCH - Error: ${e.message}")
+                _isLoading.value = true
+                _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
+                println("❌ [HomeVM] _errorMessage = ${_errorMessage.value}")
             }
         }
     }

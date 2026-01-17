@@ -35,6 +35,7 @@ fun UnsyncSection(
     title: String = "4 Servicios",
     details: String = "2 Firmas, 8 Fotos, 1 Observación",
     onSyncNowClick: () -> Unit = {},
+    isLoading: Boolean = false,
     showSyncButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -71,7 +72,8 @@ fun UnsyncSection(
         if (showSyncButton) {
             PrimaryButton(
                 text = "Sincronizar ahora",
-                onClick = onSyncNowClick
+                onClick = onSyncNowClick,
+                isLoading = isLoading
             )
         }
     }

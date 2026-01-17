@@ -31,6 +31,7 @@ fun SyncSection(
     lastSyncText: String = "Última sincronización: Hoy 10:45 AM",
     unsyncTitle: String = "4 Servicios",
     unsyncDetails: String = "2 Firmas, 8 Fotos, 1 Observación",
+    isLoading: Boolean = false,
     onSyncClick: () -> Unit = {},
     onSyncNowClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -53,6 +54,7 @@ fun SyncSection(
             title = unsyncTitle,
             details = unsyncDetails,
             onSyncNowClick = onSyncNowClick,
+            isLoading = isLoading,
             modifier = Modifier.fillMaxWidth(),
             showSyncButton = false
         )

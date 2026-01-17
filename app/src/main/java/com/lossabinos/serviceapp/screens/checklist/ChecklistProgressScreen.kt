@@ -10,6 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +39,9 @@ import com.lossabinos.serviceapp.ui.components.templates.ChecklistProgressTempla
 import com.lossabinos.serviceapp.viewmodel.ChecklistViewModel
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import com.lossabinos.serviceapp.navigation.Routes
@@ -71,6 +77,7 @@ fun ChecklistProgressScreen(
     val isLoading       = viewModel.isLoading.collectAsStateWithLifecycle().value
     val showSignDialog = viewModel.showSignDialog.collectAsStateWithLifecycle().value
     val navigationEvent = viewModel.navigationEvent.collectAsStateWithLifecycle().value
+    val errorMessage = viewModel.errorMessage.collectAsStateWithLifecycle().value
 
     // 2️⃣ LOGS
     println("📱 ChecklistProgressScreen recompone")
@@ -78,6 +85,38 @@ fun ChecklistProgressScreen(
     println("   - totalSections: ${uiState.totalSections}")
     println("   - currentActivities: ${uiState.currentSectionActivities.size}")
     println("   - isLoading: $isLoading")
+
+    // ← ALERTA DE ERROR (agregar AQUÍ)
+    if (!errorMessage.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() },
+            title = {
+                Text(
+                    "❌ Error en la Sincronización",
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = errorMessage ?: "",
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.clearError() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F)
+                    )
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
 
     // ← OBSERVAR EVENTO DE NAVEGACIÓN
     LaunchedEffect(navigationEvent) {

@@ -78,6 +78,14 @@ class ChecklistViewModel @Inject constructor(
     private val syncActivityChecklistEvidenceUseCase: SyncActivityChecklistEvidenceUseCase
 ) : ViewModel() {
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+
     private val _showSignDialog = MutableStateFlow(false)
     val showSignDialog: StateFlow<Boolean> = _showSignDialog.asStateFlow()
 
@@ -105,6 +113,7 @@ class ChecklistViewModel @Inject constructor(
                 println("✍️ [CHECKLIST] Confirmando firma...")
 
                 _isLoading.value = true
+                _errorMessage.value = null
 
                 // Simple: solo llamar al UseCase
                 syncChecklistUseCase(serviceId = serviceId)
@@ -120,10 +129,12 @@ class ChecklistViewModel @Inject constructor(
             } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
                 _isLoading.value = false
-                // Mostrar error pero permitir continuar
-                delay(2000)
-                _navigationEvent.value = NavigationEvent.NavigateToHome
 
+                // ← CAPTURAR EL ERROR Y MOSTRARLO
+                _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
+
+                println("❌ Error capturado: ${_errorMessage.value}")
+                // NO navegar a Home automáticamente, esperar que el usuario toque la alerta
             }
         }
     }

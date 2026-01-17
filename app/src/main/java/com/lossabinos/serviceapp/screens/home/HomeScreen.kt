@@ -1,11 +1,14 @@
 // presentation/screens/home/HomeScreen.kt
 package com.lossabinos.serviceapp.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Build
@@ -13,6 +16,7 @@ import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +47,8 @@ import com.lossabinos.serviceapp.viewmodel.Result
 import kotlin.collections.emptyList
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.enums.ServiceStatus
@@ -130,6 +136,8 @@ fun HomeScreen(
     //val metadata    = mechanicsViewModel.syncMetadata.collectAsStateWithLifecycle().value
     val metrics =
         mechanicsViewModel.homeMetrics.collectAsStateWithLifecycle().value
+    val errorMessage = homeViewModel.errorMessage.collectAsStateWithLifecycle().value
+    val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
 
     // ==========================================
     // 2️⃣ CARGAR DATOS AL ABRIR PANTALLA
@@ -141,6 +149,57 @@ fun HomeScreen(
 
         // ✨ SOLO cargar API (los Flows se auto-observan de Room)
         mechanicsViewModel.loadInitialData()
+    }
+
+    // ==========================================
+    // ALERTA DE ERROR
+    // ==========================================
+    if (!errorMessage.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { homeViewModel.clearError() },
+            title = {
+                Text(
+                    "❌ Error en la Sincronización",
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = errorMessage,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { homeViewModel.clearError() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F)
+                    )
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
+
+    // ==========================================
+    // LOADING OVERLAY
+    // ==========================================
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.size(50.dp)
+            )
+        }
     }
 
     // ==========================================
@@ -243,6 +302,7 @@ fun HomeScreen(
                 lastSyncText = "Última sincronización: Hoy 10:45 AM",
                 unsyncTitle = "${metrics.totalServices} servicios", //"${metadata?.totalServices ?: 0} Servicios",
                 unsyncDetails = "${metrics.pendingServices} pendientes, ${metrics.inProgressServices} en progreso",
+                isLoading = isLoading,
                     //"${metadata?.pendingServices ?: 0} Pendientes, ${metadata?.inProgressServices ?: 0} En Progreso",
                 onSyncClick = {
                     println("🔄 [SYNC] Usuario presionó sincronizar")

@@ -25,6 +25,7 @@ import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
+import org.json.JSONObject
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
@@ -360,8 +361,17 @@ class ChecklistRepositoryImpl(
 
                 println("✅ [Repo] Servicio marcado como SYNCED")
             } else {
+                // capturar error
+                val errorBody = response.errorBody()?.string() ?: ""
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("detail") // Extrae el campo "detail"
+                } catch (e: Exception) {
+                    "Error: ${response.code()}"
+                }
 
-                throw Exception("Error sincronizando: ${response.code()}")
+                println("❌ [Repo] Error HTTP: $errorMessage")
+                throw Exception(errorMessage)
             }
 
             // ═══════════════════════════════════════════════════════════════════════════════════
