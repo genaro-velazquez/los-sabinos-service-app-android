@@ -46,6 +46,7 @@ class ChecklistRepositoryImpl(
         assignedServiceId: String,
         sectionIndex: Int,
         activityIndex: Int,
+        activityId: String,
         description: String,
         requiresEvidence: Boolean,
         completed: Boolean ,
@@ -56,6 +57,7 @@ class ChecklistRepositoryImpl(
                 assignedServiceId = assignedServiceId,
                 sectionIndex = sectionIndex,
                 activityIndex = activityIndex,
+                activityId = activityId,
                 activityDescription = description,
                 requiresEvidence = requiresEvidence,
                 completed = true,
@@ -420,7 +422,7 @@ class ChecklistRepositoryImpl(
                                 // Enviar foto al servidor
                                 val photoResponse = checklistRemoteDataSource.syncProgressEvidence(
                                     serviceId = serviceId,
-                                    activityId = activity.activityIndex.toString(),
+                                    activityId = activity.activityId,
                                     photoFile = photoFile,
                                     photoType = "general",
                                     description = ""

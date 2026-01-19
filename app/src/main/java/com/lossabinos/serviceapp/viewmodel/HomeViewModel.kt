@@ -159,7 +159,7 @@ class HomeViewModel @Inject constructor(
         _navigationEvent.value = null
     }
 
-    private fun syncService(serviceId: String) {
+    private fun  syncService(serviceId: String) {
         viewModelScope.launch {
             try {
                 println("🔄 [HomeVM] Sincronizando: $serviceId")

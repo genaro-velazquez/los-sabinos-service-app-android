@@ -43,6 +43,8 @@ class ChecklistRemoteDataSource @Inject constructor(
         println("   - Tamaño: ${photoFile.length()} bytes")
         println("   - Tipo: $photoType")
         println("   - Descripción: $description")
+        println("   - serviceId: $serviceId")
+        println("   - activityId: $activityId")
 
         // Crear el MultipartBody.Part para el archivo
         val filePart = MultipartBody.Part.createFormData(

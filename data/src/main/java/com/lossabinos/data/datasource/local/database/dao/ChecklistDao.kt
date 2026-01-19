@@ -130,6 +130,9 @@ interface ActivityProgressDao {
         syncStatus: String
     )
 
+    @Query("DELETE FROM service_progress")
+    suspend fun deleteAllServiceProgress()
+
 
 }
 

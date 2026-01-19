@@ -448,6 +448,7 @@ class ChecklistViewModel @Inject constructor(
                     assignedServiceId = serviceId,
                     sectionIndex = state.currentSectionIndex,
                     activityIndex = activityIndex,
+                    activityId = activity.activity.Id,
                     description = activity.activity.description,
                     requiresEvidence = activity.activity.requiresEvidence
                 )
@@ -469,6 +470,7 @@ class ChecklistViewModel @Inject constructor(
                         assignedServiceId = serviceId,
                         sectionIndex = state.currentSectionIndex,
                         activityIndex = activityIndex,
+                        activityId = "",
                         activityDescription = activity.activity.description,
                         requiresEvidence = activity.activity.requiresEvidence,
                         completed = true
@@ -534,6 +536,7 @@ class ChecklistViewModel @Inject constructor(
                         assignedServiceId = serviceId,
                         sectionIndex = state.currentSectionIndex,
                         activityIndex = activityIndex,
+                        activityId = activity.activity.Id,
                         description = activity.activity.description,
                         requiresEvidence = activity.activity.requiresEvidence
                     )
@@ -581,6 +584,7 @@ class ChecklistViewModel @Inject constructor(
                         assignedServiceId = serviceId,
                         sectionIndex = state.currentSectionIndex,
                         activityIndex = activityIndex,
+                        activityId = activity.activity.Id,
                         activityDescription = activity.activity.description,
                         requiresEvidence = activity.activity.requiresEvidence,
                         completed = true
@@ -828,6 +832,7 @@ class ChecklistViewModel @Inject constructor(
                             assignedServiceId = serviceId,
                             sectionIndex = state.currentSectionIndex,
                             activityIndex = activityIndex,
+                            activityId = activity.activity.Id,
                             description = activity.activity.description,
                             requiresEvidence = activity.activity.requiresEvidence
                         )
@@ -853,6 +858,7 @@ class ChecklistViewModel @Inject constructor(
                                 assignedServiceId = serviceId,
                                 sectionIndex = state.currentSectionIndex,
                                 activityIndex = state.currentSectionActivities.indexOf(activityUI),
+                                activityId = "",
                                 activityDescription = activityUI.activity.description,
                                 requiresEvidence = activityUI.activity.requiresEvidence,
                                 completed = true
@@ -911,6 +917,7 @@ class ChecklistViewModel @Inject constructor(
                             assignedServiceId = serviceId,
                             sectionIndex = state.currentSectionIndex,
                             activityIndex = activityIndex,
+                            activityId = activity.activity.Id,
                             description = activity.activity.description,
                             requiresEvidence = activity.activity.requiresEvidence,
                             completed = true,

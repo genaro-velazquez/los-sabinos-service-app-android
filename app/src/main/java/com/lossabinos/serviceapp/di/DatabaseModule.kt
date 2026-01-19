@@ -23,6 +23,23 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     private val MIGRATION_8_TO_9 = object : Migration(
+        startVersion = 8,
+        endVersion = 9
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Agregar la nueva columna
+            db.execSQL(
+                "ALTER TABLE activity_progress ADD COLUMN activityId TEXT NOT NULL DEFAULT ''"
+            )
+
+            // Agregar índice para mejor performance
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_activity_progress_activityId ON activity_progress(activityId)"
+            )
+        }
+    }
+
+    private val MIGRATION_7_TO_8 = object : Migration(
         startVersion = 7,
         endVersion = 8
     ){
@@ -249,6 +266,7 @@ object DatabaseModule {
                 MIGRATION_4_TO_5,
                 MIGRATION_5_TO_6,
                 MIGRATION_6_TO_7,
+                MIGRATION_7_TO_8,
                 MIGRATION_8_TO_9)
             .fallbackToDestructiveMigration(true)
             .build()

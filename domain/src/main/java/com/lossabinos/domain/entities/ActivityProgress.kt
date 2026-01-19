@@ -5,6 +5,7 @@ class ActivityProgress(
     val assignedServiceId: String,
     val sectionIndex: Int,
     val activityIndex: Int,
+    val activityId: String,
     val activityDescription: String,
     val requiresEvidence: Boolean,
     val completed: Boolean = false,

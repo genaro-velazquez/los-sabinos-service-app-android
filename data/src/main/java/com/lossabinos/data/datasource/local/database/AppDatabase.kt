@@ -35,7 +35,7 @@ import com.lossabinos.data.datasource.local.database.entities.ZoneEntity
         SyncMetadataEntity::class,
         ServiceProgressEntity::class
     ],
-    version = 8
+    version = 9
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun initialDataDao(): InitialDataDao

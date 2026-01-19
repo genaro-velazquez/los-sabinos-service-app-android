@@ -13,6 +13,7 @@ interface ChecklistRepository {
         assignedServiceId: String,
         sectionIndex: Int,
         activityIndex: Int,
+        activityId:String,
         description: String,
         requiresEvidence: Boolean,
         completed: Boolean = true,

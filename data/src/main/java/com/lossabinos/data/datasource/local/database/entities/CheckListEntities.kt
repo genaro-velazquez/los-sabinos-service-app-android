@@ -17,6 +17,10 @@ import androidx.room.PrimaryKey
             childColumns = ["assignedServiceId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("assignedServiceId"),
+        Index("activityId")  // ← AGREGAR ÍNDICE PARA LA NUEVA COLUMNA
     ]
 )
 data class ActivityProgressEntity (
@@ -24,6 +28,7 @@ data class ActivityProgressEntity (
     val assignedServiceId: String,  // FK (camelCase)
     val sectionIndex: Int,
     val activityIndex: Int,
+    val activityId:String,
     val activityDescription: String,
     val requiresEvidence: Boolean,
     val completed: Boolean = false,

@@ -18,6 +18,7 @@ class LocalDataRepositoryImp(
     override suspend fun clearAll() {
         initialDataDao.deleteAllData()
         activityProgressDao.deleteAllActivityProgress()
+        activityProgressDao.deleteAllServiceProgress()
         activityEvidenceDao.deleteAllActivityEvidences()
         observationResponseDao.deleteAllObservationResponses()
         serviceFieldValueDao.deleteAllServiceFieldValues()
