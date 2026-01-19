@@ -248,14 +248,7 @@ class ChecklistViewModel @Inject constructor(
                         assignedServiceId = serviceId,
                         sectionIndex = currentSectionIndex
                     )
-/*
-                    val observationResponses = checklistRepository.getObservationResponsesForSection(
-                        assignedServiceId = serviceId,
-                        sectionIndex = currentSectionIndex
-                    )
 
-                    val previousObservations = observationResponses.firstOrNull()?.response ?: ""
-*/
                     val previousObservations = observationResponses.firstOrNull() ?: ""
 
                     // ✨ PASO 6: Calcular totales
