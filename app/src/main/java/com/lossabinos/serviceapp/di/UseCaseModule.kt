@@ -3,9 +3,13 @@ package com.lossabinos.serviceapp.di
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
+import com.lossabinos.domain.repositories.LocationSocketRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
+import com.lossabinos.domain.usecases.ConnectLocationSocketUseCase
+import com.lossabinos.domain.usecases.DisconnectLocationSocketUseCase
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
+import com.lossabinos.domain.usecases.ObserveLocationUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
@@ -321,5 +325,31 @@ object UseCaseModule {
         return ClearAllUseCase(
             localDataRepository = repository
         )
+    }
+
+    // ============== LOCATION SOCKET USE CASES ==============
+
+    @Singleton
+    @Provides
+    fun provideConnectLocationSocketUseCase(
+        repository: LocationSocketRepository
+    ): ConnectLocationSocketUseCase {
+        return ConnectLocationSocketUseCase(repository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideObserveLocationUseCase(
+        repository: LocationSocketRepository
+    ): ObserveLocationUseCase {
+        return ObserveLocationUseCase(repository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDisconnectLocationSocketUseCase(
+        repository: LocationSocketRepository
+    ): DisconnectLocationSocketUseCase {
+        return DisconnectLocationSocketUseCase(repository)
     }
 }

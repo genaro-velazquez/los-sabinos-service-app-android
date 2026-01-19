@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
+import com.lossabinos.domain.models.LocationEvent
 import com.lossabinos.domain.responses.InitialDataResponse
+import com.lossabinos.domain.usecases.ConnectLocationSocketUseCase
+import com.lossabinos.domain.usecases.DisconnectLocationSocketUseCase
+import com.lossabinos.domain.usecases.ObserveLocationUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
@@ -39,9 +43,16 @@ class MechanicsViewModel @Inject constructor(
     getAssignedServicesFlowUseCase: GetAssignedServicesFlowUseCase,
     getServiceTypesFlowUseCase: GetServiceTypesFlowUseCase,
     getSyncMetadataFlowUseCase: GetSyncMetadataFlowUseCase,
-    private val syncChecklistUseCase: SyncChecklistUseCase
+    private val syncChecklistUseCase: SyncChecklistUseCase,
+    // New dependencies for WebSocket
+    private val connectLocationSocket: ConnectLocationSocketUseCase,
+    private val observeLocation: ObserveLocationUseCase,
+    private val disconnectLocationSocket: DisconnectLocationSocketUseCase
 ) : ViewModel(){
 
+    init {
+        connectLocationSocket()
+    }
 
     // ==============
     // CARGA INICIAL
@@ -218,6 +229,16 @@ class MechanicsViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = null
             )
+    
+    // ============================================================
+    // LOCATION STATE (from WebSocket)
+    // ============================================================
+    val locationState = observeLocation()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            LocationEvent.Idle
+        )
 
     fun syncService(serviceId: String) {
         viewModelScope.launch {
@@ -236,6 +257,11 @@ class MechanicsViewModel @Inject constructor(
                 println("❌ [HomeVM] Error: ${e.message}")
             }
         }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        disconnectLocationSocket()
     }
 
 }

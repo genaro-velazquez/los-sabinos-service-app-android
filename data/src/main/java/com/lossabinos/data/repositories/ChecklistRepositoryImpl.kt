@@ -24,7 +24,7 @@ import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
@@ -338,10 +338,7 @@ class ChecklistRepositoryImpl(
             println("📋 [Repo] Payload:\n${requestJSON.toString(2)}")
 
             // 4️⃣ Crear RequestBody
-            val requestBody = RequestBody.create(
-                "application/json".toMediaType(),
-                requestJSON.toString()
-            )
+            val requestBody = requestJSON.toString().toRequestBody("application/json".toMediaType())
 
             // 5️⃣ Enviar al servidor
             println("🌐 [Repo] Enviando al servidor...")

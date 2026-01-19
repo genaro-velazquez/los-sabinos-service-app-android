@@ -20,7 +20,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [
         Index("assignedServiceId"),
-        Index("activityId")  // ← AGREGAR ÍNDICE PARA LA NUEVA COLUMNA
+        Index("activityId")
     ]
 )
 data class ActivityProgressEntity (
@@ -45,6 +45,9 @@ data class ActivityProgressEntity (
             childColumns = ["activityProgressId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("activityProgressId")
     ]
 )
 data class ActivityEvidenceEntity(
@@ -65,6 +68,9 @@ data class ActivityEvidenceEntity(
             childColumns = ["assignedServiceId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("assignedServiceId")
     ]
 )
 data class ObservationResponseEntity(
@@ -74,13 +80,13 @@ data class ObservationResponseEntity(
     val observationIndex: Int,
     val observationId:String,
     val observationDescription: String,
-    val responseType: String,  // ← AGREGAR (textarea, number, boolean)
+    val responseType: String,
     val response: String? = null,
-    val requiresResponse: Boolean = false,  // ← AGREGAR
+    val requiresResponse: Boolean = false,
     val timestamp: String? = null
 )
 
-// OBSERVATION RESPONSE
+// SERVICE FIELD VALUE
 @Entity(
     tableName = "service_field_value",
     foreignKeys = [
@@ -91,11 +97,11 @@ data class ObservationResponseEntity(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    // 🆕 Agregar índice único
     indices = [
+        Index("assignedServiceId"),
         Index(
             value = ["assignedServiceId", "fieldLabel"],
-            unique = true  // Garantiza que no haya duplicados
+            unique = true
         )
     ]
 )
@@ -145,4 +151,3 @@ data class AssignedServiceWithProgressEntity(
     @ColumnInfo(name = "completedCount")
     val completedCount: Int = 0
 )
-

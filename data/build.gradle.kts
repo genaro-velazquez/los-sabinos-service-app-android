@@ -9,9 +9,7 @@ plugins {
 
 android {
     namespace = "com.lossabinos.data"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -59,4 +57,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     implementation("com.google.dagger:hilt-core:2.50")
+
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 }
