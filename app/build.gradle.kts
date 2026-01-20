@@ -2,17 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    /*Hilt Dependence Injection*/
-    id("kotlin-kapt")  // ✅ AGREGAR ESTO
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
 
 android {
     namespace = "com.lossabinos.serviceapp"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.lossabinos.serviceapp"
@@ -62,54 +59,34 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // ✅ REFERENCIAR DATA
     implementation(project(":data"))
     implementation(project(":domain"))
 
-    // Viewmodels
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    // Material icons extensions
     implementation(libs.androidx.compose.material.icons.extended)
-    // Material icons
     implementation(libs.material.v1120)
-    // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
-    // Hilt para ViewModel
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // ejecutar servicios
-    // Retrofit
     implementation(libs.retrofit.v2100)
-    // Retrofit - Scalars Converter (para String responses)
     implementation(libs.converter.scalars)
-    // OkHttp (explícito)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-    // Navigation Compose
     implementation(libs.androidx.navigation.compose)
-    // Hilt Navigation (para inyectar ViewModels)
-    implementation(libs.androidx.hilt.navigation.compose)
-    // room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
-    // Serialización JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
-    // 🆕 ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
-
-    // 🆕 CameraX (para capturar video)
     implementation("androidx.camera:camera-core:1.5.2")
     implementation("androidx.camera:camera-camera2:1.5.2")
     implementation("androidx.camera:camera-lifecycle:1.5.2")
     implementation("androidx.camera:camera-view:1.5.2")
-
-    // 🆕 Permisos
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
-
-    // Coil para cargar imágenes
     implementation("io.coil-kt:coil-compose:2.4.0")
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 }

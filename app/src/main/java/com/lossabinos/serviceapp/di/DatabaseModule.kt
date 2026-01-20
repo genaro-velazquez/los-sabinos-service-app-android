@@ -8,7 +8,9 @@ import com.lossabinos.data.datasource.local.database.AppDatabase
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
+import com.lossabinos.data.datasource.local.database.dao.LocationDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
+import com.lossabinos.data.datasource.local.database.dao.OfflineLocationDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import dagger.Module
 import dagger.Provides
@@ -21,6 +23,39 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+
+    private val MIGRATION_10_TO_11 = object : Migration(
+        startVersion = 10,
+        endVersion = 11
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `offline_locations` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                    `jsonMessage` TEXT NOT NULL, 
+                    `createdAt` INTEGER NOT NULL
+                )
+            """.trimIndent())
+        }
+    }
+
+    private val MIGRATION_9_TO_10 = object : Migration(
+        startVersion = 9,
+        endVersion = 10
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `locations` (
+                    `id` TEXT NOT NULL, 
+                    `userId` TEXT NOT NULL, 
+                    `latitude` REAL NOT NULL, 
+                    `longitude` REAL NOT NULL, 
+                    `timestamp` INTEGER NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+        }
+    }
 
     private val MIGRATION_8_TO_9 = object : Migration(
         startVersion = 8,
@@ -261,13 +296,17 @@ object DatabaseModule {
             AppDatabase::class.java,
             "los_sabinos.db"
         )
-            .addMigrations(MIGRATION_2_TO_3,
+            .addMigrations(
+                MIGRATION_2_TO_3,
                 MIGRATION_3_TO_4,
                 MIGRATION_4_TO_5,
                 MIGRATION_5_TO_6,
                 MIGRATION_6_TO_7,
                 MIGRATION_7_TO_8,
-                MIGRATION_8_TO_9)
+                MIGRATION_8_TO_9,
+                MIGRATION_9_TO_10,
+                MIGRATION_10_TO_11
+            )
             .fallbackToDestructiveMigration(true)
             .build()
     }
@@ -303,6 +342,18 @@ object DatabaseModule {
     @Provides
     fun provideServiceFieldValueDao(database: AppDatabase): ServiceFieldValueDao {
         return database.serviceFieldValueDao()
+    }
+    
+    @Singleton
+    @Provides
+    fun provideLocationDao(database: AppDatabase): LocationDao {
+        return database.locationDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideOfflineLocationDao(database: AppDatabase): OfflineLocationDao {
+        return database.offlineLocationDao()
     }
 
 }
