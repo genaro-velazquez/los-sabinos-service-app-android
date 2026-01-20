@@ -3,14 +3,19 @@ package com.lossabinos.serviceapp.ui.components.templates
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +34,7 @@ import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
 import com.lossabinos.serviceapp.ui.components.atoms.ContinueButtonAtom
 import com.lossabinos.serviceapp.ui.components.organisms.InitialStateOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.InvalidStateOrganism
+import com.lossabinos.serviceapp.ui.components.organisms.QRValidationOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ValidStateOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.VehicleRegistrationActionOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.VehicleRegistrationFormOrganism
@@ -38,11 +44,15 @@ import com.lossabinos.serviceapp.ui.components.organisms.VehicleRegistrationForm
 fun VehicleRegistrationTemplate(
     qrState: ScanQRState,
     fields: List<VehicleRegistrationFieldUIModel> = emptyList(),
+    manualQRValue: String = "",
+    onManualQRChange: (String) -> Unit = { _ -> },
     onScanClick: () -> Unit = {},
+    onValidateManualClick: () -> Unit = {},
     onFieldChange: (String, String) -> Unit = { _, _ -> },
     onContinueClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
-    isEnabled: Boolean = true
+    isEnabled: Boolean = true,
+    isValidatingManual: Boolean = false
 ) {
 
     val scrollState = rememberScrollState()  // ← AGREGAR
@@ -74,10 +84,19 @@ fun VehicleRegistrationTemplate(
             // 🆕 Mostrar contenido según el estado
             when (qrState) {
                 ScanQRState.INITIAL -> {
+                    QRValidationOrganism(
+                        manualQRValue = manualQRValue,
+                        onManualQRChange = onManualQRChange,
+                        onScanClick = onScanClick,
+                        onValidateManualClick = onValidateManualClick,
+                        isValidatingManual = isValidatingManual
+                    )
+                    /*
                     // Solo botón
                     InitialStateOrganism(
                         onScanClick = onScanClick
                     )
+                    */
                 }
 
                 ScanQRState.VALID -> {
@@ -105,10 +124,56 @@ fun VehicleRegistrationTemplate(
                 }
 
                 ScanQRState.INVALID -> {
+                    // ← CAMBIO: Mostrar error + permitir reintentar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = Color(0xFFFFCDD2),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Error",
+                            tint = Color(0xFFC62828),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Column {
+                            Text(
+                                "Código Inválido",
+                                color = Color(0xFF6D1C0E),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                "No corresponde a este vehículo",
+                                color = Color(0xFF8D4031),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Permitir reintentar con ambas opciones
+                    QRValidationOrganism(
+                        manualQRValue = manualQRValue,
+                        onManualQRChange = onManualQRChange,
+                        onScanClick = onScanClick,
+                        onValidateManualClick = onValidateManualClick,
+                        isValidatingManual = isValidatingManual
+                    )
+
+                    /*
                     // Botón + Error
                     InvalidStateOrganism(
                         onScanClick = onScanClick
                     )
+                    */
                 }
             }
         }

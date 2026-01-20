@@ -48,6 +48,11 @@ class VehicleRegistrationViewModel @Inject constructor(
     private val _qrState = MutableStateFlow(ScanQRState.INITIAL)
     val qrState: StateFlow<ScanQRState> = _qrState.asStateFlow()
 
+    private val _manualQRInput = MutableStateFlow("")
+    val manualQRInput: StateFlow<String> = _manualQRInput.asStateFlow()
+    private val _isValidatingManual = MutableStateFlow(false)
+    val isValidatingManual: StateFlow<Boolean> = _isValidatingManual.asStateFlow()
+
     // 🆕 Almacenar el vehicleId del servicio
     private var serviceVehicleId: String = ""
 
@@ -71,6 +76,49 @@ class VehicleRegistrationViewModel @Inject constructor(
     fun setServiceVehicleId(vehicleId: String) {
         this.serviceVehicleId = vehicleId
         println("🚗 Vehicle ID del servicio establecido: $vehicleId")
+    }
+
+    fun updateManualQRInput(value: String) {
+        _manualQRInput.value = value
+        println("📝 QR manual: $value")
+    }
+
+    fun validateManualQRCode() {
+        viewModelScope.launch {
+            try {
+                _isValidatingManual.value = true
+                println("🔍 Validando QR manual: ${_manualQRInput.value}")
+
+                val qrValue = _manualQRInput.value.trim()
+
+                if (qrValue.isEmpty()) {
+                    println("❌ Campo vacío")
+                    _qrState.value = ScanQRState.INVALID
+                    _isValidatingManual.value = false
+                    return@launch
+                }
+
+                val qrVehicleId = extractVehicleIdFromQR(qrValue)
+
+                println("📋 Vehicle ID extraído: $qrVehicleId")
+                println("📋 Vehicle ID servicio: $serviceVehicleId")
+
+                if (qrVehicleId.isNotEmpty() && qrVehicleId == serviceVehicleId) {
+                    println("✅ QR Manual Válido")
+                    _qrState.value = ScanQRState.VALID
+                } else {
+                    println("❌ QR Manual Inválido")
+                    _qrState.value = ScanQRState.INVALID
+                }
+
+                _isValidatingManual.value = false
+
+            } catch (e: Exception) {
+                println("❌ Error: ${e.message}")
+                _qrState.value = ScanQRState.INVALID
+                _isValidatingManual.value = false
+            }
+        }
     }
 
     // 🆕 Validar QR y actualizar estado
@@ -102,7 +150,16 @@ class VehicleRegistrationViewModel @Inject constructor(
     }
 
     // 🆕 Extraer vehicle_id del string del QR
-    private fun extractVehicleIdFromQR(qrValue: String): String {
+    private fun extractVehicleIdFromQR(qrValue: String?): String {
+        val value = qrValue?.trim()
+
+        return if (value.isNullOrBlank()) {
+            println("⚠️ QR vacío o nulo")
+            ""
+        } else {
+            value
+        }
+        /*
         return try {
             // Formato: "vehicle_id=be48febf-2858-4bae-bb8a-64e80c15bcee"
             if (qrValue.contains("vehicle_id=")) {
@@ -122,6 +179,7 @@ class VehicleRegistrationViewModel @Inject constructor(
             println("❌ Error extrayendo vehicle_id: ${e.message}")
             ""
         }
+        */
     }
 
 

@@ -35,7 +35,7 @@ fun VehicleRegistrationScreen(
 
         // 🆕 Establecer el vehicleId del servicio en el ViewModel
         selectedService?.let { service ->
-            viewModel.setServiceVehicleId(service.assignedService.vehicle.id)  // Asumiendo que tiene vehicleId
+            viewModel.setServiceVehicleId(service.assignedService.vehicle.vin)  // Asumiendo que tiene vehicleId
             println("🚗 VehicleId configurado en ViewModel: ${service.assignedService.vehicle.id}")
         }
 
@@ -46,14 +46,24 @@ fun VehicleRegistrationScreen(
     val serviceFields by viewModel.serviceFields.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isEnabled = viewModel.validateAndContinue() && !isLoading
+    val manualQRValue by viewModel.manualQRInput.collectAsState()
+    val isValidatingManual by viewModel.isValidatingManual.collectAsState()
 
     VehicleRegistrationTemplate(
-        qrState = qrState,  // 🆕 Pasar estado
+        qrState = qrState,
         fields = serviceFields,
+        manualQRValue = manualQRValue,
+        onManualQRChange = { newValue ->
+            viewModel.updateManualQRInput(newValue)
+        },
         onScanClick = {
             println("🔍 Abriendo escáner QR")
             // 🆕 Navegar a QR Scanner
             navController.navigate("qr_scanner")
+        },
+        onValidateManualClick = {
+            println("✅ Validando QR manual")
+            viewModel.validateManualQRCode()
         },
         onFieldChange = { fieldId, newValue ->
             viewModel.updateFieldValue(fieldId, newValue)
@@ -69,7 +79,8 @@ fun VehicleRegistrationScreen(
             viewModel.resetQRState()
             onBackClick()
         },
-        isEnabled = isEnabled
+        isEnabled = isEnabled,
+        isValidatingManual = isValidatingManual
     )
 }
 
