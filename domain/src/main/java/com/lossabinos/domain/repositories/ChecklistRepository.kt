@@ -106,6 +106,8 @@ interface ChecklistRepository {
         serviceId: String,
         activityId: String
     )
+
+    suspend fun isServiceSynced(serviceId: String): Boolean
 }
 
 

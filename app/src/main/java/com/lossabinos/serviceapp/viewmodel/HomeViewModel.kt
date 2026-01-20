@@ -3,6 +3,7 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
@@ -159,24 +160,54 @@ class HomeViewModel @Inject constructor(
         _navigationEvent.value = null
     }
 
+    private val _uiMessage = MutableStateFlow<String?>(null)
+    val uiMessage = _uiMessage.asStateFlow()
+
+    fun clearMessage() {
+        _uiMessage.value = null
+    }
+
     private fun  syncService(serviceId: String) {
         viewModelScope.launch {
-            try {
-                println("🔄 [HomeVM] Sincronizando: $serviceId")
-                _isLoading.value = true
-                _errorMessage.value = null
+            _isLoading.value = true
 
-                syncChecklistUseCase(serviceId)
+            when (val result = syncChecklistUseCase(serviceId)) {
 
-                println("✅ [HomeVM] Sincronización exitosa")
+                SyncResult.Success -> {
+                    println("✅ Sincronización exitosa")
+                }
 
-            } catch (e: Exception) {
-                println("❌ [HomeVM] CATCH - Error: ${e.message}")
-                _isLoading.value = true
-                _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
-                println("❌ [HomeVM] _errorMessage = ${_errorMessage.value}")
+                SyncResult.AlreadySynced -> {
+                    _uiMessage.value = "Este servicio ya fue sincronizado."
+                }
+
+                is SyncResult.Error -> {
+                    _errorMessage.value = result.message
+                }
             }
+
+            _isLoading.value = false
         }
+
+        /*
+                viewModelScope.launch {
+                    try {
+                        println("🔄 [HomeVM] Sincronizando: $serviceId")
+                        _isLoading.value = true
+                        _errorMessage.value = null
+
+                        syncChecklistUseCase(serviceId)
+
+                        println("✅ [HomeVM] Sincronización exitosa")
+
+                    } catch (e: Exception) {
+                        println("❌ [HomeVM] CATCH - Error: ${e.message}")
+                        _isLoading.value = true
+                        _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
+                        println("❌ [HomeVM] _errorMessage = ${_errorMessage.value}")
+                    }
+                }
+         */
     }
 
 }

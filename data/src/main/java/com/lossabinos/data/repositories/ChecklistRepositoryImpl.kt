@@ -301,6 +301,13 @@ class ChecklistRepositoryImpl(
         }
     }
 
+    override suspend fun isServiceSynced(serviceId: String): Boolean {
+        return activityProgressDao
+            .getSyncStatus(serviceId)
+            ?.let { it == SyncStatus.SYNCED.name }
+            ?: false
+    }
+
     override suspend fun syncChecklist(serviceId: String) {
         try {
             println("🔄 [Repo] Sincronizando checklist: $serviceId")

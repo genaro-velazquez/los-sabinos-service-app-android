@@ -17,6 +17,7 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.valueobjects.Template
@@ -106,6 +107,12 @@ class ChecklistViewModel @Inject constructor(
         println("📋 [CHECKLIST] Abriendo diálogo de firma")
     }
 
+    fun onErrorAlertDismissed() {
+        println("✅ Usuario cerró la alerta")
+        clearError()
+        _navigationEvent.value = NavigationEvent.NavigateToHome
+    }
+
     fun onConfirmSign() {
         _showSignDialog.value = false
         viewModelScope.launch {
@@ -115,28 +122,67 @@ class ChecklistViewModel @Inject constructor(
                 _isLoading.value = true
                 _errorMessage.value = null
 
-                // Simple: solo llamar al UseCase
-                syncChecklistUseCase(serviceId = serviceId)
+                // ← CAPTURAR EL RESULTADO DEL USECASE
+                when (val result = syncChecklistUseCase(serviceId = serviceId)) {
 
-                println("✅ [ViewModel] Sincronización completada")
-                delay(1000)
+                    SyncResult.Success -> {
+                        println("✅ [ViewModel] Sincronización completada")
+                        delay(1000)
+                        _isLoading.value = false
+                        _navigationEvent.value = NavigationEvent.NavigateToHome
+                    }
 
-                // Navegar a Home
-                _navigationEvent.value = NavigationEvent.NavigateToHome
+                    SyncResult.AlreadySynced -> {
+                        println("⚠️ [ViewModel] Servicio ya sincronizado")
+                        _isLoading.value = false
+                        _errorMessage.value = "Este servicio ya fue sincronizado anteriormente"
+                    }
 
-                _isLoading.value = false
-
+                    is SyncResult.Error -> {
+                        println("❌ [ViewModel] Error: ${result.message}")
+                        _isLoading.value = false
+                        _errorMessage.value = result.message
+                    }
+                }
             } catch (e: Exception) {
-                println("❌ Error: ${e.message}")
+                println("❌ Exception no esperada: ${e.message}")
                 _isLoading.value = false
-
-                // ← CAPTURAR EL ERROR Y MOSTRARLO
                 _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
-
-                println("❌ Error capturado: ${_errorMessage.value}")
-                // NO navegar a Home automáticamente, esperar que el usuario toque la alerta
             }
         }
+
+        /*
+                _showSignDialog.value = false
+                viewModelScope.launch {
+                    try {
+                        println("✍️ [CHECKLIST] Confirmando firma...")
+
+                        _isLoading.value = true
+                        _errorMessage.value = null
+
+                        // Simple: solo llamar al UseCase
+                        syncChecklistUseCase(serviceId = serviceId)
+
+                        println("✅ [ViewModel] Sincronización completada")
+                        delay(1000)
+
+                        // Navegar a Home
+                        _navigationEvent.value = NavigationEvent.NavigateToHome
+
+                        _isLoading.value = false
+
+                    } catch (e: Exception) {
+                        println("❌ Error: ${e.message}")
+                        _isLoading.value = false
+
+                        // ← CAPTURAR EL ERROR Y MOSTRARLO
+                        _errorMessage.value = e.message ?: "Error desconocido en la sincronización"
+
+                        println("❌ Error capturado: ${_errorMessage.value}")
+                        // NO navegar a Home automáticamente, esperar que el usuario toque la alerta
+                    }
+                }
+         */
     }
 
     fun onCancelSign() {

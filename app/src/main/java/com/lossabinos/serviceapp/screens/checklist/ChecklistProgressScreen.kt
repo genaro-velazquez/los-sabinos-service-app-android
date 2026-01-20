@@ -89,7 +89,7 @@ fun ChecklistProgressScreen(
     // ← ALERTA DE ERROR (agregar AQUÍ)
     if (!errorMessage.isNullOrEmpty()) {
         AlertDialog(
-            onDismissRequest = { viewModel.clearError() },
+            onDismissRequest = { viewModel.onErrorAlertDismissed() },
             title = {
                 Text(
                     "❌ Error en la Sincronización",

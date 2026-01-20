@@ -138,6 +138,8 @@ fun HomeScreen(
         mechanicsViewModel.homeMetrics.collectAsStateWithLifecycle().value
     val errorMessage = homeViewModel.errorMessage.collectAsStateWithLifecycle().value
     val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
+    val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
+
 
     // ==========================================
     // 2️⃣ CARGAR DATOS AL ABRIR PANTALLA
@@ -222,6 +224,19 @@ fun HomeScreen(
             },
             onDismiss = {
                 homeViewModel.onEvent(HomeEvent.CancelLogout)
+            }
+        )
+    }
+
+    if (!uiMessage.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { homeViewModel.clearMessage() },
+            title = { Text("Información") },
+            text = { Text(uiMessage) },
+            confirmButton = {
+                Button(onClick = { homeViewModel.clearMessage() }) {
+                    Text("OK")
+                }
             }
         )
     }

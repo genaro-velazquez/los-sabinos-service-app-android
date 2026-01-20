@@ -133,6 +133,13 @@ interface ActivityProgressDao {
     @Query("DELETE FROM service_progress")
     suspend fun deleteAllServiceProgress()
 
+    @Query("""
+    SELECT syncStatus 
+    FROM service_progress 
+    WHERE assignedServiceId = :serviceId
+    LIMIT 1
+""")
+    suspend fun getSyncStatus(serviceId: String): String?
 
 }
 
