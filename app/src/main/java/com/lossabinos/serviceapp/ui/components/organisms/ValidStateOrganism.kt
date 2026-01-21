@@ -15,6 +15,7 @@ fun ValidStateOrganism(
     fields: List<VehicleRegistrationFieldUIModel>,
     onScanClick: () -> Unit,
     onFieldChange: (String, String) -> Unit,
+    showScanButton: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -22,12 +23,14 @@ fun ValidStateOrganism(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header con botón QR
-        QRScannerHeaderMolecule(onScanClick = onScanClick)
+        if (showScanButton) {
+            QRScannerHeaderMolecule(onScanClick = onScanClick)
 
-        // Separador
-        androidx.compose.material3.HorizontalDivider(
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+            // Separador
+            androidx.compose.material3.HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        }
 
         // Formulario
         VehicleRegistrationFormOrganism(

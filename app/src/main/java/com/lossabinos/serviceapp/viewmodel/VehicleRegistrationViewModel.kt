@@ -53,6 +53,23 @@ class VehicleRegistrationViewModel @Inject constructor(
     private val _isValidatingManual = MutableStateFlow(false)
     val isValidatingManual: StateFlow<Boolean> = _isValidatingManual.asStateFlow()
 
+    private val _showQRErrorAlert = MutableStateFlow(false)
+    val showQRErrorAlert: StateFlow<Boolean> = _showQRErrorAlert.asStateFlow()
+
+    private val _qrErrorMessage = MutableStateFlow("")
+    val qrErrorMessage: StateFlow<String> = _qrErrorMessage.asStateFlow()
+
+    fun dismissQRErrorAlert() {
+        _showQRErrorAlert.value = false
+        _qrErrorMessage.value = ""
+    }
+
+    fun changeQRCode() {
+        _qrState.value = ScanQRState.INITIAL
+        _manualQRInput.value = ""
+        println("🔄 Volviendo a validar QR...")
+    }
+
     // 🆕 Almacenar el vehicleId del servicio
     private var serviceVehicleId: String = ""
 
@@ -93,9 +110,16 @@ class VehicleRegistrationViewModel @Inject constructor(
 
                 if (qrValue.isEmpty()) {
                     println("❌ Campo vacío")
+                    _qrErrorMessage.value = "Por favor ingresa un código QR"
+                    _showQRErrorAlert.value = true
+                    _isValidatingManual.value = false
+                    return@launch
+                    /*
+                    println("❌ Campo vacío")
                     _qrState.value = ScanQRState.INVALID
                     _isValidatingManual.value = false
                     return@launch
+                    */
                 }
 
                 val qrVehicleId = extractVehicleIdFromQR(qrValue)
@@ -108,6 +132,8 @@ class VehicleRegistrationViewModel @Inject constructor(
                     _qrState.value = ScanQRState.VALID
                 } else {
                     println("❌ QR Manual Inválido")
+                    _qrErrorMessage.value = "El código QR no corresponde a este vehículo.\nIntenta de nuevo."
+                    _showQRErrorAlert.value = true
                     _qrState.value = ScanQRState.INVALID
                 }
 
@@ -115,8 +141,15 @@ class VehicleRegistrationViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 println("❌ Error: ${e.message}")
+                _qrErrorMessage.value = "Error al validar el código: ${e.message}"
+                _showQRErrorAlert.value = true
                 _qrState.value = ScanQRState.INVALID
                 _isValidatingManual.value = false
+                /*
+                println("❌ Error: ${e.message}")
+                _qrState.value = ScanQRState.INVALID
+                _isValidatingManual.value = false
+                */
             }
         }
     }
@@ -135,15 +168,19 @@ class VehicleRegistrationViewModel @Inject constructor(
                 if (qrVehicleId.isNotEmpty() && qrVehicleId == serviceVehicleId) {
                     println("✅ QR Válido - Vehicle IDs coinciden")
                     _qrState.value = ScanQRState.VALID
+                    _manualQRInput.value = qrValue
                 } else {
                     println("❌ QR Inválido - Vehicle IDs no coinciden")
                     println("   QR: $qrVehicleId")
                     println("   Servicio: $serviceVehicleId")
+                    _qrErrorMessage.value = "El código QR escaneado no corresponde a este vehículo.\nIntenta de nuevo."
+                    _showQRErrorAlert.value = true
                     _qrState.value = ScanQRState.INVALID
                 }
             } catch (e: Exception) {
                 println("❌ Error validando QR: ${e.message}")
-                e.printStackTrace()
+                _qrErrorMessage.value = "Error al procesar el QR: ${e.message}"
+                _showQRErrorAlert.value = true
                 _qrState.value = ScanQRState.INVALID
             }
         }
