@@ -23,8 +23,10 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.responses.SignChecklistResponse
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
@@ -310,164 +312,270 @@ class ChecklistRepositoryImpl(
 
     override suspend fun syncChecklist(serviceId: String) {
         try {
-            println("🔄 [Repo] Sincronizando checklist: $serviceId")
+            println("🔄 [Repo] Iniciando sincronización completa: $serviceId")
 
-            // 1️⃣ Obtener el servicio (para conseguir el template JSON)
-            val assignedService = initialDataDao.getAssignedServiceById(id = serviceId)
-                ?:throw Exception("Servicio no eencontrado")
+            // 1️⃣ Subir evidencias
+            syncEvidences(serviceId)
 
-            // Usar Elvis operator para manejar null
-            val templateJson = assignedService.checklistTemplateJson
-                ?: throw Exception("Template JSON no encontrado")
+            // 2️⃣ Subir checklist
+            syncChecklistProgress(serviceId)
 
-            println("✅ [Repo] templateJson:$templateJson")
-            println("✅ [Repo] Servicio obtenido")
+            // 3️⃣ Marcar como SYNCED (ÚLTIMO PASO)
+            markServiceAsSynced(serviceId)
 
-            // 2️⃣ Obtener todos los datos de Room
-            val activities = activityProgressDao.getAllCompletedActivities(assignedServiceId = serviceId)
-            val observations = observationResponseDao.getObservationsByService(serviceId = serviceId)
-            val fields =  serviceFieldValueDao.getServiceFieldValuesByService(assignedServiceId = serviceId)
+            println("✅ [Repo] Sincronización COMPLETA exitosa")
 
-            println("✅ [Repo] Datos obtenidos:")
-            println("   - Activities: ${activities.size}")
-            println("   - Observations: ${observations.size}")
-            println("   - Fields: ${fields.size}")
+        } catch (e: Exception) {
+            println("❌ [Repo] Sync abortado: ${e.message}")
+            throw e
+        }
 
-            // 3️⃣ Construir el JSON correctamente usando el Mapper
-            val requestJSON = checklistProgressRequestMapper.buildChecklistProgressRequest(
-                templateJson = templateJson,
-                activities = activities.map { it.toDomain() },
-                observations = observations.map { it.toDomain() },
-                fields = fields.map { it.toDomain() }
-            )
+        /*
+                try {
+                    println("🔄 [Repo] Sincronizando checklist: $serviceId")
 
-            println("✅ [Repo] JSON construido")
-            println("📋 [Repo] Payload:\n${requestJSON.toString(2)}")
+                    // 1️⃣ Obtener el servicio (para conseguir el template JSON)
+                    val assignedService = initialDataDao.getAssignedServiceById(id = serviceId)
+                        ?:throw Exception("Servicio no eencontrado")
 
-            // 4️⃣ Crear RequestBody
-            val requestBody = RequestBody.create(
-                "application/json".toMediaType(),
-                requestJSON.toString()
-            )
+                    // Usar Elvis operator para manejar null
+                    val templateJson = assignedService.checklistTemplateJson
+                        ?: throw Exception("Template JSON no encontrado")
 
-            // 5️⃣ Enviar al servidor
-            println("🌐 [Repo] Enviando al servidor...")
-            val response = checklistRemoteDataSource.syncProgress(
-                serviceId = serviceId,
-                request = requestBody
-            )
+                    println("✅ [Repo] templateJson:$templateJson")
+                    println("✅ [Repo] Servicio obtenido")
 
-            // 6️⃣ Procesar respuesta
-            if (response.isSuccessful) {
-                println("✅ [Repo] Response exitosa: ${response.code()}")
-                // Marcar como sincronizado
+                    // 2️⃣ Obtener todos los datos de Room
+                    val activities = activityProgressDao.getAllCompletedActivities(assignedServiceId = serviceId)
+                    val observations = observationResponseDao.getObservationsByService(serviceId = serviceId)
+                    val fields =  serviceFieldValueDao.getServiceFieldValuesByService(assignedServiceId = serviceId)
 
-                // ✅ Actualizar solo syncStatus a SYNCED
-                activityProgressDao.updateServiceProgressSyncStatus(
-                    assignedServiceId = serviceId,
-                    syncStatus = SyncStatus.SYNCED.name
-                )
+                    println("✅ [Repo] Datos obtenidos:")
+                    println("   - Activities: ${activities.size}")
+                    println("   - Observations: ${observations.size}")
+                    println("   - Fields: ${fields.size}")
 
-                println("✅ [Repo] Servicio marcado como SYNCED")
-            } else {
-                // capturar error
-                val errorBody = response.errorBody()?.string() ?: ""
-                val errorMessage = try {
-                    val jsonObject = JSONObject(errorBody)
-                    jsonObject.getString("detail") // Extrae el campo "detail"
-                } catch (e: Exception) {
-                    "Error: ${response.code()}"
-                }
+                    // 3️⃣ Construir el JSON correctamente usando el Mapper
+                    val requestJSON = checklistProgressRequestMapper.buildChecklistProgressRequest(
+                        templateJson = templateJson,
+                        activities = activities.map { it.toDomain() },
+                        observations = observations.map { it.toDomain() },
+                        fields = fields.map { it.toDomain() }
+                    )
 
-                println("❌ [Repo] Error HTTP: $errorMessage")
-                throw Exception(errorMessage)
-            }
+                    println("✅ [Repo] JSON construido")
+                    println("📋 [Repo] Payload:\n${requestJSON.toString(2)}")
 
-            // ═══════════════════════════════════════════════════════════════════════════════════
-            //  SEGUNDO: Sincronizar evidencias (fotos)
-            // ═══════════════════════════════════════════════════════════════════════════════════
+                    // 4️⃣ Crear RequestBody
+                    val requestBody = RequestBody.create(
+                        "application/json".toMediaType(),
+                        requestJSON.toString()
+                    )
 
-            println("\n📸 [Repo] Iniciando sincronización de evidencias...")
+                    // 5️⃣ Enviar al servidor
+                    println("🌐 [Repo] Enviando al servidor...")
+                    val response = checklistRemoteDataSource.syncProgress(
+                        serviceId = serviceId,
+                        request = requestBody
+                    )
 
-            // Obtener todas las actividades con sus evidencias
-            //val allActivities = activityProgressDao.getActivityProgressByService(serviceId)
-            val allActivities = checklistLocalDataSource.getActivityProgressByService(serviceId)
+                    // 6️⃣ Procesar respuesta
+                    if (response.isSuccessful) {
+                        println("✅ [Repo] Response exitosa: ${response.code()}")
+                        // Marcar como sincronizado
 
-            println("📊 [Repo] Total de actividades: ${allActivities.size}")
+                        // ✅ Actualizar solo syncStatus a SYNCED
+                        activityProgressDao.updateServiceProgressSyncStatus(
+                            assignedServiceId = serviceId,
+                            syncStatus = SyncStatus.SYNCED.name
+                        )
 
-            // Filtrar actividades que tienen evidencias
-            val activitiesWithEvidence = allActivities.filter { activity ->
-                val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
-                evidences.isNotEmpty()
-            }
+                        println("✅ [Repo] Servicio marcado como SYNCED")
+                    } else {
+                        // capturar error
+                        val errorBody = response.errorBody()?.string() ?: ""
+                        val errorMessage = try {
+                            val jsonObject = JSONObject(errorBody)
+                            jsonObject.getString("detail") // Extrae el campo "detail"
+                        } catch (e: Exception) {
+                            "Error: ${response.code()}"
+                        }
 
-            println("📸 [Repo] Actividades con fotos: ${activitiesWithEvidence.size}")
+                        println("❌ [Repo] Error HTTP: $errorMessage")
+                        throw Exception(errorMessage)
+                    }
 
-            if (activitiesWithEvidence.isNotEmpty()) {
-                // Sincronizar fotos de cada actividad
-                activitiesWithEvidence.forEach { activity ->
-                    try {
-                        println("\n🔄 [Repo] Sincronizando fotos de: ${activity.activityDescription}")
+                    // ═══════════════════════════════════════════════════════════════════════════════════
+                    //  SEGUNDO: Sincronizar evidencias (fotos)
+                    // ═══════════════════════════════════════════════════════════════════════════════════
 
-                        // Obtener fotos de esta actividad
+                    println("\n📸 [Repo] Iniciando sincronización de evidencias...")
+
+                    // Obtener todas las actividades con sus evidencias
+                    //val allActivities = activityProgressDao.getActivityProgressByService(serviceId)
+                    val allActivities = checklistLocalDataSource.getActivityProgressByService(serviceId)
+
+                    println("📊 [Repo] Total de actividades: ${allActivities.size}")
+
+                    // Filtrar actividades que tienen evidencias
+                    val activitiesWithEvidence = allActivities.filter { activity ->
                         val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
+                        evidences.isNotEmpty()
+                    }
 
-                        println("   📷 Total de fotos: ${evidences.size}")
+                    println("📸 [Repo] Actividades con fotos: ${activitiesWithEvidence.size}")
 
-                        // Enviar cada foto
-                        evidences.forEach { evidence ->
+                    if (activitiesWithEvidence.isNotEmpty()) {
+                        // Sincronizar fotos de cada actividad
+                        activitiesWithEvidence.forEach { activity ->
                             try {
-                                println("   📤 Enviando: ${evidence.filePath}")
+                                println("\n🔄 [Repo] Sincronizando fotos de: ${activity.activityDescription}")
 
-                                val photoFile = File(evidence.filePath)
+                                // Obtener fotos de esta actividad
+                                val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
 
-                                if (!photoFile.exists()) {
-                                    println("   ❌ Archivo no existe: ${evidence.filePath}")
-                                    return@forEach
-                                }
+                                println("   📷 Total de fotos: ${evidences.size}")
 
-                                // Enviar foto al servidor
-                                val photoResponse = checklistRemoteDataSource.syncProgressEvidence(
-                                    serviceId = serviceId,
-                                    activityId = activity.activityId,
-                                    photoFile = photoFile,
-                                    photoType = "general",
-                                    description = ""
-                                )
+                                // Enviar cada foto
+                                evidences.forEach { evidence ->
+                                    try {
+                                        println("   📤 Enviando: ${evidence.filePath}")
 
-                                if (photoResponse.isSuccessful) {
-                                    println("   ✅ Foto enviada exitosamente")
-                                    // Opcional: eliminar archivo después de sincronizar
-                                    // photoFile.delete()
-                                } else {
-                                    println("   ❌ Error enviando foto: ${photoResponse.code()}")
-                                    throw Exception("Error foto: ${photoResponse.code()}")
+                                        val photoFile = File(evidence.filePath)
+
+                                        if (!photoFile.exists()) {
+                                            println("   ❌ Archivo no existe: ${evidence.filePath}")
+                                            return@forEach
+                                        }
+
+                                        // Enviar foto al servidor
+                                        val photoResponse = checklistRemoteDataSource.syncProgressEvidence(
+                                            serviceId = serviceId,
+                                            activityId = activity.activityId,
+                                            photoFile = photoFile,
+                                            photoType = "general",
+                                            description = ""
+                                        )
+
+                                        if (photoResponse.isSuccessful) {
+                                            println("   ✅ Foto enviada exitosamente")
+                                            // Opcional: eliminar archivo después de sincronizar
+                                            // photoFile.delete()
+                                        } else {
+                                            println("   ❌ Error enviando foto: ${photoResponse.code()}")
+                                            throw Exception("Error foto: ${photoResponse.code()}")
+                                        }
+
+                                    } catch (e: Exception) {
+                                        println("   ❌ Exception en foto: ${e.message}")
+                                        // Continuar con las siguientes fotos
+                                    }
                                 }
 
                             } catch (e: Exception) {
-                                println("   ❌ Exception en foto: ${e.message}")
-                                // Continuar con las siguientes fotos
+                                println("❌ [Repo] Error en actividad: ${e.message}")
+                                // Continuar con las siguientes actividades
                             }
                         }
-
-                    } catch (e: Exception) {
-                        println("❌ [Repo] Error en actividad: ${e.message}")
-                        // Continuar con las siguientes actividades
+                        println("\n✅ [Repo] Todas las fotos sincronizadas")
+                    } else {
+                        println("⚠️ [Repo] No hay evidencias para sincronizar")
                     }
-                }
-                println("\n✅ [Repo] Todas las fotos sincronizadas")
-            } else {
-                println("⚠️ [Repo] No hay evidencias para sincronizar")
-            }
-            println("\n✅ [Repo] Sincronización completa (checklist + evidencias)")
+                    println("\n✅ [Repo] Sincronización completa (checklist + evidencias)")
 
-        }
-        catch (e: Exception){
-            println("❌ [Repo] Exception: ${e.message}")
-            e.printStackTrace()
-            throw e
-        }
+                }
+                catch (e: Exception){
+                    println("❌ [Repo] Exception: ${e.message}")
+                    e.printStackTrace()
+                    throw e
+                }
+         */
     }
+
+    // 👇 Helper internos (NO están en la interfaz)
+    private suspend fun syncEvidences(serviceId: String) {
+        println("📸 [Repo] Sincronizando evidencias...")
+
+        val allActivities = checklistLocalDataSource.getActivityProgressByService(serviceId)
+
+        val activitiesWithEvidence = allActivities.filter { activity ->
+            activityEvidenceDao
+                .getEvidenceByActivityProgress(activity.id)
+                .isNotEmpty()
+        }
+
+        activitiesWithEvidence.forEach { activity ->
+            val evidences = activityEvidenceDao.getEvidenceByActivityProgress(activity.id)
+
+            evidences.forEach { evidence ->
+                val photoFile = File(evidence.filePath)
+
+                if (!photoFile.exists()) {
+                    throw Exception("Archivo no existe: ${evidence.filePath}")
+                }
+
+                val response = checklistRemoteDataSource.syncProgressEvidence(
+                    serviceId = serviceId,
+                    activityId = activity.activityId,
+                    photoFile = photoFile,
+                    photoType = "general",
+                    description = ""
+                )
+
+                if (!response.isSuccessful) {
+                    throw Exception("Error enviando foto ${response.code()}")
+                }
+            }
+        }
+
+        println("✅ [Repo] Evidencias sincronizadas")
+    }
+
+    // 👇 Helper internos (NO están en la interfaz)
+    private suspend fun syncChecklistProgress(serviceId: String) {
+        println("📋 [Repo] Sincronizando checklist...")
+
+        val assignedService = initialDataDao.getAssignedServiceById(serviceId)
+            ?: throw Exception("Servicio no encontrado")
+
+        val templateJson = assignedService.checklistTemplateJson
+            ?: throw Exception("Template JSON no encontrado")
+
+        val activities = activityProgressDao.getAllCompletedActivities(serviceId)
+        val observations = observationResponseDao.getObservationsByService(serviceId)
+        val fields = serviceFieldValueDao.getServiceFieldValuesByService(serviceId)
+
+        val requestJSON = checklistProgressRequestMapper.buildChecklistProgressRequest(
+            templateJson,
+            activities.map { it.toDomain() },
+            observations.map { it.toDomain() },
+            fields.map { it.toDomain() }
+        )
+
+        val requestBody = requestJSON
+            .toString()
+            .toRequestBody("application/json".toMediaType())
+
+        val response = checklistRemoteDataSource.syncProgress(serviceId, requestBody)
+
+        if (!response.isSuccessful) {
+            val errorBody = response.errorBody()?.string().orEmpty()
+            throw Exception("Checklist error: $errorBody")
+        }
+
+        println("✅ [Repo] Checklist sincronizado")
+    }
+
+    // 👇 Helper internos (NO están en la interfaz)
+    private suspend fun markServiceAsSynced(serviceId: String) {
+        activityProgressDao.updateServiceProgressSyncStatus(
+            assignedServiceId = serviceId,
+            syncStatus = SyncStatus.SYNCED.name
+        )
+
+        println("🟢 [Repo] Servicio marcado como SYNCED")
+    }
+
 
     override suspend fun syncActivityChecklistEvidence(serviceId: String, activityId: String) {
         try {
@@ -547,5 +655,18 @@ class ChecklistRepositoryImpl(
             e.printStackTrace()
             throw e
         }
+    }
+
+    override suspend fun signChecklist(serviceExecutionId: String): SignChecklistResponse {
+        val jsonObject = JSONObject().apply {
+            put("comments", "Servicio completado satisfactoriamente")
+        }
+        val requestBody = jsonObject.toString()
+            .toRequestBody("application/json".toMediaType())
+
+        val dto = checklistRemoteDataSource.signChecklist(
+            serviceId = serviceExecutionId,
+            request = requestBody)
+        return dto.toEntity()
     }
 }

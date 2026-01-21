@@ -31,4 +31,11 @@ interface SyncServices {
         @Part("description") description: RequestBody
     ): Response<String>
 
+    @POST("/api/v1/work-orders/services/{service_execution_id}/sign")
+    suspend fun singChecklist(
+        @HeaderMap headers: Map<String, String>,
+        @Path("service_execution_id") serviceExecutionId: String,
+        @Body request: RequestBody
+    ): Response<String>
+
 }

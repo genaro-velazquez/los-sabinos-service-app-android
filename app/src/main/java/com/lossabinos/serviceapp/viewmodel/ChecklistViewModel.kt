@@ -19,6 +19,7 @@ import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
+import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ActivityModel
@@ -75,8 +76,8 @@ class ChecklistViewModel @Inject constructor(
     private val deleteActivityEvidenceByIdUseCase: DeleteActivityEvidenceByIdUseCase,
     private val saveObservationResponseUseCase: SaveObservationResponseUseCase,
     private val saveServiceProgressUseCase: SaveServiceProgressUseCase,
-    private val syncChecklistUseCase: SyncChecklistUseCase,
-    private val syncActivityChecklistEvidenceUseCase: SyncActivityChecklistEvidenceUseCase
+    private val syncActivityChecklistEvidenceUseCase: SyncActivityChecklistEvidenceUseCase,
+    private val syncAndSignChecklistUseCase: SyncAndSignChecklistUseCase
 ) : ViewModel() {
 
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -123,7 +124,8 @@ class ChecklistViewModel @Inject constructor(
                 _errorMessage.value = null
 
                 // ← CAPTURAR EL RESULTADO DEL USECASE
-                when (val result = syncChecklistUseCase(serviceId = serviceId)) {
+                //when (val result = syncChecklistUseCase(serviceId = serviceId)) {
+                when (val result = syncAndSignChecklistUseCase(serviceId = serviceId)) {
 
                     SyncResult.Success -> {
                         println("✅ [ViewModel] Sincronización completada")

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
+import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +53,7 @@ sealed class HomeEvent {
 class HomeViewModel @Inject constructor(
     private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val clearAllUseCase: ClearAllUseCase,
-    private val syncChecklistUseCase: SyncChecklistUseCase
+    private val syncAndSignChecklistUseCase: SyncAndSignChecklistUseCase
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -171,7 +172,8 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
 
-            when (val result = syncChecklistUseCase(serviceId)) {
+            //when (val result = syncChecklistUseCase(serviceId)) {
+            when (val result = syncAndSignChecklistUseCase(serviceId)) {
 
                 SyncResult.Success -> {
                     println("✅ Sincronización exitosa")

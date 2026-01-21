@@ -6,6 +6,7 @@ import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.responses.SignChecklistResponse
 
 interface ChecklistRepository {
 
@@ -108,6 +109,10 @@ interface ChecklistRepository {
     )
 
     suspend fun isServiceSynced(serviceId: String): Boolean
+
+    suspend fun signChecklist(
+        serviceExecutionId:String
+    ) : SignChecklistResponse
 }
 
 

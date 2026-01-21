@@ -21,7 +21,9 @@ import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
+import com.lossabinos.domain.usecases.checklist.SignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
+import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
@@ -307,6 +309,28 @@ object UseCaseModule {
     ) : SyncActivityChecklistEvidenceUseCase{
         return SyncActivityChecklistEvidenceUseCase(
             checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSignChecklistUseCase(
+        repository: ChecklistRepository
+    ) : SignChecklistUseCase {
+        return SignChecklistUseCase(
+            checklistRepository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSyncAndChecklistUseCase(
+        syncChecklistUseCase: SyncChecklistUseCase,
+        singChecklistUseCase: SignChecklistUseCase
+    ) : SyncAndSignChecklistUseCase {
+        return SyncAndSignChecklistUseCase(
+            syncChecklistUseCase = syncChecklistUseCase,
+            signChecklistUseCase = singChecklistUseCase
         )
     }
 
