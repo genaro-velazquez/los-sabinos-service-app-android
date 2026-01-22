@@ -6,8 +6,10 @@ import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
+import com.lossabinos.domain.repositories.WebSocketRepository
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
+import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
 import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
@@ -37,6 +39,9 @@ import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.UpdateServiceProgressUseCase
 import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
+import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
+import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
+import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -91,6 +96,16 @@ object UseCaseModule {
         return RefreshSessionUseCase(
             authenticationRepository = authenticationRepository,
             userPreferencesRepository = userPreferencesRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetAccessTokenUseCase(
+        authenticationRepository: AuthenticationRepository
+    ) : GetAccessTokenUseCase {
+        return GetAccessTokenUseCase(
+            authenticationRepository = authenticationRepository
         )
     }
 
@@ -359,6 +374,39 @@ object UseCaseModule {
     ) : GetNotificationsUseCase{
         return GetNotificationsUseCase(
             repository = repository
+        )
+    }
+
+    //*********************************
+    // UseCases WebSocketReposiory
+    //*********************************
+    @Singleton
+    @Provides
+    fun provideObserveWebSocketMessagesUseCase(
+        webSocketRepository: WebSocketRepository
+    ) : ObserveWebSocketMessagesUseCase{
+        return ObserveWebSocketMessagesUseCase(
+            webSocketRepository = webSocketRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideDisconnectWebSocketUseCase(
+        webSocketRepository: WebSocketRepository
+    ) : DisconnectWebSocketUseCase{
+        return DisconnectWebSocketUseCase(
+            webSocketRepository = webSocketRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideConnectWebSocketUseCase(
+        webSocketRepository: WebSocketRepository
+    ) : ConnectWebSocketUseCase{
+        return ConnectWebSocketUseCase(
+            webSocketRepository = webSocketRepository
         )
     }
 }

@@ -22,12 +22,14 @@ import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.repositories.MechanicsRetrofitRepository
 import com.lossabinos.data.repositories.NotificationRetrofitRepository
+import com.lossabinos.data.repositories.WebSocketRepositoryImpl
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
+import com.lossabinos.domain.repositories.WebSocketRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -58,6 +60,7 @@ object RepositoryModule {
             language = "es"
         )
     }
+
     @Singleton
     @Provides
     fun provideAuthenticationRepository(
@@ -74,15 +77,16 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideMechanicsRepositoryImp(
-        remoteDataSource : MechanicsRemoteDataSource,
-        localDataSource : MechanicsLocalDataSource
-    ): MechanicsRepository{
+        remoteDataSource: MechanicsRemoteDataSource,
+        localDataSource: MechanicsLocalDataSource
+    ): MechanicsRepository {
         return MechanicsRetrofitRepository(
             remoteDataSource = remoteDataSource,
             localDataSource = localDataSource
         )
     }
-/*
+
+    /*
     // ============== CHECKLIST PROGRESS REPOSITORY ==============
     // Administra: activities completadas, evidencias (fotos/videos),
     // respuestas de observations, valores de campos y progreso general del servicio
@@ -105,20 +109,20 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideChecklistRepository(
-    activityProgressDao: ActivityProgressDao,
-    activityEvidenceDao: ActivityEvidenceDao,
-    observationResponseDao: ObservationResponseDao,
-    serviceFieldValueDao: ServiceFieldValueDao,
-    initialDataDao: InitialDataDao,
-    checklistProgressRequestMapper: ChecklistProgressRequestMapper,
-    checklistRemoteDataSource: ChecklistRemoteDataSource,
-    checklistLocalDataSource: ChecklistLocalDataSource
-) : ChecklistRepository {
+        activityProgressDao: ActivityProgressDao,
+        activityEvidenceDao: ActivityEvidenceDao,
+        observationResponseDao: ObservationResponseDao,
+        serviceFieldValueDao: ServiceFieldValueDao,
+        initialDataDao: InitialDataDao,
+        checklistProgressRequestMapper: ChecklistProgressRequestMapper,
+        checklistRemoteDataSource: ChecklistRemoteDataSource,
+        checklistLocalDataSource: ChecklistLocalDataSource
+    ): ChecklistRepository {
         return ChecklistRepositoryImpl(
             activityProgressDao = activityProgressDao,
             activityEvidenceDao = activityEvidenceDao,
             observationResponseDao = observationResponseDao,
-            serviceFieldValueDao =  serviceFieldValueDao,
+            serviceFieldValueDao = serviceFieldValueDao,
             initialDataDao = initialDataDao,
             checklistProgressRequestMapper = checklistProgressRequestMapper,
             checklistRemoteDataSource = checklistRemoteDataSource,
@@ -135,7 +139,7 @@ object RepositoryModule {
         activityEvidenceDao: ActivityEvidenceDao,
         observationResponseDao: ObservationResponseDao,
         serviceFieldValueDao: ServiceFieldValueDao
-    ) : LocalDataRepository{
+    ): LocalDataRepository {
         return LocalDataRepositoryImp(
             initialDataDao = initialDataDao,
             activityProgressDao = activityProgressDao,
@@ -150,9 +154,17 @@ object RepositoryModule {
     @Provides
     fun provideNotificationReposiory(
         remoteDataSource: NotificationRemoteDataSource
-    ) : NotificationRepository {
+    ): NotificationRepository {
         return NotificationRetrofitRepository(
             remoteDataSource = remoteDataSource
         )
+    }
+
+    // ============== WebSocket REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideWebSocketRepository(
+    ) : WebSocketRepository {
+        return WebSocketRepositoryImpl()
     }
 }

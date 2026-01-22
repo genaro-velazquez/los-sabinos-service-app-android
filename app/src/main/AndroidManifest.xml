@@ -9,6 +9,12 @@
 
     <!-- 📌 PERMISOS AQUÍ -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- ✅ PERMISOS PARA WEBSOCKET -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- ✅ PERMISOS PARA NOTIFICACIONES -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
     <application
         android:name=".LosSabinosApplication"
