@@ -15,15 +15,18 @@ import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
+import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.repositories.MechanicsRetrofitRepository
+import com.lossabinos.data.repositories.NotificationRetrofitRepository
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
+import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import dagger.Module
 import dagger.Provides
@@ -139,6 +142,17 @@ object RepositoryModule {
             activityEvidenceDao = activityEvidenceDao,
             observationResponseDao = observationResponseDao,
             serviceFieldValueDao = serviceFieldValueDao
+        )
+    }
+
+    // ============== NOTIFICATIONS REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun provideNotificationReposiory(
+        remoteDataSource: NotificationRemoteDataSource
+    ) : NotificationRepository {
+        return NotificationRetrofitRepository(
+            remoteDataSource = remoteDataSource
         )
     }
 }

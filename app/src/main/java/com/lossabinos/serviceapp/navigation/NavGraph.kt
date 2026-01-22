@@ -33,6 +33,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import androidx.compose.runtime.remember
+import com.lossabinos.serviceapp.screens.notifications.NotificationsScreen
 
 
 /**
@@ -45,6 +46,8 @@ object Routes {
     const val CHECKLIST_PROGRESS = "checklist_progress/{serviceId}"
     const val VEHICLE_REGISTRATION = "vehicle_registration/{serviceId}"
     const val QR_SCANNER = "qr_scanner"
+    const val NOTIFICATIONS = "notifications"  // ← NUEVA RUTA
+
 }
 
 /**
@@ -174,6 +177,11 @@ fun NavGraph(
                             navController.navigate(
                                 VEHICLE_REGISTRATION.replace(oldValue = "{serviceId}", newValue = event.serviceId)
                             )
+                            homeViewModel.clearNavigationEvent()
+                        }
+                        is NavigationEvent.NavigateToNotifications -> {
+                            println("🔄 [NavGraph] Navegando a Notificaciones")
+                            navController.navigate(Routes.NOTIFICATIONS)
                             homeViewModel.clearNavigationEvent()
                         }
                         else -> {}
@@ -333,6 +341,18 @@ fun NavGraph(
                 }
             )
         }
+
+        // ============================================================================
+        // NOTIFICATIONS SCREEN
+        // ============================================================================
+        composable(Routes.NOTIFICATIONS) {
+            NotificationsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
 
     }
 }

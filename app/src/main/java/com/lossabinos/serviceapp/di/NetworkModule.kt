@@ -5,6 +5,7 @@ import com.lossabinos.data.datasource.remoto.interceptor.TokenRefreshInterceptor
 import com.lossabinos.data.dto.utilities.HeadersMaker
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.retrofit.MechanicsServices
+import com.lossabinos.data.retrofit.NotificationsServices
 import com.lossabinos.data.retrofit.SyncServices
 import com.lossabinos.data.utilities.CurlLoggingInterceptor
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
@@ -118,6 +119,12 @@ object NetworkModule {
     @Provides
     fun provideSyncSyncServices(retrofit: Retrofit): SyncServices {
         return retrofit.create(SyncServices::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideNotificationsServices(retrofit: Retrofit): NotificationsServices {
+        return retrofit.create(NotificationsServices::class.java)
     }
 
     /*

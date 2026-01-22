@@ -38,6 +38,8 @@ sealed class HomeEvent {
     object CancelLogout : HomeEvent()
     data class CompleteServiceClicked(val serviceId: String) : HomeEvent()
     data class SyncServiceClicked(val serviceId: String) : HomeEvent()
+    object NavigateToNotificationsClicked : HomeEvent()
+
 }
 
 /**
@@ -145,6 +147,9 @@ class HomeViewModel @Inject constructor(
             }
             is HomeEvent.SyncServiceClicked -> {
                 syncService(event.serviceId)
+            }
+            is HomeEvent.NavigateToNotificationsClicked -> {
+                _navigationEvent.value = NavigationEvent.NavigateToNotifications
             }
         }
     }

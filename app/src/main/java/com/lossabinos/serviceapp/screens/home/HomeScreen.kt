@@ -300,7 +300,10 @@ fun HomeScreen(
                 userName = mechanic?.name ?: state.userName,
                 userLocation = mechanic?.zoneName ?: state.userLocation,
                 isOnline = true,
-                onSettingsClick = onSettingsClick,
+                onSettingsClick = {
+                    println("📬 Notifications clicked")
+                    homeViewModel.onEvent(HomeEvent.NavigateToNotificationsClicked)  // ← O el evento que uses
+                },
                 onLogoutClick = {
                     println("🔐 [LOGOUT] Usuario presionó logout")
                     homeViewModel.onEvent(HomeEvent.LogoutClicked)

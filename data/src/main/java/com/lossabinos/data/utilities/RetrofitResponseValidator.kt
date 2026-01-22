@@ -12,21 +12,28 @@ class RetrofitResponseValidator {
                 return JSONObject(response.body()!!)
             }
 
-            var message = "can_not_parse_response"
+            var message = "No se pudo procesar la respuesta"
             if (response.errorBody() != null) {
-                val error = response.errorBody()!!.string()
-                val errorJson = JSONObject(error)
-                val messageError = errorJson.asJSONObject("error").asString("message")
-                val codeError = errorJson.asJSONObject("error").asString("code")
-                val serverErrorMessage = "$codeError - $messageError"
-                if (serverErrorMessage.isNotEmpty()) {
-                    message = serverErrorMessage
-                }
+                try {
+                    val error = response.errorBody()!!.string()
+                    val errorJson = JSONObject(error)
 
-                if (codeError == "404") {
-                    return JSONObject()
-                }
+                    // Extraer el mensaje de error del servidor
+                    val messageError = errorJson.optString("error", "Error desconocido")
 
+                    // Extraer el código (es un array)
+                    val codeArray = errorJson.optJSONArray("code")
+                    val codeError = codeArray?.optString(0) ?: "error"
+
+                    message = messageError
+
+                    if (codeError == "404") {
+                        return JSONObject()
+                    }
+                } catch (e: Exception) {
+                    println("Error parsing error response: ${e.message}")
+                    message = "Error al procesar la respuesta del servidor"
+                }
             }
 
             throw Exception(message)

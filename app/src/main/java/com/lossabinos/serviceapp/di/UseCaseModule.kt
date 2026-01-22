@@ -4,6 +4,7 @@ import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
+import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
@@ -34,6 +35,7 @@ import com.lossabinos.domain.usecases.mechanics.GetServiceTypesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.UpdateServiceProgressUseCase
+import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import dagger.Module
 import dagger.Provides
@@ -344,6 +346,19 @@ object UseCaseModule {
     ) : ClearAllUseCase{
         return ClearAllUseCase(
             localDataRepository = repository
+        )
+    }
+
+    //*********************************
+    // UseCases NotificationRepository
+    //*********************************
+    @Singleton
+    @Provides
+    fun provideGetNotificationsUseCase(
+        repository: NotificationRepository
+    ) : GetNotificationsUseCase{
+        return GetNotificationsUseCase(
+            repository = repository
         )
     }
 }

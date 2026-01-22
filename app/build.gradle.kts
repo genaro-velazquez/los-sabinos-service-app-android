@@ -112,4 +112,7 @@ dependencies {
     // Coil para cargar imágenes
     implementation("io.coil-kt:coil-compose:2.4.0")
 
+    // Material (necesario para pullrefresh)
+    implementation("androidx.compose.material:material:1.6.0")
+
 }
