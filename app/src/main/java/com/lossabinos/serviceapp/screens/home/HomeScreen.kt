@@ -129,16 +129,22 @@ fun HomeScreen(
     // ==========================================
     // Estado general del home (nombre, ubicación, logout, etc.)
     val state = homeViewModel.state.collectAsState().value
-
     val mechanic    = mechanicsViewModel.mechanic.collectAsStateWithLifecycle().value
     val services    = mechanicsViewModel.assignedServices.collectAsStateWithLifecycle().value
     val types       = mechanicsViewModel.serviceTypes.collectAsStateWithLifecycle().value
-    //val metadata    = mechanicsViewModel.syncMetadata.collectAsStateWithLifecycle().value
     val metrics =
         mechanicsViewModel.homeMetrics.collectAsStateWithLifecycle().value
     val errorMessage = homeViewModel.errorMessage.collectAsStateWithLifecycle().value
     val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
+
+    // ==========================================
+    // 1️⃣ ESTADOS WEBSOCKET
+    // ==========================================
+    val isWebSocketConnected = homeViewModel.isWebSocketConnected.collectAsStateWithLifecycle().value
+    val webSocketNotification = homeViewModel.webSocketNotification.collectAsStateWithLifecycle().value
+    val webSocketAlert = homeViewModel.webSocketAlert.collectAsStateWithLifecycle().value
+    val webSocketError = homeViewModel.webSocketError.collectAsStateWithLifecycle().value
 
 
     // ==========================================
@@ -186,6 +192,112 @@ fun HomeScreen(
             }
         )
     }
+
+    // =================================
+    // ALERTA DE NOTIFICACIÓN WEBSOCKET
+    // =================================
+    if (!webSocketNotification.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { homeViewModel.clearWebSocketNotification() },
+            title = {
+                Text(
+                    "🔔 Notificación",
+                    color = Color(0xFF1976D2),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = webSocketNotification,
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { homeViewModel.clearWebSocketNotification() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1976D2)
+                    )
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
+
+    // =================================
+    // ALERTA DE MANTENIMIENTO WEBSOCKET
+    // ==================================
+    if (!webSocketAlert.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { homeViewModel.clearWebSocketAlert() },
+            title = {
+                Text(
+                    "⚠️ Alerta de Mantenimiento",
+                    color = Color(0xFFD32F2F),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = webSocketAlert,
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { homeViewModel.clearWebSocketAlert() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F)
+                    )
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
+
+    // ==========================================
+    //  ERROR DE WEBSOCKET
+    // ==========================================
+    if (!webSocketError.isNullOrEmpty()) {
+        AlertDialog(
+            onDismissRequest = { homeViewModel.clearWebSocketError() },
+            title = {
+                Text(
+                    "❌ Error WebSocket",
+                    color = Color(0xFFD32F2F),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = webSocketError,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { homeViewModel.clearWebSocketError() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F)
+                    )
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
+
+
 
     // ==========================================
     // LOADING OVERLAY

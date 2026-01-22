@@ -1,13 +1,18 @@
 // presentation/viewmodel/HomeViewModel.kt
 package com.lossabinos.serviceapp.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
+import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
 import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
+import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
+import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
+import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import javax.inject.Inject
 
 /**
@@ -55,8 +61,159 @@ sealed class HomeEvent {
 class HomeViewModel @Inject constructor(
     private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val clearAllUseCase: ClearAllUseCase,
-    private val syncAndSignChecklistUseCase: SyncAndSignChecklistUseCase
-) : ViewModel() {
+    private val syncAndSignChecklistUseCase: SyncAndSignChecklistUseCase,
+    private val getAccessTokenUseCase: GetAccessTokenUseCase,
+    private val connectWebSocketUseCase: ConnectWebSocketUseCase,
+    private val disconnectWebSocketUseCase: DisconnectWebSocketUseCase,
+    private val observeWebSocketMessagesUseCase: ObserveWebSocketMessagesUseCase,
+    ) : ViewModel() {
+
+
+    // ========== ESTADOS PARA WEBSOCKET ==========
+    private val _isWebSocketConnected = MutableStateFlow(false)
+    val isWebSocketConnected: StateFlow<Boolean> = _isWebSocketConnected.asStateFlow()
+
+    private val _webSocketNotification = MutableStateFlow<String?>(null)
+    val webSocketNotification: StateFlow<String?> = _webSocketNotification.asStateFlow()
+
+    private val _webSocketAlert = MutableStateFlow<String?>(null)
+    val webSocketAlert: StateFlow<String?> = _webSocketAlert.asStateFlow()
+
+    private val _webSocketError = MutableStateFlow<String?>(null)
+    val webSocketError: StateFlow<String?> = _webSocketError.asStateFlow()
+
+    // =======================================
+
+    init {
+        connectToWebSocket()
+    }
+
+    // ========== CONECTAR A WEBSOCKET ==========
+    private fun connectToWebSocket() {
+        viewModelScope.launch {
+            try {
+                val token = getAccessTokenUseCase.execute()
+                if (token.isNotEmpty()) {
+                    connectWebSocketUseCase(token)
+                    observeWebSocketMessages()
+                    Log.d("HomeViewModel", "✅ WebSocket conectado")
+                } else {
+                    Log.e("HomeViewModel", "❌ No hay token")
+                    _webSocketError.value = "No se pudo obtener el token de autenticación"
+                }
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "❌ Error conectando WebSocket: ${e.message}")
+                _webSocketError.value = "Error al conectar: ${e.message}"
+            }
+        }
+    }
+
+    // ========== OBSERVAR MENSAJES WEBSOCKET ==========
+    private fun observeWebSocketMessages() {
+        viewModelScope.launch {
+            observeWebSocketMessagesUseCase().collect { messageJson ->
+                try {
+                    val json = JSONObject(messageJson)
+                    val type = json.optString("type", "unknown")
+
+                    Log.d("HomeViewModel", "📨 Mensaje WebSocket: $type")
+
+                    when (type) {
+                        "connected" -> {
+                            _isWebSocketConnected.value = true
+                            Log.d("HomeViewModel", "✅ Conectado al WebSocket")
+                        }
+
+                        "new_notification" -> {
+                            handleNewNotification(json)
+                        }
+
+                        "maintenance_alert" -> {
+                            handleMaintenanceAlert(json)
+                        }
+
+                        "error" -> {
+                            val errorMsg = json.optString("message", "Error desconocido")
+                            _webSocketError.value = errorMsg
+                            Log.e("HomeViewModel", "❌ Error: $errorMsg")
+                        }
+
+                        "pong" -> {
+                            Log.d("HomeViewModel", "💓 Pong recibido")
+                        }
+
+                        else -> {
+                            Log.d("HomeViewModel", "Tipo desconocido: $type")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Error procesando mensaje: ${e.message}")
+                    _webSocketError.value = "Error al procesar mensaje: ${e.message}"
+                }
+            }
+        }
+    }
+
+    // ========== MANEJAR NUEVA NOTIFICACIÓN ==========
+    private fun handleNewNotification(json: JSONObject) {
+        try {
+            val data = json.optJSONObject("data")
+            val notification = data?.optJSONObject("notification")
+
+            val title = notification?.optString("title", "Nueva notificación") ?: "Nueva notificación"
+            val message = notification?.optString("message", "") ?: ""
+            val priority = notification?.optString("priority", "normal") ?: "normal"
+
+            val notificationText = "[$priority] $title\n\n$message"
+            _webSocketNotification.value = notificationText
+
+            Log.d("HomeViewModel", "📬 Notificación: $title")
+
+        } catch (e: Exception) {
+            Log.e("HomeViewModel", "Error procesando notificación: ${e.message}")
+        }
+    }
+
+    // ========== MANEJAR ALERTA DE MANTENIMIENTO ==========
+    private fun handleMaintenanceAlert(json: JSONObject) {
+        try {
+            val data = json.optJSONObject("data")
+
+            val title = data?.optString("title", "Alerta de mantenimiento") ?: "Alerta de mantenimiento"
+            val message = data?.optString("message", "") ?: ""
+            val severity = data?.optString("severity", "normal") ?: "normal"
+            val kmUntilDue = data?.optInt("km_until_due", 0) ?: 0
+
+            val alertText = "[$severity] $title\n\n$message\n\nKM: $kmUntilDue"
+            _webSocketAlert.value = alertText
+
+            Log.d("HomeViewModel", "⚠️ Alerta: $title")
+
+        } catch (e: Exception) {
+            Log.e("HomeViewModel", "Error procesando alerta: ${e.message}")
+        }
+    }
+
+    // ========== LIMPIAR MENSAJES ==========
+    fun clearWebSocketNotification() {
+        _webSocketNotification.value = null
+    }
+
+    fun clearWebSocketAlert() {
+        _webSocketAlert.value = null
+    }
+
+    fun clearWebSocketError() {
+        _webSocketError.value = null
+    }
+
+    // ========== DESCONECTAR AL DESTRUIR ==========
+    override fun onCleared() {
+        super.onCleared()
+        disconnectWebSocketUseCase()
+        Log.d("HomeViewModel", "WebSocket desconectado")
+    }
+
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

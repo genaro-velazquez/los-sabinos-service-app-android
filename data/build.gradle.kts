@@ -59,4 +59,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     implementation("com.google.dagger:hilt-core:2.50")
+    // WorkManager para sincronización
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
 }
