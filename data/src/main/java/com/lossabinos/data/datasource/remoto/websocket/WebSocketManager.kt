@@ -1,19 +1,26 @@
 package com.lossabinos.data.datasource.remoto.websocket
 
+import android.os.Looper
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import android.util.Log
+import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
+import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
+import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import okhttp3.Response
 import org.json.JSONObject
 
 class WebSocketManager(
-    private val accessToken: String,
+    private val accessTokenProvider: suspend () -> String,
     private val onMessageReceived: (String) -> Unit,
-    private val onConnectionStatusChanged: (Boolean) -> Unit
+    private val onConnectionStatusChanged: (Boolean) -> Unit,
+    private val scope: CoroutineScope
 ) {
     private val TAG = "WebSocketManager"
 
@@ -30,9 +37,6 @@ class WebSocketManager(
 
     // URLs según entorno
     private val baseUrl = "wss://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net"  // Desarrollo (emulador)
-    // private val baseUrl = "wss://api.tudominio.com"  // Producción
-
-    private val wsUrl = "$baseUrl/api/v1/maintenance-alerts/ws/notifications?token=$accessToken"
 
     // WebSocket Listener
     private val webSocketListener = object : WebSocketListener() {
@@ -76,8 +80,11 @@ class WebSocketManager(
     }
 
     // Conectar
-    fun connect() {
+    fun connect(accessToken: String) {
         try {
+            val wsUrl =
+                "$baseUrl/api/v1/maintenance-alerts/ws/notifications?token=$accessToken"
+
             val request = Request.Builder()
                 .url(wsUrl)
                 .build()
@@ -114,16 +121,24 @@ class WebSocketManager(
     private fun reconnect() {
         if (reconnectAttempts < maxReconnectAttempts) {
             reconnectAttempts++
+
             val delay = minOf(1000L * (1L shl reconnectAttempts), 30000L)
 
-            Log.d(TAG, "🔄 Reconectando en ${delay}ms (intento $reconnectAttempts/$maxReconnectAttempts)")
+            Log.d(TAG, "🔄 Reconectando en ${delay}ms")
 
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                connect()
+            android.os.Handler(Looper.getMainLooper()).postDelayed({
+                scope.launch {
+                    try {
+                        val newToken = accessTokenProvider()
+                        Log.d(TAG, "✅ Token renovado")
+                        connect(newToken)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Error renovando token: ${e.message}")
+                    }
+                }
             }, delay)
-        } else {
-            Log.e(TAG, "❌ Máximo de intentos de reconexión alcanzado")
         }
+
     }
 
     // ========== HEARTBEAT ==========

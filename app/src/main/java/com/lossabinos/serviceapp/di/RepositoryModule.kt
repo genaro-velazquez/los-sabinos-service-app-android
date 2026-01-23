@@ -30,6 +30,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -164,7 +165,10 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideWebSocketRepository(
+        refreshSessionUseCase: RefreshSessionUseCase
     ) : WebSocketRepository {
-        return WebSocketRepositoryImpl()
+        return WebSocketRepositoryImpl(
+            refreshSessionUseCase = refreshSessionUseCase
+        )
     }
 }

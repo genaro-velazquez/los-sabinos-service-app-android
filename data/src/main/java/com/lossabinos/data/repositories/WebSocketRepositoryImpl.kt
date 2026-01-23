@@ -3,14 +3,19 @@ package com.lossabinos.data.repositories
 import android.util.Log
 import com.lossabinos.data.datasource.remoto.websocket.WebSocketManager
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import com.lossabinos.domain.valueobjects.LocationEvent
 import com.lossabinos.domain.valueobjects.LocationVO
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class WebSocketRepositoryImpl(
-
+    private val refreshSessionUseCase: RefreshSessionUseCase
 ) : WebSocketRepository {
     private val TAG = "WebSocketRepository"
     private var webSocketManager: WebSocketManager? = null
@@ -26,18 +31,20 @@ class WebSocketRepositoryImpl(
 
         if (webSocketManager == null) {
             webSocketManager = WebSocketManager(
-                accessToken = accessToken,
+                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+                accessTokenProvider = {
+                    refreshSessionUseCase.execute().accessToken // 👈 AQUÍ sí
+                },
                 onMessageReceived = { message ->
                     _messages.tryEmit(message)
-                    Log.d(TAG, "Mensaje emitido: $message")
                 },
-                onConnectionStatusChanged = { isConnected ->
-                    _connectionStatus.tryEmit(isConnected)
-                    Log.d(TAG, "Estado de conexión: $isConnected")
+
+                onConnectionStatusChanged = { connected ->
+                    _connectionStatus.tryEmit(connected)
                 }
             )
         }
-        webSocketManager?.connect()
+        webSocketManager?.connect(accessToken)
     }
 
     override fun disconnect() {
