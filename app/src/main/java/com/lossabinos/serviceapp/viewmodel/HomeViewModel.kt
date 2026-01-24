@@ -112,6 +112,8 @@ class HomeViewModel @Inject constructor(
     private fun observeWebSocketMessages() {
         viewModelScope.launch {
             observeWebSocketMessagesUseCase().collect { messageJson ->
+                Log.d("HomeViewModel", "📨 RAW MESSAGE RECIBIDO: $messageJson")  // ← AGREGAR
+
                 try {
                     val json = JSONObject(messageJson)
                     val type = json.optString("type", "unknown")
@@ -136,6 +138,12 @@ class HomeViewModel @Inject constructor(
                             val errorMsg = json.optString("message", "Error desconocido")
                             _webSocketError.value = errorMsg
                             Log.e("HomeViewModel", "❌ Error: $errorMsg")
+
+                            if (errorMsg.contains("Token JWT inválido") ||
+                                errorMsg.contains("expirado")) {
+                                Log.d("HomeViewModel", "🔄 Token expirado, reconectando...")
+                                reconnectWithNewToken()
+                            }
                         }
 
                         "pong" -> {
@@ -151,6 +159,14 @@ class HomeViewModel @Inject constructor(
                     _webSocketError.value = "Error al procesar mensaje: ${e.message}"
                 }
             }
+        }
+    }
+
+    private fun reconnectWithNewToken() {
+        viewModelScope.launch {
+            delay(2000)  // Esperar 2 segundos
+            Log.d("HomeViewModel", "Intentando reconectar con token nuevo...")
+            connectToWebSocket()
         }
     }
 

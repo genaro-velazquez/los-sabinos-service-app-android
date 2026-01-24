@@ -1,6 +1,7 @@
 // presentation/screens/home/HomeScreen.kt
 package com.lossabinos.serviceapp.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -138,6 +140,8 @@ fun HomeScreen(
     val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
 
+    val isHomeScreenVisible = remember { mutableStateOf(true) }
+
     // ==========================================
     // 1️⃣ ESTADOS WEBSOCKET
     // ==========================================
@@ -155,8 +159,18 @@ fun HomeScreen(
         println("📱 HomeScreen abierto - Iniciando carga de datos")
         println("📱 ═══════════════════════════════════════════════════════\n")
 
+        Log.d("HomeViewModel", "isHomeScreenVisible LaunchedEffect: $isHomeScreenVisible")
+        isHomeScreenVisible.value = true
         // ✨ SOLO cargar API (los Flows se auto-observan de Room)
         mechanicsViewModel.loadInitialData()
+    }
+
+    // ← CUANDO SALES DE HomeScreen
+    DisposableEffect(Unit) {
+        onDispose {
+            Log.d("HomeViewModel", "isHomeScreenVisible DisposableEffect: $isHomeScreenVisible")
+            isHomeScreenVisible.value = false
+        }
     }
 
     // ==========================================
@@ -164,6 +178,7 @@ fun HomeScreen(
     // ==========================================
     if (!errorMessage.isNullOrEmpty()) {
         AlertDialog(
+
             onDismissRequest = { homeViewModel.clearError() },
             title = {
                 Text(
@@ -198,7 +213,13 @@ fun HomeScreen(
     // =================================
     if (!webSocketNotification.isNullOrEmpty()) {
         AlertDialog(
-            onDismissRequest = { homeViewModel.clearWebSocketNotification() },
+            onDismissRequest = {
+                homeViewModel.clearWebSocketNotification()
+                if (isHomeScreenVisible.value) {
+                    Log.d("HomeViewModel", "✅ Refrescando desde onDismissRequest")
+                    mechanicsViewModel.loadInitialData()
+                }
+            },
             title = {
                 Text(
                     "🔔 Notificación",
@@ -217,7 +238,13 @@ fun HomeScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { homeViewModel.clearWebSocketNotification() },
+                    onClick = {
+                        homeViewModel.clearWebSocketNotification()
+                        if (isHomeScreenVisible.value) {
+                            Log.d("HomeViewModel", "✅ Refrescando desde onClick")
+                            mechanicsViewModel.loadInitialData()
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1976D2)
                     )
@@ -233,7 +260,13 @@ fun HomeScreen(
     // ==================================
     if (!webSocketAlert.isNullOrEmpty()) {
         AlertDialog(
-            onDismissRequest = { homeViewModel.clearWebSocketAlert() },
+            onDismissRequest = {
+                homeViewModel.clearWebSocketAlert()
+                if (isHomeScreenVisible.value) {
+                    Log.d("HomeViewModel", "✅ Refrescando desde onDismissRequest")
+                    mechanicsViewModel.loadInitialData()
+                }
+            },
             title = {
                 Text(
                     "⚠️ Alerta de Mantenimiento",
@@ -252,7 +285,13 @@ fun HomeScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { homeViewModel.clearWebSocketAlert() },
+                    onClick = {
+                        homeViewModel.clearWebSocketAlert()
+                        if (isHomeScreenVisible.value) {
+                            Log.d("HomeViewModel", "✅ Refrescando desde onClick")
+                            mechanicsViewModel.loadInitialData()
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD32F2F)
                     )

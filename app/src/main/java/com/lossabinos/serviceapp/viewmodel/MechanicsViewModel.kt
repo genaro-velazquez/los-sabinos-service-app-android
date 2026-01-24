@@ -49,25 +49,25 @@ class MechanicsViewModel @Inject constructor(
     private val _syncInitialData = MutableStateFlow<Result<InitialDataResponse>>(Result.Loading)
     val syncInitialData: StateFlow<Result<InitialDataResponse>> = _syncInitialData
 
-    fun loadInitialData(){
-        viewModelScope.launch {
-            try {
-                println("\n⏳ [API] Iniciando carga desde API...")
-                _syncInitialData.value = Result.Loading
-                val response = getInitialDataUseCase.execute()
-                //println("✅ [API] Datos recibidos")
+        fun loadInitialData(){
+            viewModelScope.launch {
+                try {
+                    println("\n⏳ [API] Iniciando carga desde API...")
+                    _syncInitialData.value = Result.Loading
+                    val response = getInitialDataUseCase.execute()
+                    //println("✅ [API] Datos recibidos")
 
-                //println("💾 [ROOM] Guardando datos...")
-                _syncInitialData.value = Result.Success(data = response)
-                println("✅ [API] Proceso completo\n")
-            }
-            catch (e: Exception){
-                println("❌ [API] Error: ${e.message}")
-                _syncInitialData.value = Result.Error(exception = e)
-                println("✅ [API] Continuando con datos de Room\n")
+                    //println("💾 [ROOM] Guardando datos...")
+                    _syncInitialData.value = Result.Success(data = response)
+                    println("✅ [API] Proceso completo\n")
+                }
+                catch (e: Exception){
+                    println("❌ [API] Error: ${e.message}")
+                    _syncInitialData.value = Result.Error(exception = e)
+                    println("✅ [API] Continuando con datos de Room\n")
+                }
             }
         }
-    }
 
 /*
     // ==========================================
