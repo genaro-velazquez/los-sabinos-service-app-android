@@ -1,8 +1,10 @@
 package com.lossabinos.serviceapp.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
+import com.lossabinos.domain.usecases.notifications.SetNotificationReadUseCase
 import com.lossabinos.serviceapp.mappers.NotificationMapper.toUIModels
 import com.lossabinos.serviceapp.ui.components.molecules.NotificationItemUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +41,8 @@ sealed class NotificationsEvent {
 
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
-    private val getNotificationsUseCase: GetNotificationsUseCase
+    private val getNotificationsUseCase: GetNotificationsUseCase,
+    private val setNotificationReadUseCase: SetNotificationReadUseCase
 ) : ViewModel() {
 
     // ==========================================
@@ -196,6 +199,52 @@ class NotificationsViewModel @Inject constructor(
     // 4️⃣ MARCAR COMO LEÍDA AL HACER CLICK
     // ==========================================
     private fun handleNotificationClick(notification: NotificationItemUIModel) {
+
+        // 1️⃣ Optimistic update (UI inmediata)
+        _state.update { currentState ->
+            val updatedNotifications = currentState.notifications.map {
+                if (it.id == notification.id) {
+                    it.copy(isRead = true)
+                } else {
+                    it
+                }
+            }
+
+            currentState.copy(
+                notifications = updatedNotifications,
+                unreadCount = (currentState.unreadCount - 1).coerceAtLeast(0)
+            )
+        }
+
+        // 2️⃣ Llamada a API
+        viewModelScope.launch {
+            try {
+                setNotificationReadUseCase(
+                    idNotification = notification.id
+                )
+            } catch (e: Exception) {
+                Log.e("NotificationVM", "Error marcando notificación como leída", e)
+
+                // 4️⃣ (Opcional) rollback si falla
+                _state.update { currentState ->
+                    val rollback = currentState.notifications.map {
+                        if (it.id == notification.id) {
+                            it.copy(isRead = false)
+                        } else {
+                            it
+                        }
+                    }
+
+                    currentState.copy(
+                        notifications = rollback,
+                        unreadCount = currentState.unreadCount + 1
+                    )
+                }
+            }
+        }
+
+
+        /*
         // Actualizar el estado local marcando como leída
         _state.update { currentState ->
             val updatedNotifications = currentState.notifications.map {
@@ -214,6 +263,7 @@ class NotificationsViewModel @Inject constructor(
 
         // ❓ AQUÍ: ¿Llamar a API para marcar como leída en el servidor?
         // Por ahora solo actualiza localmente
+*/
     }
 
     // ==========================================

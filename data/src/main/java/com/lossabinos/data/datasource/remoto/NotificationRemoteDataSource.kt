@@ -24,4 +24,15 @@ class NotificationRemoteDataSource @Inject constructor(
         return GetNotificationsResponseDTO(json = json)
     }
 
+    suspend fun setNotificationRead(
+        idNotification: String
+    ) : GetNotificationsResponseDTO {
+        val response = notificationsServices.setNotificationRead(
+            headers = headersMaker.build(),
+            idNotification = idNotification
+        )
+        val json = RetrofitResponseValidator.validate(response = response)
+        return GetNotificationsResponseDTO(json = json)
+    }
+
 }

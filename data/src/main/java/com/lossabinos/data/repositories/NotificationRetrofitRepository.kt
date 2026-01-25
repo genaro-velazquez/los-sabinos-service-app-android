@@ -19,4 +19,12 @@ class NotificationRetrofitRepository(
         )
         return dto.toEntity()
     }
+
+    override suspend fun setNotificationRead(
+        idNotification: String
+    ) {
+        remoteDataSource.setNotificationRead(
+            idNotification = idNotification
+        )
+    }
 }

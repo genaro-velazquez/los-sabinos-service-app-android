@@ -38,6 +38,7 @@ import com.lossabinos.domain.usecases.mechanics.GetSyncInitialDataUseCase
 import com.lossabinos.domain.usecases.mechanics.GetSyncMetadataFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.UpdateServiceProgressUseCase
 import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
+import com.lossabinos.domain.usecases.notifications.SetNotificationReadUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
@@ -373,6 +374,16 @@ object UseCaseModule {
         repository: NotificationRepository
     ) : GetNotificationsUseCase{
         return GetNotificationsUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSetNotificationReadUseCase(
+        repository: NotificationRepository
+    ) : SetNotificationReadUseCase{
+        return SetNotificationReadUseCase(
             repository = repository
         )
     }

@@ -7,4 +7,8 @@ interface NotificationRepository {
         page: Int,
         pageSize: Int
     ): GetNotificationsResponse
+
+    suspend fun setNotificationRead(
+        idNotification:String
+    )
 }
