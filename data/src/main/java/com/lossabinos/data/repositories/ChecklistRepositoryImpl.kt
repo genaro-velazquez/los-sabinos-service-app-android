@@ -669,4 +669,8 @@ class ChecklistRepositoryImpl(
             request = requestBody)
         return dto.toEntity()
     }
+
+    override suspend fun createReportExtraCost(idExecutionService: Int) {
+        TODO("Not yet implemented")
+    }
 }

@@ -113,6 +113,10 @@ interface ChecklistRepository {
     suspend fun signChecklist(
         serviceExecutionId:String
     ) : SignChecklistResponse
+
+    suspend fun createReportExtraCost(
+        idExecutionService:Int
+    )
 }
 
 

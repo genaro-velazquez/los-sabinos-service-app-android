@@ -32,10 +32,12 @@ import com.lossabinos.domain.entities.Observation
 import com.lossabinos.serviceapp.models.MetadataModel
 import com.lossabinos.serviceapp.models.ObservationModel
 import com.lossabinos.serviceapp.models.ObservationUIModel
+import com.lossabinos.serviceapp.models.ui.ExtraCostUIModel
 import com.lossabinos.serviceapp.ui.components.organisms.ActivitiesListOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ActivityTaskItem
 import com.lossabinos.serviceapp.ui.components.organisms.ChecklistProgressHeaderOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ContinueActionOrganism
+import com.lossabinos.serviceapp.ui.components.organisms.ExtraCostSection
 import com.lossabinos.serviceapp.ui.components.organisms.MetadataListOrganism
 import com.lossabinos.serviceapp.ui.components.organisms.ObservationsOrganism
 
@@ -48,10 +50,10 @@ fun ChecklistProgressTemplate(
     totalTasks: Int,
     progressPercentage: Int,
     tasks: List<ActivityTaskItem> = emptyList(),
-    observations: List<ObservationModel> = emptyList(),  // ← CAMBIAR
-    observationResponses: Map<String, String> = emptyMap(),  // ← AGREGAR
-    metadata: List<MetadataModel> = emptyList(),  // ← AGREGAR
-    onObservationChange: (String, String) -> Unit = { _, _ -> },  // ← CAMBIAR
+    observations: List<ObservationModel> = emptyList(),
+    observationResponses: Map<String, String> = emptyMap(),
+    metadata: List<MetadataModel> = emptyList(),
+    onObservationChange: (String, String) -> Unit = { _, _ -> },
     onTaskCheckedChange: (String, Boolean) -> Unit = { _, _ -> },
     onCameraClick: (String) -> Unit = {},
     onAddPhoto: (String) -> Unit = {},
@@ -60,8 +62,12 @@ fun ChecklistProgressTemplate(
     continueButtonText: String = "Continuar",
     onContinueClick: () -> Unit = {},
     isLoading: Boolean = false,
-    onBackClick: () -> Unit = {}
-) {
+    onBackClick: () -> Unit = {},
+    extraCosts: List<ExtraCostUIModel> = emptyList(),
+    onAddExtraCostClick: () -> Unit = {},
+    onEditExtraCostClick: (ExtraCostUIModel) -> Unit = {},
+    onDeleteExtraCostClick: (ExtraCostUIModel) -> Unit = {},
+    ) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -116,7 +122,6 @@ fun ChecklistProgressTemplate(
 
             //Spacer(modifier = Modifier.fillMaxWidth().height(8.dp).background(color = Color.Red))
 
-            // ← ACTUALIZADO
             ObservationsOrganism(
                 observations = observations,
                 observationResponses = observationResponses,
@@ -125,6 +130,14 @@ fun ChecklistProgressTemplate(
             )
 
             //Spacer(modifier = Modifier.height(32.dp).background(color = Color.Red))
+
+            ExtraCostSection(
+                extraCosts = extraCosts,
+                onAddCostClick = onAddExtraCostClick,
+                onEditCostClick = onEditExtraCostClick,
+                onDeleteCostClick = onDeleteExtraCostClick,
+                modifier = Modifier.padding(16.dp)
+            )
 
             ContinueActionOrganism(
                 onClick = onContinueClick,
@@ -137,118 +150,3 @@ fun ChecklistProgressTemplate(
         }
     }
 }
-
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ChecklistProgressTemplate(
-    serviceName: String,
-    templateName:String,
-    currentProgress: Int,
-    totalTasks: Int,
-    progressPercentage: Int,
-    tasks: List<ActivityTaskItem> = emptyList(),
-    observations: String = "",
-    metadata: List<MetadataModel> = emptyList(),  // ← AGREGAR
-    onObservationsChange: (String) -> Unit = {},
-    onTaskCheckedChange: (String, Boolean) -> Unit = { _, _ -> },
-    onCameraClick: (String) -> Unit = {},
-    onAddPhoto: (String) -> Unit = {},
-    onRemovePhoto: (Long) -> Unit = {},
-    onPhotoClick: (String) -> Unit = {},
-    continueButtonText: String = "Continuar",
-    onContinueClick: () -> Unit = {},
-    isLoading: Boolean = false,
-    onBackClick: () -> Unit = {}
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Progreso") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás"
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFAFAFA))
-                .padding(paddingValues)  // 🆕 AGREGA ESTO - Respeta el TopAppBar
-                .verticalScroll(rememberScrollState())
-        ) {
-            // ═════════════════════════════════════
-            // SECCIÓN 1: Header Progress
-            // ═════════════════════════════════════
-            ChecklistProgressHeaderOrganism(
-                serviceName = serviceName,
-                templateName = templateName,
-                currentProgress = currentProgress,
-                totalTasks = totalTasks,
-                progressPercentage = progressPercentage,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(1.dp))
-
-            // ═════════════════════════════════════
-            // SECCIÓN 2: Notas
-            // ═════════════════════════════════════
-
-            MetadataListOrganism(
-                metadata = metadata,
-                title = "NOTAS Y REQUISITOS",
-                icon = Icons.AutoMirrored.Filled.Notes,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(1.dp))
-
-            // ═════════════════════════════════════
-            // SECCIÓN 3: Activities List ✨ NUEVO
-            // ═════════════════════════════════════
-            ActivitiesListOrganism(
-                tasks = tasks,
-                onTaskCheckedChange = onTaskCheckedChange,
-                onCameraClick = onCameraClick,
-                onAddPhoto = onAddPhoto,
-                onRemovePhoto = onRemovePhoto,
-                onPhotoClick = onPhotoClick,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ═════════════════════════════════════════
-            // SECCIÓN 4: Observations ✨ NUEVO
-            // ═════════════════════════════════════════
-            ObservationsOrganism(
-                observations = observations,
-                onObservationsChange = onObservationsChange,
-                maxCharacters = 300
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ═════════════════════════════════════════
-            // SECCIÓN 5: Continue Button ✨ NUEVO
-            // ═════════════════════════════════════════
-            ContinueActionOrganism(
-                onClick = onContinueClick,
-                enabled = tasks.isNotEmpty(),
-                isLoading = isLoading,
-                text = continueButtonText  // 🆕 PASAR AQUÍ
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-        }
-    }
-}
-*/

@@ -28,6 +28,9 @@ import com.lossabinos.serviceapp.models.MetadataModel
 import com.lossabinos.serviceapp.models.ObservationModel
 import com.lossabinos.serviceapp.models.SectionModel
 import com.lossabinos.serviceapp.models.SectionUIModel
+import com.lossabinos.serviceapp.models.ui.ExtraCostCategory
+import com.lossabinos.serviceapp.models.ui.ExtraCostFormErrors
+import com.lossabinos.serviceapp.models.ui.ExtraCostUIModel
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -1079,6 +1082,224 @@ class ChecklistViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // 🆕 EXTRA COSTS STATES
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    private val _extraCosts = MutableStateFlow<List<ExtraCostUIModel>>(emptyList())
+    val extraCosts: StateFlow<List<ExtraCostUIModel>> = _extraCosts.asStateFlow()
+
+    private val _showExtraCostModal = MutableStateFlow(false)
+    val showExtraCostModal: StateFlow<Boolean> = _showExtraCostModal.asStateFlow()
+
+    private val _currentExtraCostForm = MutableStateFlow(ExtraCostUIModel())
+    val currentExtraCostForm: StateFlow<ExtraCostUIModel> = _currentExtraCostForm.asStateFlow()
+
+    private val _extraCostFormErrors = MutableStateFlow(ExtraCostFormErrors())
+    val extraCostFormErrors: StateFlow<ExtraCostFormErrors> = _extraCostFormErrors.asStateFlow()
+
+    private val _isExtraCostLoading = MutableStateFlow(false)
+    val isExtraCostLoading: StateFlow<Boolean> = _isExtraCostLoading.asStateFlow()
+
+    private val _editingExtraCostId = MutableStateFlow<String?>(null)
+    val editingExtraCostId: String? get() = _editingExtraCostId.value
+
+    private val _showDeleteExtraCostConfirmation = MutableStateFlow(false)
+    val showDeleteExtraCostConfirmation: StateFlow<Boolean> = _showDeleteExtraCostConfirmation.asStateFlow()
+
+    private val _extraCostToDelete = MutableStateFlow<ExtraCostUIModel?>(null)
+    val extraCostToDelete: StateFlow<ExtraCostUIModel?> = _extraCostToDelete.asStateFlow()
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
+// 🆕 EXTRA COST METHODS
+// ═══════════════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Open modal to add a new extra cost
+     */
+    fun openAddExtraCostModal() {
+        println("📝 Opening add extra cost modal")
+        _currentExtraCostForm.value = ExtraCostUIModel()
+        _extraCostFormErrors.value = ExtraCostFormErrors()
+        _editingExtraCostId.value = null
+        _showExtraCostModal.value = true
+    }
+
+    /**
+     * Open modal to edit an existing extra cost
+     */
+    fun openEditExtraCostModal(extraCost: ExtraCostUIModel) {
+        println("✏️ Opening edit modal for: ${extraCost.description}")
+        _currentExtraCostForm.value = extraCost.copy()
+        _extraCostFormErrors.value = ExtraCostFormErrors()
+        _editingExtraCostId.value = extraCost.id
+        _showExtraCostModal.value = true
+    }
+
+    /**
+     * Close the extra cost modal
+     */
+    fun closeExtraCostModal() {
+        println("❌ Closing extra cost modal")
+        _showExtraCostModal.value = false
+        _currentExtraCostForm.value = ExtraCostUIModel()
+        _extraCostFormErrors.value = ExtraCostFormErrors()
+        _editingExtraCostId.value = null
+    }
+
+    /**
+     * Update quantity in form
+     */
+    fun updateExtraCostQuantity(quantity: Double) {
+        _currentExtraCostForm.update { it.copy(quantity = quantity) }
+        validateExtraCostForm()
+    }
+
+    /**
+     * Update category in form
+     */
+    fun updateExtraCostCategory(category: ExtraCostCategory) {
+        _currentExtraCostForm.update { it.copy(category = category) }
+        validateExtraCostForm()
+    }
+
+    /**
+     * Update description in form
+     */
+    fun updateExtraCostDescription(description: String) {
+        _currentExtraCostForm.update { it.copy(description = description) }
+        validateExtraCostForm()
+    }
+
+    /**
+     * Update notes in form
+     */
+    fun updateExtraCostNotes(notes: String) {
+        _currentExtraCostForm.update { it.copy(notes = notes) }
+    }
+
+    /**
+     * Validate the extra cost form
+     */
+    private fun validateExtraCostForm() {
+        val form = _currentExtraCostForm.value
+        var errors = ExtraCostFormErrors()
+
+        // Validate quantity
+        if (form.quantity <= 0.0) {
+            errors = errors.copy(quantityError = "Amount must be greater than 0")
+        }
+
+        // Validate category (always has a default, so this is optional)
+        if (form.category == null) {
+            errors = errors.copy(categoryError = "Please select a category")
+        }
+
+        // Validate description
+        if (form.description.isBlank()) {
+            errors = errors.copy(descriptionError = "Description is required")
+        }
+
+        _extraCostFormErrors.value = errors
+        println("📋 Form validation: ${if (errors.hasErrors()) "❌ Has errors" else "✅ Valid"}")
+    }
+
+    /**
+     * Save extra cost (add or update)
+     */
+    fun saveExtraCost() {
+        // Validate before saving
+        validateExtraCostForm()
+
+        if (_extraCostFormErrors.value.hasErrors()) {
+            println("❌ Cannot save: form has errors")
+            return
+        }
+
+        _isExtraCostLoading.value = true
+
+        try {
+            val form = _currentExtraCostForm.value
+            val editingId = _editingExtraCostId.value
+
+            if (editingId != null) {
+                // UPDATE mode
+                println("✏️ Updating extra cost: $editingId")
+
+                val updatedCosts = _extraCosts.value.map { cost ->
+                    if (cost.id == editingId) {
+                        form.copy(id = editingId)  // Keep the same ID
+                    } else {
+                        cost
+                    }
+                }
+
+                _extraCosts.value = updatedCosts
+                println("✅ Extra cost updated")
+            } else {
+                // ADD mode
+                println("➕ Adding new extra cost")
+
+                val newCost = form.copy(
+                    id = java.util.UUID.randomUUID().toString(),
+                    createdAt = System.currentTimeMillis()
+                )
+
+                _extraCosts.value = _extraCosts.value + newCost
+                println("✅ Extra cost added: ${newCost.description}")
+            }
+
+            // Close modal and reset
+            closeExtraCostModal()
+
+        } catch (e: Exception) {
+            println("❌ Error saving extra cost: ${e.message}")
+            _errorMessage.value = "Error saving extra cost: ${e.message}"
+        } finally {
+            _isExtraCostLoading.value = false
+        }
+    }
+/*
+    /**
+     * Delete extra cost
+     */
+    fun deleteExtraCost(extraCost: ExtraCostUIModel) {
+        println("🗑️ Deleting extra cost: ${extraCost.description}")
+
+        _extraCosts.value = _extraCosts.value.filter { it.id != extraCost.id }
+        println("✅ Extra cost deleted")
+    }
+*/
+
+    fun showDeleteExtraCostConfirmation(extraCost: ExtraCostUIModel) {
+        println("⚠️ Showing delete confirmation for: ${extraCost.description}")
+        _extraCostToDelete.value = extraCost
+        _showDeleteExtraCostConfirmation.value = true
+    }
+
+    fun confirmDeleteExtraCost() {
+        val costToDelete = _extraCostToDelete.value
+        if (costToDelete != null) {
+            println("🗑️ Confirming deletion: ${costToDelete.description}")
+            _extraCosts.value = _extraCosts.value.filter { it.id != costToDelete.id }
+            println("✅ Extra cost deleted")
+            closeDeleteConfirmation()
+        }
+    }
+
+    fun closeDeleteConfirmation() {
+        println("❌ Canceling deletion")
+        _showDeleteExtraCostConfirmation.value = false
+        _extraCostToDelete.value = null
+    }
+
+    /**
+     * Get total of all extra costs
+     */
+    fun getTotalExtraCosts(): Double {
+        return _extraCosts.value.sumOf { it.quantity }
     }
 
 }

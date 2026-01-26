@@ -38,4 +38,9 @@ interface SyncServices {
         @Body request: RequestBody
     ): Response<String>
 
+    @POST("/api/v1/mechanics/services/{service_execution_id}/report-extra-costs")
+    suspend fun reportExtraCost(
+        @HeaderMap headers: Map<String, String>,
+        @Path(value = "service_execution_id") idServiceExecution: String
+    ):Response<String>
 }

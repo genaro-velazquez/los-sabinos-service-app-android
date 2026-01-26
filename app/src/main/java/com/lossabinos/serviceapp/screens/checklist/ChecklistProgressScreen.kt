@@ -48,6 +48,7 @@ import com.lossabinos.serviceapp.navigation.Routes
 import com.lossabinos.serviceapp.screens.camera.CameraScreen
 import com.lossabinos.serviceapp.screens.dialogs.PhotoViewerDialog
 import com.lossabinos.serviceapp.ui.components.organisms.ConfirmationDialog
+import com.lossabinos.serviceapp.ui.components.organisms.ExtraCostModal
 import kotlinx.coroutines.isActive
 
 
@@ -78,6 +79,19 @@ fun ChecklistProgressScreen(
     val showSignDialog = viewModel.showSignDialog.collectAsStateWithLifecycle().value
     val navigationEvent = viewModel.navigationEvent.collectAsStateWithLifecycle().value
     val errorMessage = viewModel.errorMessage.collectAsStateWithLifecycle().value
+    // ═══════════════════════════════════════════════════════
+    // 🆕 EXTRA COSTS STATES
+    // ═══════════════════════════════════════════════════════
+    val extraCosts = viewModel.extraCosts.collectAsStateWithLifecycle().value
+    val showExtraCostModal = viewModel.showExtraCostModal.collectAsStateWithLifecycle().value
+    val currentExtraCostForm = viewModel.currentExtraCostForm.collectAsStateWithLifecycle().value
+    val extraCostFormErrors = viewModel.extraCostFormErrors.collectAsStateWithLifecycle().value
+    val isExtraCostLoading = viewModel.isExtraCostLoading.collectAsStateWithLifecycle().value
+    val showDeleteExtraCostConfirmation = viewModel.showDeleteExtraCostConfirmation.collectAsStateWithLifecycle().value
+    val extraCostToDelete = viewModel.extraCostToDelete.collectAsStateWithLifecycle().value
+
+    println("📊 Extra Costs: ${extraCosts.size}")
+    println("💰 Total: ${viewModel.getTotalExtraCosts()}")
 
     // 2️⃣ LOGS
     println("📱 ChecklistProgressScreen recompone")
@@ -247,6 +261,49 @@ fun ChecklistProgressScreen(
         )
     } else {
 
+        // ═══════════════════════════════════════════════════════
+        // 🆕 DELETE EXTRA COST CONFIRMATION DIALOG
+        // ═══════════════════════════════════════════════════════
+        if (showDeleteExtraCostConfirmation && extraCostToDelete != null) {
+            ConfirmationDialog(
+                title = "Delete Extra Cost",
+                content = "Are you sure you want to delete this extra cost?\n\n" +
+                        "${extraCostToDelete.category.icon} ${extraCostToDelete.description}\n" +
+                        "${extraCostToDelete.getFormattedQuantity()}\n\n" +
+                        "This action cannot be undone.",
+                primaryButtonText = "Delete",
+                secondaryButtonText = "Cancel",
+                onPrimaryClick = {
+                    println("✅ [DELETE] Confirming deletion")
+                    viewModel.confirmDeleteExtraCost()
+                },
+                onSecondaryClick = {
+                    println("🚫 [DELETE] Canceling deletion")
+                    viewModel.closeDeleteConfirmation()
+                },
+                onDismiss = {
+                    viewModel.closeDeleteConfirmation()
+                }
+            )
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // 🆕 EXTRA COST MODAL
+        // ═══════════════════════════════════════════════════════
+        ExtraCostModal(
+            isVisible = showExtraCostModal,
+            formData = currentExtraCostForm,
+            onQuantityChange = { viewModel.updateExtraCostQuantity(it) },
+            onCategoryChange = { viewModel.updateExtraCostCategory(it) },
+            onDescriptionChange = { viewModel.updateExtraCostDescription(it) },
+            onNotesChange = { viewModel.updateExtraCostNotes(it) },
+            onSaveClick = { viewModel.saveExtraCost() },
+            onCancelClick = { viewModel.closeExtraCostModal() },
+            errors = extraCostFormErrors,
+            isEditMode = viewModel.editingExtraCostId != null,
+            isLoading = isExtraCostLoading
+        )
+
         // Pantalla normal de checklist
         ChecklistProgressTemplate(
             serviceName = uiState.currentSectionName,
@@ -353,8 +410,12 @@ fun ChecklistProgressScreen(
                 }
             },
             isLoading = isLoading,
-            onBackClick = onBackClick
-        )
+            onBackClick = onBackClick,
+            extraCosts = extraCosts,
+            onAddExtraCostClick = { viewModel.openAddExtraCostModal() },
+            onEditExtraCostClick = { viewModel.openEditExtraCostModal(it) },
+            onDeleteExtraCostClick = { viewModel.showDeleteExtraCostConfirmation(it) }
+            )
 
         // Mostrar visor al final
         if (showPhotoViewer && allPhotoPaths.isNotEmpty()) {

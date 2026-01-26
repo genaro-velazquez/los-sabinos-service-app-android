@@ -13,6 +13,7 @@ import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
 import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
+import com.lossabinos.domain.usecases.checklist.CreateReportExtraCostUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
@@ -349,6 +350,16 @@ object UseCaseModule {
         return SyncAndSignChecklistUseCase(
             syncChecklistUseCase = syncChecklistUseCase,
             signChecklistUseCase = singChecklistUseCase
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideCreateReportExtraCostUseCase(
+        repository: ChecklistRepository
+    ): CreateReportExtraCostUseCase{
+        return CreateReportExtraCostUseCase(
+            repository = repository
         )
     }
 
