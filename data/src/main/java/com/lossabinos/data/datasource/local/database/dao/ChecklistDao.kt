@@ -9,9 +9,11 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import kotlinx.coroutines.flow.Flow
 
 
 // 1️⃣ DAO para Activity Progress
@@ -302,78 +304,78 @@ interface ServiceFieldValueDao {
     // 🆕 Eliminar campos de un servicio (antes de guardar nuevamente)
     @Query("DELETE FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
     suspend fun deleteServiceFieldValuesByService(assignedServiceId: String)
+}
 
+@Dao
+interface ExtraCostDao {
+    // ═══════════════════════════════════════════════════════
+    // CREATE - Insertar un costo extra
+    // ═══════════════════════════════════════════════════════
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExtraCost(extraCost: ExtraCostEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExtraCosts(extraCosts: List<ExtraCostEntity>)
 
-    /*
-        // Esto estaba antes sin que actualice solo inserta nuevo siempre
-        // Guardar un campo
-        @Insert
-        suspend fun insertServiceFieldValue(entity: ServiceFieldValueEntity): Long
+    // ═══════════════════════════════════════════════════════
+    // READ - Obtener costos extra
+    // ═══════════════════════════════════════════════════════
 
-        // Guardar múltiples campos
-        @Insert
-        suspend fun insertServiceFieldValues(entities: List<ServiceFieldValueEntity>)
+    // Obtener todos los costos de un servicio (como Flow)
+    @Query("SELECT * FROM extra_cost WHERE assignedServiceId = :assignedServiceId ORDER BY createdAt DESC")
+    fun getExtraCostsByServiceFlow(assignedServiceId: String): Flow<List<ExtraCostEntity>>
 
-        // Obtener valores de un servicio
-        @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
-        suspend fun getServiceFieldValuesByService(assignedServiceId: String): List<ServiceFieldValueEntity>
+    // Obtener todos los costos de un servicio (una sola vez)
+    @Query("SELECT * FROM extra_cost WHERE assignedServiceId = :assignedServiceId ORDER BY createdAt DESC")
+    suspend fun getExtraCostsByService(assignedServiceId: String): List<ExtraCostEntity>
 
-        // Obtener un campo específico
-        @Query("SELECT * FROM service_field_value WHERE assignedServiceId = :assignedServiceId AND fieldLabel = :fieldLabel")
-        suspend fun getServiceFieldValue(assignedServiceId: String, fieldLabel: String): ServiceFieldValueEntity?
+    // Obtener un costo extra por ID
+    @Query("SELECT * FROM extra_cost WHERE id = :id")
+    suspend fun getExtraCostById(id: String): ExtraCostEntity?
 
-        // Actualizar un campo
-        @Query("UPDATE service_field_value SET value = :value, timestamp = :timestamp WHERE assignedServiceId = :assignedServiceId AND fieldLabel = :fieldLabel")
-        suspend fun updateServiceFieldValue(assignedServiceId: String, fieldLabel: String, value: String, timestamp: String)
+    // Obtener todos los costos extra
+    @Query("SELECT * FROM extra_cost ORDER BY createdAt DESC")
+    suspend fun getAllExtraCosts(): List<ExtraCostEntity>
 
-        // Eliminar campos de un servicio
-        @Query("DELETE FROM service_field_value WHERE assignedServiceId = :assignedServiceId")
-        suspend fun deleteServiceFieldValuesByService(assignedServiceId: String)
+    // ═══════════════════════════════════════════════════════
+    // UPDATE - Actualizar un costo extra
+    // ═══════════════════════════════════════════════════════
+    @Update
+    suspend fun updateExtraCost(extraCost: ExtraCostEntity)
 
-        @Query("""
-               SELECT * FROM service_field_value
-               WHERE assignedServiceId = :serviceId AND fieldIndex = :fieldIndex
-           """)
-        suspend fun getFieldValue(
-            serviceId: String,
-            fieldIndex: Int
-        ): ServiceFieldValueEntity?
+    // ═══════════════════════════════════════════════════════
+    // DELETE - Eliminar costos extra
+    // ═══════════════════════════════════════════════════════
 
-        @Update
-        suspend fun updateFieldValue(fieldValue: ServiceFieldValueEntity)
-    */
+    // Eliminar por ID
+    @Query("DELETE FROM extra_cost WHERE id = :id")
+    suspend fun deleteExtraCostById(id: String)
 
+    // Eliminar un costo extra
+    @Delete
+    suspend fun deleteExtraCost(extraCost: ExtraCostEntity)
 
+    // Eliminar todos los costos de un servicio
+    @Query("DELETE FROM extra_cost WHERE assignedServiceId = :assignedServiceId")
+    suspend fun deleteExtraCostsByService(assignedServiceId: String)
 
+    // Eliminar todos los costos extra
+    @Query("DELETE FROM extra_cost")
+    suspend fun deleteAllExtraCosts()
 
-    /*
-       suspend fun insertFieldValue(fieldValue: ServiceFieldValueEntity): Long
+    // ═══════════════════════════════════════════════════════
+    // TOTAL - Calcular totales
+    // ═══════════════════════════════════════════════════════
 
-       @Insert(onConflict = OnConflictStrategy.REPLACE)
-       suspend fun insertFieldValueList(fieldValues: List<ServiceFieldValueEntity>)
+    // Obtener suma total de costos de un servicio
+    @Query("SELECT COALESCE(SUM(quantity), 0.0) FROM extra_cost WHERE assignedServiceId = :assignedServiceId")
+    suspend fun getTotalExtraCostByService(assignedServiceId: String): Double
 
-       @Update
-       suspend fun updateFieldValue(fieldValue: ServiceFieldValueEntity)
+    // Obtener suma total de costos de un servicio (como Flow)
+    @Query("SELECT COALESCE(SUM(quantity), 0.0) FROM extra_cost WHERE assignedServiceId = :assignedServiceId")
+    fun getTotalExtraCostByServiceFlow(assignedServiceId: String): Flow<Double>
 
-       @Query("""
-           SELECT * FROM service_field_value
-           WHERE assignedServiceId = :serviceId
-           ORDER BY fieldIndex
-       """)
-       suspend fun getFieldValuesByService(serviceId: String): List<ServiceFieldValueEntity>
-
-       @Query("""
-           SELECT * FROM service_field_value
-           WHERE assignedServiceId = :serviceId AND fieldIndex = :fieldIndex
-       """)
-       suspend fun getFieldValue(
-           serviceId: String,
-           fieldIndex: Int
-       ): ServiceFieldValueEntity?
-
-       @Delete
-       suspend fun deleteFieldValue(fieldValue: ServiceFieldValueEntity)
-
-   */
+    // Obtener cantidad de costos de un servicio
+    @Query("SELECT COUNT(*) FROM extra_cost WHERE assignedServiceId = :assignedServiceId")
+    suspend fun getExtraCostCountByService(assignedServiceId: String): Int
 }

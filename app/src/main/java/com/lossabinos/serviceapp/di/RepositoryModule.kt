@@ -12,6 +12,7 @@ import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.repositories.ChecklistRepositoryImpl
 import com.lossabinos.data.repositories.LocalDataRepositoryImp
 import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
+import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
@@ -139,14 +140,16 @@ object RepositoryModule {
         activityProgressDao: ActivityProgressDao,
         activityEvidenceDao: ActivityEvidenceDao,
         observationResponseDao: ObservationResponseDao,
-        serviceFieldValueDao: ServiceFieldValueDao
+        serviceFieldValueDao: ServiceFieldValueDao,
+        extraCostDao: ExtraCostDao
     ): LocalDataRepository {
         return LocalDataRepositoryImp(
             initialDataDao = initialDataDao,
             activityProgressDao = activityProgressDao,
             activityEvidenceDao = activityEvidenceDao,
             observationResponseDao = observationResponseDao,
-            serviceFieldValueDao = serviceFieldValueDao
+            serviceFieldValueDao = serviceFieldValueDao,
+            extraCostDao = extraCostDao
         )
     }
 

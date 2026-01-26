@@ -3,10 +3,12 @@ package com.lossabinos.data.mappers
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.datasource.local.database.entities.AssignedServiceWithProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
+import com.lossabinos.domain.entities.ExtraCost
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.valueobjects.AssignedServiceProgress
@@ -16,6 +18,20 @@ import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.valueobjects.Template
 import kotlinx.serialization.json.Json
+
+fun ExtraCostEntity.toDomain(): ExtraCost {
+    return ExtraCost(
+        id = id,
+        assignedServiceId = assignedServiceId,
+        quantity = quantity,
+        category = category,
+        description = description,
+        notes = notes,
+        createdAt = createdAt,
+        syncStatus = syncStatus,
+        timestamp = timestamp
+    )
+}
 
 
 //++++++++++++++++++++++++++++

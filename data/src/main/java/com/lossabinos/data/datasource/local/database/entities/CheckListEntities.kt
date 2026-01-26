@@ -7,6 +7,45 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+// ═══════════════════════════════════════════════════════
+// EXTRA COST ENTITY
+// ═══════════════════════════════════════════════════════
+@Entity(
+    tableName = "extra_cost",
+    foreignKeys = [
+        ForeignKey(
+            entity = AssignedServiceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["assignedServiceId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("assignedServiceId"),
+        Index("id")
+    ]
+)
+data class ExtraCostEntity(
+    @PrimaryKey
+    val id: String = java.util.UUID.randomUUID().toString(),
+
+    val assignedServiceId: String,  // FK (camelCase)
+
+    val quantity: Double,  // Monto del costo
+
+    val category: String,  // "SPARE_PARTS", "LABOR", "CONSUMABLES", "DIAGNOSTICS", "TRANSPORTATION", "OTHER"
+
+    val description: String,  // Descripción del costo
+
+    val notes: String? = null,  // Notas opcionales
+
+    val createdAt: Long = System.currentTimeMillis(),
+
+    val syncStatus: String = "PENDING",  // PENDING, SYNCED, ERROR
+
+    val timestamp: Long = System.currentTimeMillis()
+)
+
 // ACTIVITY PROGRESS
 @Entity(
     tableName = "activity_progress",

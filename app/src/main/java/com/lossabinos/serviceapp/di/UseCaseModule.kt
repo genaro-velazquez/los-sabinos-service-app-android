@@ -15,11 +15,14 @@ import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import com.lossabinos.domain.usecases.checklist.CompleteActivityUseCase
 import com.lossabinos.domain.usecases.checklist.CreateReportExtraCostUseCase
 import com.lossabinos.domain.usecases.checklist.DeleteActivityEvidenceByIdUseCase
+import com.lossabinos.domain.usecases.checklist.DeleteExtraCostUseCase
 import com.lossabinos.domain.usecases.checklist.GetActivitiesProgressForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetEvidenceForActivityUseCase
 import com.lossabinos.domain.usecases.checklist.GetObservationResponsesForSectionUseCase
 import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.GetTotalCompletedActivitiesUseCase
+import com.lossabinos.domain.usecases.checklist.InsertExtraCostUseCase
+import com.lossabinos.domain.usecases.checklist.ObserveExtraCostsUseCase
 import com.lossabinos.domain.usecases.checklist.SaveActivityEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SaveObservationResponseUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
@@ -29,6 +32,7 @@ import com.lossabinos.domain.usecases.checklist.SignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
+import com.lossabinos.domain.usecases.checklist.UpdateExtraCostUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
 import com.lossabinos.domain.usecases.mechanics.GetDetailedServiceUseCase
 import com.lossabinos.domain.usecases.mechanics.GetLocalInitialDataUseCase
@@ -359,6 +363,46 @@ object UseCaseModule {
         repository: ChecklistRepository
     ): CreateReportExtraCostUseCase{
         return CreateReportExtraCostUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideDeleteExtraCostUseCase(
+        repository: ChecklistRepository
+    ): DeleteExtraCostUseCase{
+        return DeleteExtraCostUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideInsertExtraCostUseCase(
+        repository: ChecklistRepository
+    ): InsertExtraCostUseCase {
+        return InsertExtraCostUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideObserveExtraCostsUseCase(
+        repository: ChecklistRepository
+    ): ObserveExtraCostsUseCase{
+        return ObserveExtraCostsUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideUpdateExtraCostUseCase(
+        repository: ChecklistRepository
+    ): UpdateExtraCostUseCase{
+        return UpdateExtraCostUseCase(
             repository = repository
         )
     }

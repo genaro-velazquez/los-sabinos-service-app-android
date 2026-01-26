@@ -6,10 +6,18 @@ class CreateReportExtraCostUseCase(
     private val repository: ChecklistRepository
 ) {
     suspend operator fun invoke(
-        idExecutionService:Int
+        idExecutionService: String,
+        amount: Double,
+        category:String,
+        description: String,
+        notes: String
     ){
         repository.createReportExtraCost(
-            idExecutionService = idExecutionService
+            idExecutionService = idExecutionService,
+            amount = amount,
+            category = category,
+            description = description,
+            notes = notes
         )
     }
 }

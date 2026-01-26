@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.lossabinos.data.datasource.local.database.AppDatabase
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
@@ -304,6 +305,13 @@ object DatabaseModule {
     fun provideServiceFieldValueDao(database: AppDatabase): ServiceFieldValueDao {
         return database.serviceFieldValueDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideExtraCostDao(database: AppDatabase): ExtraCostDao {
+        return database.extraCostDao()
+    }
+
 
 }
 

@@ -84,4 +84,15 @@ class ChecklistRemoteDataSource @Inject constructor(
         val json = RetrofitResponseValidator.validate(response = response)
         return SignChecklistResponseDTO(json = json)
     }
+
+    suspend fun sendReportExtraCosts(
+        idExecutionService: String,
+        request: RequestBody
+    )  {
+        syncServices.reportExtraCost(
+            headers = headersMaker.build(),
+            idServiceExecution = idExecutionService,
+            request = request
+        )
+    }
 }

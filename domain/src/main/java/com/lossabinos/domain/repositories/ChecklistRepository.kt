@@ -2,11 +2,13 @@ package com.lossabinos.domain.repositories
 
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
+import com.lossabinos.domain.entities.ExtraCost
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.responses.SignChecklistResponse
+import kotlinx.coroutines.flow.Flow
 
 interface ChecklistRepository {
 
@@ -115,8 +117,19 @@ interface ChecklistRepository {
     ) : SignChecklistResponse
 
     suspend fun createReportExtraCost(
-        idExecutionService:Int
+        idExecutionService: String,
+        amount: Double,
+        category:String,
+        description: String,
+        notes: String
     )
+
+    fun observeExtraCosts(
+        assignedServiceId: String
+    ): Flow<List<ExtraCost>>
+    suspend fun insertExtraCost(extraCost: ExtraCost)
+    suspend fun updateExtraCost(extraCost: ExtraCost)
+    suspend fun deleteExtraCost(id: String)
 }
 
 

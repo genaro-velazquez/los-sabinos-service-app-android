@@ -8,6 +8,7 @@ import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
@@ -18,12 +19,17 @@ import com.lossabinos.data.mappers.toDomain
 import com.lossabinos.data.retrofit.SyncServices
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
+import com.lossabinos.domain.entities.ExtraCost
 import com.lossabinos.domain.entities.ObservationAnswer
 import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.responses.SignChecklistResponse
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -315,12 +321,19 @@ class ChecklistRepositoryImpl(
             println("🔄 [Repo] Iniciando sincronización completa: $serviceId")
 
             // 1️⃣ Subir evidencias
+            println("1️⃣ Sincronizando evidencias...")
             syncEvidences(serviceId)
 
             // 2️⃣ Subir checklist
+            println("2️⃣ Sincronizando checklist...")
             syncChecklistProgress(serviceId)
 
-            // 3️⃣ Marcar como SYNCED (ÚLTIMO PASO)
+            // 3️⃣ Subir costos extra (🆕)
+            println("3️⃣ Sincronizando costos extra...")
+            syncExtraCosts(serviceId)
+
+            // 4️⃣ Marcar como SYNCED (ÚLTIMO PASO)
+            println("4️⃣ Marcando servicio como sincronizado...")
             markServiceAsSynced(serviceId)
 
             println("✅ [Repo] Sincronización COMPLETA exitosa")
@@ -670,7 +683,145 @@ class ChecklistRepositoryImpl(
         return dto.toEntity()
     }
 
-    override suspend fun createReportExtraCost(idExecutionService: Int) {
-        TODO("Not yet implemented")
+    /**** Envía información al server ***/
+    override suspend fun createReportExtraCost(
+        idExecutionService: String,
+        amount: Double,
+        category:String,
+        description: String,
+        notes: String
+    ) {
+
+        val jsonObject = JSONObject().apply {
+            put("amount", amount)
+            put("category", category)
+            put("description", description)
+        }
+
+        val requestBody = jsonObject.toString()
+            .toRequestBody("application/json".toMediaType())
+
+        checklistRemoteDataSource.sendReportExtraCosts(
+            idExecutionService = idExecutionService,
+            request = requestBody
+        )
+
+        val entity = ExtraCostEntity(
+            assignedServiceId = idExecutionService,
+            quantity = amount,
+            category = category,
+            description = description,
+            notes = notes,
+            syncStatus = "SYNCED"
+        )
+
+        checklistLocalDataSource.updateExtraCost(
+            //entity.copy(syncStatus = "SYNCED")
+            entity = entity
+        )
+    }
+
+    override fun observeExtraCosts(assignedServiceId: String): Flow<List<ExtraCost>> {
+        return checklistLocalDataSource
+            .getExtraCostbyServiceFlow(assignedServiceId = assignedServiceId)
+            .map { entities ->
+                entities.map { entity ->
+                    entity.toDomain()
+                }
+            }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🆕 SINCRONIZAR COSTOS EXTRA
+    // ═══════════════════════════════════════════════════════
+    private suspend fun syncExtraCosts(serviceId: String) {
+        try {
+            println("📦 [Repo] Sincronizando costos extra para: $serviceId")
+
+            // Obtener todos los costos PENDING
+            val pendingCosts = checklistLocalDataSource
+                .getExtraCostbyServiceFlow(serviceId)
+                .first()
+                .filter { it.syncStatus == "PENDING"}
+
+            println("📦 [Repo] Costos extra PENDING: ${pendingCosts.size}")
+
+            // Sincronizar cada uno
+            pendingCosts.forEach { entity ->
+                try {
+                    println("📤 [Repo] Enviando costo extra: ${entity.description}")
+
+                    // Construir JSON
+                    val jsonObject = JSONObject().apply {
+                        put("amount", entity.quantity)
+                        put("category", entity.category)
+                        put("description", entity.description)
+                        put("notes", entity.notes ?: "")
+                    }
+
+                    val requestBody = jsonObject.toString()
+                        .toRequestBody("application/json".toMediaType())
+
+                    // Enviar al servidor
+                    checklistRemoteDataSource.sendReportExtraCosts(
+                        idExecutionService = serviceId,
+                        request = requestBody
+                    )
+
+                    // Actualizar a SYNCED en Room
+                    val syncedEntity = entity.copy(syncStatus = "SYNCED")
+                    checklistLocalDataSource.updateExtraCost(syncedEntity)
+
+                    println("✅ [Repo] Costo extra sincronizado: ${entity.description}")
+
+                } catch (e: Exception) {
+                    println("❌ [Repo] Error sincronizando costo: ${e.message}")
+                    // Actualizar a ERROR
+                    val errorEntity = entity.copy(syncStatus = "ERROR")
+                    checklistLocalDataSource.updateExtraCost(errorEntity)
+                    throw e
+                }
+            }
+
+            println("✅ [Repo] Todos los costos extra sincronizados")
+
+        } catch (e: Exception) {
+            println("❌ [Repo] Error en syncExtraCosts: ${e.message}")
+            throw e
+        }
+    }
+
+    override suspend fun insertExtraCost(extraCost: ExtraCost) {
+        val entity = ExtraCostEntity(
+            id = extraCost.id,
+            assignedServiceId = extraCost.assignedServiceId,
+            quantity = extraCost.quantity,
+            category = extraCost.category,
+            description = extraCost.description,
+            notes = extraCost.notes,
+            createdAt = extraCost.createdAt,
+            syncStatus = extraCost.syncStatus,
+            timestamp = extraCost.timestamp
+        )
+        checklistLocalDataSource.insertExtraCost(entity = entity)
+    }
+
+    override suspend fun updateExtraCost(extraCost: ExtraCost) {
+        val entity = ExtraCostEntity(
+            id = extraCost.id,
+            assignedServiceId = extraCost.assignedServiceId,
+            quantity = extraCost.quantity,
+            category = extraCost.category,
+            description = extraCost.description,
+            notes = extraCost.notes,
+            createdAt = extraCost.createdAt,
+            syncStatus = extraCost.syncStatus,
+            timestamp = extraCost.timestamp
+        )
+        checklistLocalDataSource.updateExtraCost(entity = entity)
+    }
+
+    override suspend fun deleteExtraCost(id: String) {
+        checklistLocalDataSource.deleteExtrCostById(id = id)
     }
 }

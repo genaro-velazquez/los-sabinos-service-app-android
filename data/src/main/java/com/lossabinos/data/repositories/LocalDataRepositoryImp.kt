@@ -2,6 +2,7 @@ package com.lossabinos.data.repositories
 
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
@@ -12,7 +13,8 @@ class LocalDataRepositoryImp(
     private val activityProgressDao: ActivityProgressDao,
     private val activityEvidenceDao: ActivityEvidenceDao,
     private val observationResponseDao: ObservationResponseDao,
-    private val serviceFieldValueDao: ServiceFieldValueDao
+    private val serviceFieldValueDao: ServiceFieldValueDao,
+    private val extraCostDao: ExtraCostDao
 ) : LocalDataRepository {
 
     override suspend fun clearAll() {
@@ -22,5 +24,6 @@ class LocalDataRepositoryImp(
         activityEvidenceDao.deleteAllActivityEvidences()
         observationResponseDao.deleteAllObservationResponses()
         serviceFieldValueDao.deleteAllServiceFieldValues()
+        extraCostDao.deleteAllExtraCosts()
     }
 }

@@ -4,12 +4,14 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.lossabinos.data.datasource.local.database.dao.ActivityEvidenceDao
 import com.lossabinos.data.datasource.local.database.dao.ActivityProgressDao
+import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.datasource.local.database.entities.AssignedServiceEntity
+import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.MechanicEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
@@ -33,9 +35,10 @@ import com.lossabinos.data.datasource.local.database.entities.ZoneEntity
         ObservationResponseEntity::class,
         ServiceFieldValueEntity::class,
         SyncMetadataEntity::class,
-        ServiceProgressEntity::class
+        ServiceProgressEntity::class,
+        ExtraCostEntity::class
     ],
-    version = 9
+    version = 10
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun initialDataDao(): InitialDataDao
@@ -43,4 +46,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun activityEvidenceDao(): ActivityEvidenceDao
     abstract fun observationResponseDao(): ObservationResponseDao
     abstract fun serviceFieldValueDao(): ServiceFieldValueDao
+    abstract fun extraCostDao(): ExtraCostDao
 }
