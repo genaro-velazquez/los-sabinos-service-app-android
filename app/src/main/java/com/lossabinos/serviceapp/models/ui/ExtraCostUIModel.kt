@@ -9,12 +9,19 @@ enum class ExtraCostCategory(
     val displayName: String,
     val icon: String
 ) {
+    SPARE_PARTS("Repuestos", ""),
+    LABOR("Mano de obra", ""),
+    CONSUMABLES("Consumibles", ""),
+    DIAGNOSTICS("Diagnóstico", ""),
+    TRANSPORTATION("Transporte", ""),
+    OTHER("Otros", "");
+/*
     SPARE_PARTS("Repuestos", "🔧"),
     LABOR("Mano de obra", "👨"),
     CONSUMABLES("Consumibles", "📦"),
     DIAGNOSTICS("Diagnóstico", "🔍"),
     TRANSPORTATION("Transporte", "🚗"),
-    OTHER("Otros", "❓");
+    OTHER("Otros", "❓");*/
 
     companion object {
         fun fromString(value: String?): ExtraCostCategory {

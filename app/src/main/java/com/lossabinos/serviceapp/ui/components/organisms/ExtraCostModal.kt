@@ -84,7 +84,7 @@ fun ExtraCostModal(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (isEditMode) "✏️ Edit Extra Cost" else "➕ Add Extra Cost",
+                            text = if (isEditMode) "Editar Cost Extra" else "Agregar Costo Extra",//"✏️ Edit Extra Cost" else "➕ Add Extra Cost",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -98,7 +98,7 @@ fun ExtraCostModal(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = "Close",
+                                contentDescription = "Cerrar",
                                 tint = Color(0xFF666666)
                             )
                         }
@@ -155,7 +155,7 @@ fun ExtraCostModal(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "Cancel",
+                                    text = "Cancelar",
                                     color = Color(0xFF666666),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -177,14 +177,14 @@ fun ExtraCostModal(
                             ) {
                                 if (isLoading) {
                                     Text(
-                                        text = if (isEditMode) "Updating..." else "Saving...",
+                                        text = if (isEditMode) "Actualizando..." else "Guardando...",
                                         color = Color.White,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 } else {
                                     Text(
-                                        text = if (isEditMode) "Update" else "Save",
+                                        text = if (isEditMode) "Actualizar" else "Guardar",
                                         color = Color.White,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold
