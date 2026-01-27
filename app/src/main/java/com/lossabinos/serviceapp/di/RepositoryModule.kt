@@ -20,12 +20,13 @@ import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
-import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.repositories.MechanicsRetrofitRepository
 import com.lossabinos.data.repositories.NotificationRetrofitRepository
+import com.lossabinos.data.repositories.SystemClock
 import com.lossabinos.data.repositories.WebSocketRepositoryImpl
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
+import com.lossabinos.domain.repositories.ClockRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
@@ -118,7 +119,8 @@ object RepositoryModule {
         initialDataDao: InitialDataDao,
         checklistProgressRequestMapper: ChecklistProgressRequestMapper,
         checklistRemoteDataSource: ChecklistRemoteDataSource,
-        checklistLocalDataSource: ChecklistLocalDataSource
+        checklistLocalDataSource: ChecklistLocalDataSource,
+        clock: ClockRepository
     ): ChecklistRepository {
         return ChecklistRepositoryImpl(
             activityProgressDao = activityProgressDao,
@@ -128,7 +130,8 @@ object RepositoryModule {
             initialDataDao = initialDataDao,
             checklistProgressRequestMapper = checklistProgressRequestMapper,
             checklistRemoteDataSource = checklistRemoteDataSource,
-            checklistLocalDataSource = checklistLocalDataSource
+            checklistLocalDataSource = checklistLocalDataSource,
+            clock = clock
         )
     }
 
@@ -173,5 +176,13 @@ object RepositoryModule {
         return WebSocketRepositoryImpl(
             refreshSessionUseCase = refreshSessionUseCase
         )
+    }
+
+    // ============== Clock REPOSITORY ==============
+    @Singleton
+    @Provides
+    fun providesClockRepository(
+    ) : ClockRepository {
+        return SystemClock()
     }
 }

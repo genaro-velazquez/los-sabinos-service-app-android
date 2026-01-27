@@ -12,11 +12,10 @@ import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceStartEntity
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
-import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 import com.lossabinos.data.mappers.toDomain
-import com.lossabinos.data.retrofit.SyncServices
 import com.lossabinos.domain.entities.ActivityEvidence
 import com.lossabinos.domain.entities.ActivityProgress
 import com.lossabinos.domain.entities.ExtraCost
@@ -25,18 +24,18 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.repositories.ClockRepository
 import com.lossabinos.domain.responses.SignChecklistResponse
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class ChecklistRepositoryImpl(
@@ -47,7 +46,8 @@ class ChecklistRepositoryImpl(
     private val initialDataDao: InitialDataDao,
     private val checklistProgressRequestMapper: ChecklistProgressRequestMapper,
     private val checklistRemoteDataSource: ChecklistRemoteDataSource,
-    private val checklistLocalDataSource: ChecklistLocalDataSource
+    private val checklistLocalDataSource: ChecklistLocalDataSource,
+    private val clock: ClockRepository
     ) : ChecklistRepository {
 
     override suspend fun saveActivityProgress(
@@ -320,20 +320,24 @@ class ChecklistRepositoryImpl(
         try {
             println("🔄 [Repo] Iniciando sincronización completa: $serviceId")
 
-            // 1️⃣ Subir evidencias
-            println("1️⃣ Sincronizando evidencias...")
+            // 1️⃣ Sincronizar service start (PRIMERO, porque es el inicio)
+            println("1️⃣ Sincronizando service start...")
+            syncServiceStart(serviceId)
+
+            // 2️⃣ Subir evidencias
+            println("2️⃣ Sincronizando evidencias...")
             syncEvidences(serviceId)
 
-            // 2️⃣ Subir checklist
-            println("2️⃣ Sincronizando checklist...")
+            // 3️⃣ Subir checklist
+            println("3️⃣ Sincronizando checklist...")
             syncChecklistProgress(serviceId)
 
-            // 3️⃣ Subir costos extra (🆕)
-            println("3️⃣ Sincronizando costos extra...")
+            // 4️⃣ Subir costos extra
+            println("4️⃣ Sincronizando costos extra...")
             syncExtraCosts(serviceId)
 
-            // 4️⃣ Marcar como SYNCED (ÚLTIMO PASO)
-            println("4️⃣ Marcando servicio como sincronizado...")
+            // 5️⃣ Marcar como SYNCED (ÚLTIMO PASO)
+            println("5️⃣ Marcando servicio como sincronizado...")
             markServiceAsSynced(serviceId)
 
             println("✅ [Repo] Sincronización COMPLETA exitosa")
@@ -824,4 +828,173 @@ class ChecklistRepositoryImpl(
     override suspend fun deleteExtraCost(id: String) {
         checklistLocalDataSource.deleteExtrCostById(id = id)
     }
+
+    override suspend fun startService(serviceExecutionId: String) {
+        // 1️⃣ Obtener fecha oficial del negocio
+        val startedAt = clock.now()
+            .atOffset(ZoneOffset.UTC)
+            .format(DateTimeFormatter.ISO_INSTANT)
+
+        // 1️⃣ Crear entidad para guardar localmente
+        val serviceStart = ServiceStartEntity(
+            assignedServiceId = serviceExecutionId,
+            startedAt = System.currentTimeMillis(),
+            startedAtFormatted = startedAt,
+            syncStatus = "PENDING"
+        )
+
+        // 2️⃣ Guardar en Room (SIEMPRE)
+        checklistLocalDataSource.insertServiceStart(serviceStart)
+        println("✅ [Repo] Service start guardado en Room (PENDING)")
+
+        // 3️⃣ Intentar sincronizar
+        try {
+            val body = JSONObject()
+                .put("start_at", startedAt)
+                .toString()
+                .toRequestBody("application/json".toMediaType())
+
+            checklistRemoteDataSource.startService(
+                idExecutionService = serviceExecutionId,
+                request = body
+            )
+
+            // 3️⃣ Intentar sincronizar con servidor
+            try {
+                val jsonObject = JSONObject().apply {
+                    put("start_at", startedAt)
+                }
+
+                val requestBody = jsonObject.toString()
+                    .toRequestBody("application/json".toMediaType())
+
+                checklistRemoteDataSource.startService(
+                    idExecutionService = serviceExecutionId,
+                    request = requestBody
+                )
+
+                // 4️⃣ Si funcionó, actualizar a SYNCED
+                val syncedServiceStart = serviceStart.copy(syncStatus = "SYNCED")
+                checklistLocalDataSource.updateServiceStart(syncedServiceStart)
+                println("✅ [Repo] Service start sincronizado (SYNCED)")
+
+            } catch (e: Exception) {
+                // 5️⃣ Si NO hay red, dejar como PENDING
+                println("⚠️ [Repo] Sin conexión, service start guardado localmente (PENDING)")
+                println("   Se sincronizará cuando se complete el checklist")
+                // El registro ya está en Room como PENDING, no hacer nada
+            }
+
+        } catch (e: Exception) {
+            // ❌ No pasa nada: queda pendiente para retry
+        }
+
+        /*
+                try {
+                    println("🚀 [Repo] Iniciando servicio: $serviceExecutionId")
+
+                    // 1️⃣ Crear entidad para guardar localmente
+                    val serviceStart = ServiceStartEntity(
+                        assignedServiceId = serviceExecutionId,
+                        startedAt = System.currentTimeMillis(),
+                        startedAtFormatted = date,
+                        syncStatus = "PENDING"
+                    )
+
+                    // 2️⃣ Guardar en Room (SIEMPRE)
+                    checklistLocalDataSource.insertServiceStart(serviceStart)
+                    println("✅ [Repo] Service start guardado en Room (PENDING)")
+
+                    // 3️⃣ Intentar sincronizar con servidor
+                    try {
+                        val jsonObject = JSONObject().apply {
+                            put("start_at", date)
+                        }
+
+                        val requestBody = jsonObject.toString()
+                            .toRequestBody("application/json".toMediaType())
+
+                        checklistRemoteDataSource.startService(
+                            idExecutionService = serviceExecutionId,
+                            request = requestBody
+                        )
+
+                        // 4️⃣ Si funcionó, actualizar a SYNCED
+                        val syncedServiceStart = serviceStart.copy(syncStatus = "SYNCED")
+                        checklistLocalDataSource.updateServiceStart(syncedServiceStart)
+                        println("✅ [Repo] Service start sincronizado (SYNCED)")
+
+                    } catch (e: Exception) {
+                        // 5️⃣ Si NO hay red, dejar como PENDING
+                        println("⚠️ [Repo] Sin conexión, service start guardado localmente (PENDING)")
+                        println("   Se sincronizará cuando se complete el checklist")
+                        // El registro ya está en Room como PENDING, no hacer nada
+                    }
+
+                } catch (e: Exception) {
+                    println("❌ [Repo] Error en startService: ${e.message}")
+                    throw e
+                }
+         */
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🆕 SINCRONIZAR SERVICE START
+    // ═══════════════════════════════════════════════════════
+    private suspend fun syncServiceStart(serviceId: String) {
+        try {
+            println("🚀 [Repo] Sincronizando service start para: $serviceId")
+
+            // Obtener el registro de inicio
+            val serviceStart = checklistLocalDataSource.getServiceStartByService(serviceId)
+
+            if (serviceStart == null) {
+                println("⚠️ [Repo] No hay registro de service start para: $serviceId")
+                return
+            }
+
+            // Si ya está SYNCED, no hacer nada
+            if (serviceStart.syncStatus == "SYNCED") {
+                println("✅ [Repo] Service start ya está SYNCED")
+                return
+            }
+
+            // Intentar sincronizar
+            try {
+                println("📤 [Repo] Enviando service start al servidor: $serviceId")
+
+                val jsonObject = JSONObject().apply {
+                    put("start_at", serviceStart.startedAtFormatted)
+                }
+
+                val requestBody = jsonObject.toString()
+                    .toRequestBody("application/json".toMediaType())
+
+                checklistRemoteDataSource.startService(
+                    idExecutionService = serviceId,
+                    request = requestBody
+                )
+
+                // Actualizar a SYNCED
+                val syncedServiceStart = serviceStart.copy(syncStatus = "SYNCED")
+                checklistLocalDataSource.updateServiceStart(syncedServiceStart)
+
+                println("✅ [Repo] Service start sincronizado exitosamente")
+
+            } catch (e: Exception) {
+                println("❌ [Repo] Error sincronizando service start: ${e.message}")
+
+                // Actualizar a ERROR
+                val errorServiceStart = serviceStart.copy(syncStatus = "ERROR")
+                checklistLocalDataSource.updateServiceStart(errorServiceStart)
+
+                throw e
+            }
+
+        } catch (e: Exception) {
+            println("❌ [Repo] Error en syncServiceStart: ${e.message}")
+            throw e
+        }
+    }
+
 }

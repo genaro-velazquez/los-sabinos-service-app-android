@@ -44,4 +44,11 @@ interface SyncServices {
         @Path(value = "service_execution_id") idServiceExecution: String,
         @Body request: RequestBody
     ):Response<String>
+
+    @POST(value = "/api/v1/mechanics/services/{service_execution_id}/start")
+    suspend fun startService(
+        @HeaderMap headers: Map<String, String>,
+        @Path(value = "service_execution_id") serviceExecutionId: String,
+        @Body request: RequestBody
+    ): Response<String>
 }

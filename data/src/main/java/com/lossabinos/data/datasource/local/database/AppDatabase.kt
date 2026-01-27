@@ -8,6 +8,7 @@ import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.datasource.local.database.dao.ServiceStartDao
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.datasource.local.database.entities.AssignedServiceEntity
@@ -16,6 +17,7 @@ import com.lossabinos.data.datasource.local.database.entities.MechanicEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceStartEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceTypeEntity
 import com.lossabinos.data.datasource.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.datasource.local.database.entities.VehicleEntity
@@ -36,9 +38,10 @@ import com.lossabinos.data.datasource.local.database.entities.ZoneEntity
         ServiceFieldValueEntity::class,
         SyncMetadataEntity::class,
         ServiceProgressEntity::class,
-        ExtraCostEntity::class
+        ExtraCostEntity::class,
+        ServiceStartEntity::class
     ],
-    version = 10
+    version = 11
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun initialDataDao(): InitialDataDao
@@ -47,4 +50,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun observationResponseDao(): ObservationResponseDao
     abstract fun serviceFieldValueDao(): ServiceFieldValueDao
     abstract fun extraCostDao(): ExtraCostDao
+    abstract fun serviceStartDao(): ServiceStartDao
 }

@@ -11,6 +11,7 @@ import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.datasource.local.database.dao.ServiceStartDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -311,6 +312,13 @@ object DatabaseModule {
     fun provideExtraCostDao(database: AppDatabase): ExtraCostDao {
         return database.extraCostDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideServiceStartDao(database: AppDatabase): ServiceStartDao {
+        return database.serviceStartDao()
+    }
+
 
 
 }

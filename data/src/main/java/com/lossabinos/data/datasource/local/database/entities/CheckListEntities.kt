@@ -8,6 +8,33 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 // ═══════════════════════════════════════════════════════
+// SERVICE START ENTITY
+// ═══════════════════════════════════════════════════════
+@Entity(
+    tableName = "service_start",
+    foreignKeys = [
+        ForeignKey(
+            entity = AssignedServiceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["assignedServiceId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("assignedServiceId")
+    ]
+)
+data class ServiceStartEntity(
+    @PrimaryKey
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val assignedServiceId: String,  // FK (camelCase)
+    val startedAt: Long,  // // ISO-8601 UTC
+    val startedAtFormatted: String,  // Formato para enviar al servidor (ej: "2025-01-27T10:30:00Z")
+    val syncStatus: String = "PENDING",  // PENDING, SYNCED, ERROR
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+// ═══════════════════════════════════════════════════════
 // EXTRA COST ENTITY
 // ═══════════════════════════════════════════════════════
 @Entity(
@@ -28,21 +55,13 @@ import androidx.room.PrimaryKey
 data class ExtraCostEntity(
     @PrimaryKey
     val id: String = java.util.UUID.randomUUID().toString(),
-
     val assignedServiceId: String,  // FK (camelCase)
-
     val quantity: Double,  // Monto del costo
-
     val category: String,  // "SPARE_PARTS", "LABOR", "CONSUMABLES", "DIAGNOSTICS", "TRANSPORTATION", "OTHER"
-
     val description: String,  // Descripción del costo
-
     val notes: String? = null,  // Notas opcionales
-
     val createdAt: Long = System.currentTimeMillis(),
-
     val syncStatus: String = "PENDING",  // PENDING, SYNCED, ERROR
-
     val timestamp: Long = System.currentTimeMillis()
 )
 

@@ -13,6 +13,7 @@ import com.lossabinos.data.datasource.local.database.entities.ExtraCostEntity
 import com.lossabinos.data.datasource.local.database.entities.ObservationResponseEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceFieldValueEntity
 import com.lossabinos.data.datasource.local.database.entities.ServiceProgressEntity
+import com.lossabinos.data.datasource.local.database.entities.ServiceStartEntity
 import kotlinx.coroutines.flow.Flow
 
 
@@ -378,4 +379,41 @@ interface ExtraCostDao {
     // Obtener cantidad de costos de un servicio
     @Query("SELECT COUNT(*) FROM extra_cost WHERE assignedServiceId = :assignedServiceId")
     suspend fun getExtraCostCountByService(assignedServiceId: String): Int
+}
+
+@Dao
+interface ServiceStartDao {
+
+    // ═══════════════════════════════════════════════════════
+    // CREATE - Insertar registro de inicio
+    // ═══════════════════════════════════════════════════════
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertServiceStart(serviceStart: ServiceStartEntity): Long
+
+    // ═══════════════════════════════════════════════════════
+    // READ - Obtener registro de inicio
+    // ═══════════════════════════════════════════════════════
+
+    // Obtener registro por assignedServiceId
+    @Query("SELECT * FROM service_start WHERE assignedServiceId = :assignedServiceId LIMIT 1")
+    suspend fun getServiceStartByService(assignedServiceId: String): ServiceStartEntity?
+
+    // Obtener todos los registros PENDING
+    @Query("SELECT * FROM service_start WHERE syncStatus = 'PENDING' ORDER BY createdAt DESC")
+    suspend fun getPendingServiceStarts(): List<ServiceStartEntity>
+
+    // ═══════════════════════════════════════════════════════
+    // UPDATE - Actualizar registro
+    // ═══════════════════════════════════════════════════════
+    @Update
+    suspend fun updateServiceStart(serviceStart: ServiceStartEntity)
+
+    // ═══════════════════════════════════════════════════════
+    // DELETE - Eliminar registro
+    // ═══════════════════════════════════════════════════════
+    @Query("DELETE FROM service_start WHERE assignedServiceId = :assignedServiceId")
+    suspend fun deleteServiceStartByService(assignedServiceId: String)
+
+    @Query("DELETE FROM service_start")
+    suspend fun deleteAllServiceStarts()
 }

@@ -95,4 +95,15 @@ class ChecklistRemoteDataSource @Inject constructor(
             request = request
         )
     }
+
+    suspend fun startService(
+        idExecutionService: String,
+        request: RequestBody
+    ){
+        syncServices.startService(
+            headers = headersMaker.build(),
+            serviceExecutionId = idExecutionService,
+            request = request
+        )
+    }
 }

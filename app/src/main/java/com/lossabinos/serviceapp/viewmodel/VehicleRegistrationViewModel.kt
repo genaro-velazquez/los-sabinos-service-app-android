@@ -6,6 +6,7 @@ import com.lossabinos.domain.entities.ServiceFieldValue
 import com.lossabinos.domain.usecases.checklist.GetServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
+import com.lossabinos.domain.usecases.checklist.StartServiceUseCase
 import com.lossabinos.domain.valueobjects.Template
 import com.lossabinos.serviceapp.models.ScanQRState
 import com.lossabinos.serviceapp.models.VehicleRegistrationFieldUIModel
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -41,7 +44,8 @@ sealed class VehicleRegistrationEvent {
 class VehicleRegistrationViewModel @Inject constructor(
     private val saveServiceFieldValueUseCase: SaveServiceFieldValueUseCase,
     private val saveServiceFieldValuesUseCase: SaveServiceFieldValuesUseCase,
-    private val getServiceFieldValuesUseCase: GetServiceFieldValuesUseCase
+    private val getServiceFieldValuesUseCase: GetServiceFieldValuesUseCase,
+    private val startServiceUseCase: StartServiceUseCase
 ) : ViewModel() {
 
     // 🆕 Estado del QR
@@ -328,7 +332,7 @@ class VehicleRegistrationViewModel @Inject constructor(
         }
     }
 
-    fun saveVehicleData(
+    fun     saveVehicleData(
         assignedServiceId: String,
         onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -364,6 +368,9 @@ class VehicleRegistrationViewModel @Inject constructor(
 
                 delay(500)
                 _isLoading.value = false
+
+                println("🚀 Iniciando servicio antes de guardar...")
+                startService(assignedServiceId)
 
                 // 🆕 Emitir evento de navegación
                 _navigationEvent.value = NavigationEvent.NavigateToChecklistProgress(assignedServiceId)
@@ -436,6 +443,40 @@ class VehicleRegistrationViewModel @Inject constructor(
             }
 
         }
+    }
+
+    // ═══════════════════════════════════════════════════════
+// 🆕 INICIAR SERVICIO
+// ═══════════════════════════════════════════════════════
+    fun startService(serviceId: String) {
+        viewModelScope.launch {
+            startServiceUseCase(serviceExecutionId = serviceId)
+        }
+/*
+        viewModelScope.launch {
+            try {
+                println("🚀 [VehicleVM] Iniciando servicio: $serviceId")
+
+                // Obtener fecha/hora actual en formato ISO 8601
+                val now = ZonedDateTime.now()
+                val formatter = DateTimeFormatter.ISO_INSTANT
+                val formattedDate = now.format(formatter)  // "2025-01-27T10:30:00Z"
+
+                println("📅 Fecha de inicio: $formattedDate")
+
+                // Llamar el UseCase
+                startServiceUseCase(
+                    serviceExecutionId = serviceId,
+                    date = formattedDate
+                )
+
+                println("✅ [VehicleVM] Servicio iniciado correctamente")
+
+            } catch (e: Exception) {
+                println("❌ [VehicleVM] Error iniciando servicio: ${e.message}")
+            }
+        }
+ */
     }
 
 }

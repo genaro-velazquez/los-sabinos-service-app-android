@@ -29,6 +29,7 @@ import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValueUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceFieldValuesUseCase
 import com.lossabinos.domain.usecases.checklist.SaveServiceProgressUseCase
 import com.lossabinos.domain.usecases.checklist.SignChecklistUseCase
+import com.lossabinos.domain.usecases.checklist.StartServiceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncActivityChecklistEvidenceUseCase
 import com.lossabinos.domain.usecases.checklist.SyncAndSignChecklistUseCase
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
@@ -473,6 +474,16 @@ object UseCaseModule {
     ) : ConnectWebSocketUseCase{
         return ConnectWebSocketUseCase(
             webSocketRepository = webSocketRepository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideStartServiceUseCase(
+        repository: ChecklistRepository
+    ): StartServiceUseCase{
+        return StartServiceUseCase(
+            repository = repository
         )
     }
 }

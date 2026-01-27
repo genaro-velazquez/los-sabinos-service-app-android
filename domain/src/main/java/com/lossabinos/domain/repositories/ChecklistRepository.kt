@@ -130,6 +130,10 @@ interface ChecklistRepository {
     suspend fun insertExtraCost(extraCost: ExtraCost)
     suspend fun updateExtraCost(extraCost: ExtraCost)
     suspend fun deleteExtraCost(id: String)
+
+    suspend fun startService(
+        serviceExecutionId: String
+    )
 }
 
 
