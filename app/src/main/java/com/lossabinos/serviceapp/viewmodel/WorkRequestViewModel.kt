@@ -2,6 +2,11 @@ package com.lossabinos.serviceapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.entities.WorkRequestPhoto
+import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.SaveWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.workrequest.CreateWorkRequestUseCase
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.mappers.toDomain
@@ -13,20 +18,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class WorkRequestViewModel @Inject constructor(
-    private val createWorkRequestUseCase: CreateWorkRequestUseCase
+    private val createWorkRequestUseCase: CreateWorkRequestUseCase,
+    private val saveWorkRequestPhotoUseCase: SaveWorkRequestPhotoUseCase,
+    private val deleteWorkRequestPhotoUseCase: DeleteWorkRequestPhotoUseCase,
+    private val getWorkRequestPhotosUseCase: GetWorkRequestPhotosUseCase
 ) : ViewModel(){
 
     private val _uiState = MutableStateFlow(WorkRequestUiState())
     val uiState: StateFlow<WorkRequestUiState> = _uiState.asStateFlow()
 
+    private val currentWorkRequestId =
+        UUID.randomUUID().toString()
+
+
     fun onEvent(
-        event: WorkRequestUiEvent,
-        workOrderId: String,
-        vehicleId: String
+        event: WorkRequestUiEvent
     ) {
         when (event) {
             is WorkRequestUiEvent.OnTitleChange ->
@@ -47,8 +59,72 @@ class WorkRequestViewModel @Inject constructor(
             is WorkRequestUiEvent.OnRequiresApprovalChange ->
                 updateForm { copy(requiresCustomerApproval = event.value) }
 
-            WorkRequestUiEvent.OnSubmit ->
-                submit(workOrderId, vehicleId)
+            is WorkRequestUiEvent.OnSubmit -> {
+                submit(
+                    workOrderId = event.workOrderId,
+                    vehicleId = event.vehicleId
+                )
+            }
+
+            is WorkRequestUiEvent.OnPhotoCaptured -> {
+                viewModelScope.launch {
+
+                    // ⛔ regla de máximo 3
+                    if (_uiState.value.photos.size >= 3) {
+                        _uiState.update {
+                            it.copy(errorMessage = "Máximo 3 fotos permitidas")
+                        }
+                        return@launch
+                    }
+
+                    val photo = WorkRequestPhoto(
+                        id = UUID.randomUUID().toString(),
+                        workRequestId = currentWorkRequestId,
+                        localPath = event.localPath,
+                        remoteUrl = null,
+                        syncStatus = SyncStatus.PENDING,
+                        createdAt = System.currentTimeMillis()
+                    )
+
+                    saveWorkRequestPhotoUseCase(photo)
+
+                    val updatedPhotos =
+                        getWorkRequestPhotosUseCase(currentWorkRequestId)
+
+                    _uiState.update {
+                        it.copy(photos = updatedPhotos)
+                    }
+                }
+            }
+
+            is WorkRequestUiEvent.OnPhotoDeleted -> {
+                viewModelScope.launch {
+
+                    val photo = _uiState.value.photos
+                        .firstOrNull { it.id == event.photoId }
+
+                    // 1️⃣ borrar archivo físico
+                    photo?.localPath?.let {
+                        runCatching { File(it).delete() }
+                    }
+
+                    // 2️⃣ borrar de Room
+                    deleteWorkRequestPhotoUseCase(event.photoId)
+
+                    // 3️⃣ refrescar lista
+                    val updatedPhotos =
+                        getWorkRequestPhotosUseCase(currentWorkRequestId)
+
+                    _uiState.update {
+                        it.copy(photos = updatedPhotos)
+                    }
+                }
+            }
+
+
+            is WorkRequestUiEvent.OnCancel -> {
+                resetState()
+            }
         }
     }
 
@@ -95,4 +171,8 @@ class WorkRequestViewModel @Inject constructor(
             }
         }
     }
+    fun resetState() {
+        _uiState.value = WorkRequestUiState()
+    }
+
 }

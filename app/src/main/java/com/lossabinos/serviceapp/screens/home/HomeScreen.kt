@@ -480,6 +480,7 @@ fun HomeScreen(
         // Acciones rápidas
         // ─────────────────────────────────────────
         actionsSection = {
+            /*
             ActionCardsSection(
                 actions = actionCards,
                 title = "Acciones Rápidas",
@@ -487,7 +488,7 @@ fun HomeScreen(
                     println("✅ [ACTION] Action selected: $actionId")
                 },
                 columns = 3
-            )
+            )*/
         },
 
         // ─────────────────────────────────────────
@@ -618,12 +619,13 @@ fun HomeScreen(
         WorkRequestModal(
             isVisible = true,
             formData = uiState.form,
-
+            photos = uiState.photos,
             onSaveClick = {
                 workRequestViewModel.onEvent(
-                    WorkRequestUiEvent.OnSubmit,
-                    selectedWorkOrderId!!,
-                    selectedVehicleId!!
+                    WorkRequestUiEvent.OnSubmit(
+                        workOrderId = selectedWorkOrderId!!,
+                        vehicleId = selectedVehicleId!!
+                    )
                 )
             },
 

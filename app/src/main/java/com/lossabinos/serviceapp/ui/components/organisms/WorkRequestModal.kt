@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 import com.lossabinos.serviceapp.ui.components.molecules.WorkRequestFormFields
@@ -34,13 +35,8 @@ import com.lossabinos.serviceapp.ui.components.molecules.WorkRequestFormFields
 @Composable
 fun WorkRequestModal(
     isVisible: Boolean,
-    formData: WorkRequestUIModel,/*
-    onTitleChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onFindingsChange: (String) -> Unit,
-    onJustificationChange: (String) -> Unit,
-    onUrgencyChange: (UrgencyUI) -> Unit,
-    onRequiresApprovalChange: (Boolean) -> Unit,*/
+    formData: WorkRequestUIModel,
+    photos: List<WorkRequestPhoto>,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit,
     isLoading: Boolean = false
@@ -66,7 +62,7 @@ fun WorkRequestModal(
         ) {
             Column(modifier = Modifier.fillMaxHeight()) {
 
-                // ═════════════════ HEADER ═════════════════
+                // ───────── HEADER ─────────
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -98,7 +94,7 @@ fun WorkRequestModal(
                     }
                 }
 
-                // ═════════════════ CONTENT ═════════════════
+                // ───────── CONTENT ─────────
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -107,16 +103,11 @@ fun WorkRequestModal(
                 ) {
                     WorkRequestFormFields(
                         formData = formData,
-                        onTitleChange = {},// onTitleChange,
-                        onDescriptionChange = {},//onDescriptionChange,
-                        onFindingsChange = {},//onFindingsChange,
-                        onJustificationChange = {},//onJustificationChange,
-                        onUrgencyChange = {},//onUrgencyChange,
-                        onRequiresApprovalChange = {},//onRequiresApprovalChange
+                        photos = photos
                     )
                 }
 
-                // ═════════════════ FOOTER ═════════════════
+                // ───────── FOOTER ─────────
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,12 +132,11 @@ fun WorkRequestModal(
                         enabled = formData.isValid() && !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(
-                            if (isLoading) "Guardando..." else "Guardar"
-                        )
+                        Text(if (isLoading) "Guardando..." else "Guardar")
                     }
                 }
             }
         }
     }
 }
+

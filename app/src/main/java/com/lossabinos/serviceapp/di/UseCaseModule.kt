@@ -7,8 +7,12 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.repositories.WorkRequestPhotoRepository
 import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.SaveWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
 import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
@@ -498,6 +502,39 @@ object UseCaseModule {
         repository: WorkRequestRepository
     ): CreateWorkRequestUseCase{
         return CreateWorkRequestUseCase(
+            repository = repository
+        )
+    }
+
+    //*********************************
+    // UseCases WorkRequestPhotoUseCase
+    //*********************************
+    @Singleton
+    @Provides
+    fun provideDeleteWorkRequestPhotoUseCase(
+        repository: WorkRequestPhotoRepository
+    ) : DeleteWorkRequestPhotoUseCase {
+        return DeleteWorkRequestPhotoUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetWorkRequestPhotosUseCase(
+        repository: WorkRequestPhotoRepository
+    ) : GetWorkRequestPhotosUseCase {
+        return GetWorkRequestPhotosUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSaveWorkRequestPhotoUseCase(
+        repository: WorkRequestPhotoRepository
+    ) : SaveWorkRequestPhotoUseCase {
+        return SaveWorkRequestPhotoUseCase(
             repository = repository
         )
     }

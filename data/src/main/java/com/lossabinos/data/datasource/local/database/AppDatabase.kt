@@ -11,6 +11,7 @@ import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceStartDao
 import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
 import com.lossabinos.data.datasource.local.database.entities.ActivityEvidenceEntity
 import com.lossabinos.data.datasource.local.database.entities.ActivityProgressEntity
 import com.lossabinos.data.datasource.local.database.entities.AssignedServiceEntity
@@ -25,6 +26,7 @@ import com.lossabinos.data.datasource.local.database.entities.SyncMetadataEntity
 import com.lossabinos.data.datasource.local.database.entities.VehicleEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkOrderEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
+import com.lossabinos.data.datasource.local.database.entities.WorkRequestPhotoEntity
 import com.lossabinos.data.datasource.local.database.entities.ZoneEntity
 import com.lossabinos.data.utilities.StringListConverter
 
@@ -44,9 +46,10 @@ import com.lossabinos.data.utilities.StringListConverter
         ServiceProgressEntity::class,
         ExtraCostEntity::class,
         ServiceStartEntity::class,
-        WorkRequestEntity::class
+        WorkRequestEntity::class,
+        WorkRequestPhotoEntity::class
     ],
-    version = 12
+    version = 13
 )
 @TypeConverters(StringListConverter::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -58,4 +61,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun extraCostDao(): ExtraCostDao
     abstract fun serviceStartDao(): ServiceStartDao
     abstract fun workRequestDao(): WorkRequestDao
+    abstract fun workRequestPhotoDao(): WorkRequestPhotoDao
 }

@@ -13,6 +13,7 @@ import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceStartDao
 import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -324,6 +325,12 @@ object DatabaseModule {
     @Singleton
     fun provideWorkRequestDao(database: AppDatabase): WorkRequestDao {
         return database.workRequestDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providesWorkRequestPhotoDao(database: AppDatabase): WorkRequestPhotoDao{
+        return database.workRequestPhotoDao()
     }
 
 

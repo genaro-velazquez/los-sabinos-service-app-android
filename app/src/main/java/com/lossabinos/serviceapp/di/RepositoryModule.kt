@@ -13,6 +13,7 @@ import com.lossabinos.data.repositories.ChecklistRepositoryImpl
 import com.lossabinos.data.repositories.LocalDataRepositoryImp
 import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
 import com.lossabinos.data.datasource.local.WorkRequestLocalDataSource
+import com.lossabinos.data.datasource.local.WorkRequestPhotoLocalDataSource
 import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
@@ -26,6 +27,7 @@ import com.lossabinos.data.repositories.MechanicsRetrofitRepository
 import com.lossabinos.data.repositories.NotificationRetrofitRepository
 import com.lossabinos.data.repositories.SystemClock
 import com.lossabinos.data.repositories.WebSocketRepositoryImpl
+import com.lossabinos.data.repositories.WorkRequestPhotoRepositoryImpl
 import com.lossabinos.data.repositories.WorkRequestRepositoryImp
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
@@ -35,6 +37,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.repositories.WorkRequestPhotoRepository
 import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import dagger.Module
@@ -200,6 +203,17 @@ object RepositoryModule {
         return WorkRequestRepositoryImp(
             workRequestLocalDataSource = workRequestLocalDataSource,
             workRequestRemoteRepository= workRequestRemoteRepository
+        )
+    }
+
+    // ============== Work Request Photo Repository ==============
+    @Singleton
+    @Provides
+    fun provideWorkRequestPhotoRepository(
+        workRequestPhotoLocalDataSource: WorkRequestPhotoLocalDataSource
+    ) : WorkRequestPhotoRepository{
+        return WorkRequestPhotoRepositoryImpl(
+            workRequestPhotoLocalDataSource = workRequestPhotoLocalDataSource
         )
     }
 }

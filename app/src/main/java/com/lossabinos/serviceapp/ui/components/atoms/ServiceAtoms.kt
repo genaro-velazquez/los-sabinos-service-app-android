@@ -323,6 +323,7 @@ fun ActionButtonAtom(
     backgroundColor: Color = Color(0xFFFFC107),  // Amarillo
     textColor: Color = Color.Black,
     icon: ImageVector? = null,
+    enabled: Boolean = true,              
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
