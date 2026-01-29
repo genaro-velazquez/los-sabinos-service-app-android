@@ -7,11 +7,12 @@ import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 import java.util.UUID
 
 fun WorkRequestUIModel.toDomain(
+    id: String,
     workOrderId: String,
     vehicleId: String
 ): WorkRequest {
     return WorkRequest(
-        id = UUID.randomUUID().toString(),
+        id = id,
         workOrderId = workOrderId,
         title = title,
         description = description,

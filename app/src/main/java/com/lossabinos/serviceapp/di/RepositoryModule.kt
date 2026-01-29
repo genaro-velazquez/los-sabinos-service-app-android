@@ -15,6 +15,8 @@ import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
 import com.lossabinos.data.datasource.local.WorkRequestLocalDataSource
 import com.lossabinos.data.datasource.local.WorkRequestPhotoLocalDataSource
 import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
@@ -151,7 +153,9 @@ object RepositoryModule {
         activityEvidenceDao: ActivityEvidenceDao,
         observationResponseDao: ObservationResponseDao,
         serviceFieldValueDao: ServiceFieldValueDao,
-        extraCostDao: ExtraCostDao
+        extraCostDao: ExtraCostDao,
+        workRequestDao: WorkRequestDao,
+        workRequestPhotoDao: WorkRequestPhotoDao
     ): LocalDataRepository {
         return LocalDataRepositoryImp(
             initialDataDao = initialDataDao,
@@ -159,7 +163,9 @@ object RepositoryModule {
             activityEvidenceDao = activityEvidenceDao,
             observationResponseDao = observationResponseDao,
             serviceFieldValueDao = serviceFieldValueDao,
-            extraCostDao = extraCostDao
+            extraCostDao = extraCostDao,
+            workRequestDao = workRequestDao,
+            workRequestPhotoDao = workRequestPhotoDao
         )
     }
 

@@ -6,6 +6,8 @@ import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.local.database.dao.InitialDataDao
 import com.lossabinos.data.datasource.local.database.dao.ObservationResponseDao
 import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
+import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
 import com.lossabinos.domain.repositories.LocalDataRepository
 
 class LocalDataRepositoryImp(
@@ -14,7 +16,9 @@ class LocalDataRepositoryImp(
     private val activityEvidenceDao: ActivityEvidenceDao,
     private val observationResponseDao: ObservationResponseDao,
     private val serviceFieldValueDao: ServiceFieldValueDao,
-    private val extraCostDao: ExtraCostDao
+    private val extraCostDao: ExtraCostDao,
+    private val workRequestDao: WorkRequestDao,
+    private val workRequestPhotoDao: WorkRequestPhotoDao
 ) : LocalDataRepository {
 
     override suspend fun clearAll() {
@@ -25,5 +29,7 @@ class LocalDataRepositoryImp(
         observationResponseDao.deleteAllObservationResponses()
         serviceFieldValueDao.deleteAllServiceFieldValues()
         extraCostDao.deleteAllExtraCosts()
+        workRequestDao.deleteAllWorkRequests()
+        workRequestPhotoDao.deleteAllWorkRequestsPhotos()
     }
 }

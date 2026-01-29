@@ -10,14 +10,6 @@ import androidx.room.PrimaryKey
 // ═══════════════════════════════════════════════════════
 @Entity(
     tableName = "work_request",
-    foreignKeys = [
-        ForeignKey(
-            entity = WorkOrderEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["workOrderId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
     indices = [
         Index("workOrderId"),
         Index("syncStatus")

@@ -155,6 +155,20 @@ fun HomeScreen(
     var selectedWorkOrderId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedVehicleId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Se ejecuta solo cuando cambia
+    LaunchedEffect(showWorkRequestModal) {
+        if (
+            showWorkRequestModal &&
+            selectedWorkOrderId != null &&
+            selectedVehicleId != null
+        ) {
+            workRequestViewModel.initializeDraft(
+                workOrderId = selectedWorkOrderId!!,
+                vehicleId = selectedVehicleId!!
+            )
+        }
+    }
+
     // ==========================================
     // 1️⃣ ESTADOS WEBSOCKET
     // ==========================================

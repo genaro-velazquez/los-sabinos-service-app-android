@@ -49,7 +49,7 @@ import com.lossabinos.data.utilities.StringListConverter
         WorkRequestEntity::class,
         WorkRequestPhotoEntity::class
     ],
-    version = 13
+    version = 14 // se subio por eliminar los ForeignKey
 )
 @TypeConverters(StringListConverter::class)
 abstract class AppDatabase : RoomDatabase() {

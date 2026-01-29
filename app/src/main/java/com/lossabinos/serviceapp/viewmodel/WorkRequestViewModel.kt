@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.domain.enums.SyncStatus
+import com.lossabinos.domain.enums.UrgencyLevel
 import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.SaveWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.workrequest.CreateWorkRequestUseCase
+import com.lossabinos.domain.valueobjects.WorkRequest
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.mappers.toDomain
+import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 import com.lossabinos.serviceapp.states.WorkRequestUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +39,46 @@ class WorkRequestViewModel @Inject constructor(
     private val currentWorkRequestId =
         UUID.randomUUID().toString()
 
+    private suspend fun createDraftWorkRequest(
+        workOrderId: String,
+        vehicleId: String
+    ) {
+        val draft = WorkRequest(
+            id = currentWorkRequestId,
+            workOrderId = workOrderId,   // ✅ FK válida
+            title = "",
+            description = "",
+            findings = "",
+            justification = "",
+            photoUls = emptyList(),
+            requestType = "",
+            requiresCustomerApproval = false,
+            urgency = UrgencyLevel.NORMAL,
+            createdAt = System.currentTimeMillis(),
+            vehicleId = vehicleId,
+            syncStatus = SyncStatus.PENDING
+        )
+
+        createWorkRequestUseCase(draft)
+    }
+
+    fun initializeDraft(
+        workOrderId: String,
+        vehicleId: String
+    ) {
+        viewModelScope.launch {
+            println("🟡 Initializing draft work request")
+            createDraftWorkRequest(
+                workOrderId = workOrderId,
+                vehicleId = vehicleId
+            )
+
+            val photos = getWorkRequestPhotosUseCase(currentWorkRequestId)
+            _uiState.update {
+                it.copy(photos = photos)
+            }
+        }
+    }
 
     fun onEvent(
         event: WorkRequestUiEvent
@@ -149,6 +192,7 @@ class WorkRequestViewModel @Inject constructor(
 
             try {
                 val domain = form.toDomain(
+                    id = currentWorkRequestId,
                     workOrderId = workOrderId,
                     vehicleId = vehicleId
                 )

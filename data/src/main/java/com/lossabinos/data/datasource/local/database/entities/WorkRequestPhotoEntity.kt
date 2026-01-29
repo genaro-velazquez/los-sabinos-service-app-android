@@ -7,14 +7,6 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "work_request_photo",
-    foreignKeys = [
-        ForeignKey(
-            entity = WorkRequestEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["workRequestId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
     indices = [Index("workRequestId")]
 )
 data class WorkRequestPhotoEntity(

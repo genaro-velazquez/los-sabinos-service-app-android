@@ -40,9 +40,17 @@ class WorkRequestRepositoryImp(
                 syncStatus = SyncStatusEntity.PENDING
             )
 
-            // Guardar en Room
-            workRequestLocalDataSource.insertWorkRequest(entity)
-            println("✅ [Repo] Work request guardado localmente (PENDING)")
+            // 🔑 CLAVE: decidir INSERT vs UPDATE
+            val existing =
+                workRequestLocalDataSource.getWorkRequestById(entity.id)
+
+            if (existing == null) {
+                workRequestLocalDataSource.insertWorkRequest(entity)
+                println("✅ [Repo] Draft insertado")
+            } else {
+                workRequestLocalDataSource.updateWorkRequest(entity)
+                println("🔁 [Repo] Draft actualizado")
+            }
 
             // Intentar sincronizar
             try {

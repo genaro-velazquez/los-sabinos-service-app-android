@@ -36,4 +36,6 @@ interface WorkRequestPhotoDao {
     """)
     suspend fun deleteById(photoId: String)
 
+    @Query("DELETE FROM work_request_photo")
+    suspend fun deleteAllWorkRequestsPhotos()
 }

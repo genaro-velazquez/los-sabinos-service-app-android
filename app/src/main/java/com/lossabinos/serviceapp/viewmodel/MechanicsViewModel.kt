@@ -63,8 +63,10 @@ class MechanicsViewModel @Inject constructor(
                 }
                 catch (e: Exception){
                     println("❌ [API] Error: ${e.message}")
+                    println("✅ [API] Continuando con datos de Room")
+                    // 🔑 ESTO ES LO QUE FALTABA
+                    loadLocalData()
                     _syncInitialData.value = Result.Error(exception = e)
-                    println("✅ [API] Continuando con datos de Room\n")
                 }
             }
         }

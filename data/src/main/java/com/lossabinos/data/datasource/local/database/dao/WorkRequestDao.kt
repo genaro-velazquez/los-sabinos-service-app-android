@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,10 +16,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WorkRequestDao {
 
+    @Upsert
+    suspend fun upsertWorkRequest(workRequest: WorkRequestEntity)
+
     // ═══════════════════════════════════════════════════════
     // CREATE - Insertar reporte de trabajo
     // ═══════════════════════════════════════════════════════
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertWorkRequest(workRequest: WorkRequestEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
