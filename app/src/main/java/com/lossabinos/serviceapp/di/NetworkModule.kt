@@ -7,6 +7,7 @@ import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.retrofit.MechanicsServices
 import com.lossabinos.data.retrofit.NotificationsServices
 import com.lossabinos.data.retrofit.SyncServices
+import com.lossabinos.data.retrofit.WorkRequestServices
 import com.lossabinos.data.utilities.CurlLoggingInterceptor
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import dagger.Module
@@ -125,6 +126,12 @@ object NetworkModule {
     @Provides
     fun provideNotificationsServices(retrofit: Retrofit): NotificationsServices {
         return retrofit.create(NotificationsServices::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideWorkRequestServices(retrofit: Retrofit): WorkRequestServices{
+        return retrofit.create(WorkRequestServices::class.java)
     }
 
     /*

@@ -12,11 +12,13 @@ import com.lossabinos.data.datasource.local.database.dao.ServiceFieldValueDao
 import com.lossabinos.data.repositories.ChecklistRepositoryImpl
 import com.lossabinos.data.repositories.LocalDataRepositoryImp
 import com.lossabinos.data.datasource.local.MechanicsLocalDataSource
+import com.lossabinos.data.datasource.local.WorkRequestLocalDataSource
 import com.lossabinos.data.datasource.local.database.dao.ExtraCostDao
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
+import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
@@ -24,6 +26,7 @@ import com.lossabinos.data.repositories.MechanicsRetrofitRepository
 import com.lossabinos.data.repositories.NotificationRetrofitRepository
 import com.lossabinos.data.repositories.SystemClock
 import com.lossabinos.data.repositories.WebSocketRepositoryImpl
+import com.lossabinos.data.repositories.WorkRequestRepositoryImp
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.ClockRepository
@@ -32,6 +35,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import dagger.Module
 import dagger.Provides
@@ -184,5 +188,18 @@ object RepositoryModule {
     fun providesClockRepository(
     ) : ClockRepository {
         return SystemClock()
+    }
+
+    // ============== Work Request Repository ==============
+    @Singleton
+    @Provides
+    fun provideWorkRequestRepository(
+        workRequestLocalDataSource: WorkRequestLocalDataSource,
+        workRequestRemoteRepository: WorkRequestRemoteDataSource
+    ): WorkRequestRepository {
+        return WorkRequestRepositoryImp(
+            workRequestLocalDataSource = workRequestLocalDataSource,
+            workRequestRemoteRepository= workRequestRemoteRepository
+        )
     }
 }

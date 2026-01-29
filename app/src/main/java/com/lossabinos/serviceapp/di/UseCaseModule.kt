@@ -7,6 +7,7 @@ import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
 import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
+import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
@@ -49,6 +50,7 @@ import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
+import com.lossabinos.domain.usecases.workrequest.CreateWorkRequestUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -483,6 +485,19 @@ object UseCaseModule {
         repository: ChecklistRepository
     ): StartServiceUseCase{
         return StartServiceUseCase(
+            repository = repository
+        )
+    }
+
+    //*********************************
+    // UseCases WorkRequestUseCase
+    //*********************************
+    @Singleton
+    @Provides
+    fun provideCreateWorkRequestUseCase(
+        repository: WorkRequestRepository
+    ): CreateWorkRequestUseCase{
+        return CreateWorkRequestUseCase(
             repository = repository
         )
     }

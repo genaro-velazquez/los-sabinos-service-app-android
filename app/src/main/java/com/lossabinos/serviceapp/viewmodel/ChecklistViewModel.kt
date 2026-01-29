@@ -66,7 +66,7 @@ data class ChecklistUIState(
     val observations: String = "",
     val canContinue: Boolean = false,
     val allSectionsComplete: Boolean = false
-)
+    )
 
 
 @HiltViewModel

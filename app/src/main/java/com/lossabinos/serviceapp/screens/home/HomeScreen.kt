@@ -48,15 +48,20 @@ import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
 import com.lossabinos.serviceapp.viewmodel.Result
 import kotlin.collections.emptyList
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lossabinos.domain.responses.DetailedServiceResponse
 import com.lossabinos.domain.enums.ServiceStatus
+import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.mappers.toServiceCardUiModel
 import com.lossabinos.serviceapp.models.ui.ServiceCardUiModel
+import com.lossabinos.serviceapp.ui.components.organisms.WorkRequestModal
 import com.lossabinos.serviceapp.utils.getStatusColor
+import com.lossabinos.serviceapp.viewmodel.WorkRequestViewModel
 
 
 /**
@@ -139,8 +144,16 @@ fun HomeScreen(
     val errorMessage = homeViewModel.errorMessage.collectAsStateWithLifecycle().value
     val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
+    val workRequestViewModel: WorkRequestViewModel = hiltViewModel()
+    val uiState by workRequestViewModel.uiState.collectAsState()
+
 
     val isHomeScreenVisible = remember { mutableStateOf(true) }
+
+    // Estado local para mostrar el modal
+    var showWorkRequestModal by rememberSaveable { mutableStateOf(false) }
+    var selectedWorkOrderId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedVehicleId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // ==========================================
     // 1️⃣ ESTADOS WEBSOCKET
@@ -395,49 +408,27 @@ fun HomeScreen(
     // ==========================================
     // 4️⃣ ACCIONES RÁPIDAS
     // ==========================================
-    val actionCards = listOf(
-        /*
+    val actionCards = emptyList<ActionCardModel>() /*listOf(
+
         ActionCardModel(
             id = "camera",
             title = "Cámara",
             icon = Icons.Filled.Camera,
             onClick = onCameraClick
-        ),*/
+        ),
         ActionCardModel(
             id = "reports",
             title = "Reportes",
             icon = Icons.Filled.BarChart,
             onClick = onReportsClick
-        )/*,
+        ),
         ActionCardModel(
             id = "location",
             title = "Ubicación",
             icon = Icons.Filled.LocationOn,
             onClick = onLocationClick
-        )*/
-    )
-
-/*
-    // ===================
-    // % Eficiencia
-    // ==================
-    val total       = metadata?.totalServices ?: 0
-    val pending     = metadata?.pendingServices ?: 0
-    val inProgress  = metadata?.inProgressServices ?: 0
-
-    val completed   = (total - (pending + inProgress)).coerceAtLeast(0)
-
-    val efficiencyPercentage: String =
-        if (total > 0) {
-            val efficiency =
-                inProgress.toDouble() / total.toDouble() * 100
-
-            "%.0f".format(efficiency)
-        } else {
-            "0"
-        }
-*/
-
+        )
+    ) */
 
     // ==========================================
     // 5️⃣ TEMPLATE PRINCIPAL
@@ -566,9 +557,17 @@ fun HomeScreen(
                                 HomeEvent.SyncServiceClicked(serviceId)
                             )
                         },
-                        onRescheduleClick = { serviceId ->
+                        onCreateReportClick = { serviceId ->
                             println("📅 [UI] Service reschedule: $serviceId")
-                            onServiceReschedule(serviceId)
+                            //onServiceReschedule(serviceId)
+                            val selectedService = services.firstOrNull {
+                                it.assignedService.id == serviceId
+                            }
+
+                            selectedWorkOrderId = selectedService?.assignedService?.workOrderId
+                            selectedVehicleId = selectedService?.assignedService?.vehicle?.id
+
+                            showWorkRequestModal = true
                         }
                     )
                 }
@@ -608,6 +607,36 @@ fun HomeScreen(
         },
         modifier = modifier
     )
+
+    if (
+        showWorkRequestModal &&
+        selectedWorkOrderId != null &&
+        selectedVehicleId != null
+    ) {
+        println("🟢 Intentando mostrar WorkRequestModal")
+
+        WorkRequestModal(
+            isVisible = true,
+            formData = uiState.form,
+
+            onSaveClick = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnSubmit,
+                    selectedWorkOrderId!!,
+                    selectedVehicleId!!
+                )
+            },
+
+            onCancelClick = {
+                showWorkRequestModal = false
+                selectedWorkOrderId = null
+                selectedVehicleId = null
+            },
+
+            isLoading = uiState.isLoading
+        )
+    }
+
 }
 
 /**

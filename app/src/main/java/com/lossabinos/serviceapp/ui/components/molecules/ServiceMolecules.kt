@@ -329,10 +329,10 @@ fun ServiceNoteMolecule(
 @Composable
 fun ActionButtonsGroupMolecule(
     serviceStatus: ServiceStatus,
-    syncStatus: String = "SYNCED",
+    syncStatus: String = "",
     onCompleteClick: () -> Unit,
     onSyncClick: () -> Unit = {},
-    onRescheduleClick: () -> Unit
+    onCreateReportClick: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -368,41 +368,14 @@ fun ActionButtonsGroupMolecule(
 
         // Botón Reprogramar (siempre visible)
         ActionButtonAtom(
-            text = "Reprogramar",
+            text = "Generar Reporte",
             backgroundColor = Color(0xFFE0E0E0),
             textColor = Color.Black,
             icon = Icons.Default.Schedule,
-            onClick = onRescheduleClick,
+            onClick = onCreateReportClick,
             modifier = Modifier.fillMaxWidth()
         )
     }
-
-    /*
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Botón Completar
-            ActionButtonAtom(
-                text = "Completar",
-                backgroundColor = Color(0xFFFFC107),  // Amarillo
-                textColor = Color.Black,
-                icon = Icons.Filled.Check,
-                onClick = onCompleteClick,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Botón Reprogramar
-            ActionButtonAtom(
-                text = "Reprogramar",
-                backgroundColor = Color(0xFFE0E0E0),  // Gris
-                textColor = Color.Black,
-                icon = Icons.Filled.Schedule,
-                onClick = onRescheduleClick,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-     */
 }
 
 // ==========================================
