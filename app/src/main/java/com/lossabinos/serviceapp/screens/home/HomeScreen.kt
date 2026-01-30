@@ -715,6 +715,11 @@ fun HomeScreen(
                 workRequestViewModel.onEvent(
                     WorkRequestUiEvent.OnPhotoDeleted(it)
                 )
+            },
+            onCategoryChange = {
+                workRequestViewModel.onEvent(
+                    event = WorkRequestUiEvent.OnCategoryChange(value = it)
+                )
             }
         )
     }

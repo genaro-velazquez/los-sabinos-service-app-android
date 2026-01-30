@@ -1,5 +1,6 @@
 package com.lossabinos.serviceapp.events
 
+import com.lossabinos.serviceapp.models.ui.CategoryUI
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 
 sealed interface WorkRequestUiEvent {
@@ -11,6 +12,8 @@ sealed interface WorkRequestUiEvent {
     data class OnRequiresApprovalChange(val value: Boolean) : WorkRequestUiEvent
     data class OnPhotoCaptured(val localPath: String) : WorkRequestUiEvent
     data class OnPhotoDeleted(val photoId: String) : WorkRequestUiEvent
+
+    data class OnCategoryChange(val value: CategoryUI): WorkRequestUiEvent
     data class OnSubmit(
         val serviceExecutionId: String,
         val workOrderId: String,

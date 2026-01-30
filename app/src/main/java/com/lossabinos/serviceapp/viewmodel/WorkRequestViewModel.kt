@@ -102,6 +102,11 @@ class WorkRequestViewModel @Inject constructor(
                     update = { copy(urgency = event.value) }
                 )
 
+            is WorkRequestUiEvent.OnCategoryChange ->
+                updateForm(
+                    update = {copy(category = event.value)}
+                )
+
             is WorkRequestUiEvent.OnRequiresApprovalChange ->
                 updateForm(
                     update = { copy(requiresCustomerApproval = event.value) }

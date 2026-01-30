@@ -29,6 +29,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
+import com.lossabinos.serviceapp.models.ui.CategoryUI
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 import com.lossabinos.serviceapp.states.WorkRequestFormErrors
@@ -52,8 +53,8 @@ fun WorkRequestModal(
     onUrgencyChange: (UrgencyUI) -> Unit,
     onRequiresApprovalChange: (Boolean) -> Unit,
     onPhotoCaptured: (String) -> Unit,
-    onPhotoDeleted: (String) -> Unit
-
+    onPhotoDeleted: (String) -> Unit,
+    onCategoryChange: (CategoryUI) -> Unit
 ) {
     if (!isVisible) return
 
@@ -127,7 +128,8 @@ fun WorkRequestModal(
                         onUrgencyChange = onUrgencyChange,
                         onRequiresApprovalChange = onRequiresApprovalChange,
                         onPhotoCaptured = onPhotoCaptured,
-                        onPhotoDeleted = onPhotoDeleted
+                        onPhotoDeleted = onPhotoDeleted,
+                        onCategoryChange = onCategoryChange
                     )
                 }
 

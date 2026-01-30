@@ -51,6 +51,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
+import com.lossabinos.serviceapp.models.ui.CategoryUI
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 import com.lossabinos.serviceapp.states.WorkRequestFormErrors
@@ -58,6 +59,7 @@ import com.lossabinos.serviceapp.ui.components.atoms.ActionButtonAtom
 import com.lossabinos.serviceapp.ui.components.atoms.CheckboxRow
 import com.lossabinos.serviceapp.ui.components.atoms.ErrorText
 import com.lossabinos.serviceapp.ui.components.atoms.TextInput
+import com.lossabinos.serviceapp.ui.components.organisms.CategoryDropdown
 import com.lossabinos.serviceapp.ui.components.organisms.UrgencyDropdown
 import com.lossabinos.serviceapp.utils.createImageFile
 import com.lossabinos.serviceapp.viewmodel.WorkRequestViewModel
@@ -95,7 +97,8 @@ fun WorkRequestFormFields(
     onUrgencyChange: (UrgencyUI) -> Unit,
     onRequiresApprovalChange: (Boolean) -> Unit,
     onPhotoCaptured: (String) -> Unit,
-    onPhotoDeleted: (String) -> Unit
+    onPhotoDeleted: (String) -> Unit,
+    onCategoryChange: (CategoryUI) -> Unit
 ) {
 
     // ───────────────────────────
@@ -208,7 +211,11 @@ fun WorkRequestFormFields(
         UrgencyDropdown(
             selected = formData.urgency,
             onUrgencySelected = onUrgencyChange
+        )
 
+        CategoryDropdown(
+            selected = formData.category,
+            onCategorySelected = onCategoryChange
         )
 
         // ───────────────────────────
