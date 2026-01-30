@@ -11,6 +11,19 @@ import com.lossabinos.data.datasource.local.database.entities.WorkRequestPhotoEn
 @Dao
 interface WorkRequestPhotoDao {
 
+    @Query("""
+        UPDATE work_request_photo
+        SET 
+            syncStatus = :status,
+            remoteUrl = :remoteUrl
+        WHERE id = :photoId
+    """)
+    suspend fun markAsSynced(
+        photoId: String,
+        remoteUrl: String,
+        status: SyncStatusEntity = SyncStatusEntity.SYNCED
+    )
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(photo: WorkRequestPhotoEntity)
 

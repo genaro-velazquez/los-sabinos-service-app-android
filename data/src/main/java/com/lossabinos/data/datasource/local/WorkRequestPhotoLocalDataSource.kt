@@ -1,6 +1,7 @@
 package com.lossabinos.data.datasource.local
 
 import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
+import com.lossabinos.data.datasource.local.database.entities.SyncStatusEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestPhotoEntity
 import com.lossabinos.data.mappers.toDomain
 import com.lossabinos.data.mappers.toEntity
@@ -24,5 +25,17 @@ class WorkRequestPhotoLocalDataSource @Inject constructor(
     suspend fun deletePhoto(photoId: String) {
         workRequestPhotoDao.deleteById(photoId = photoId)
     }
+
+    suspend fun markAsSynced(
+        photoId: String,
+        remoteUrl: String
+    ) {
+        workRequestPhotoDao.markAsSynced(
+            photoId = photoId,
+            remoteUrl = remoteUrl,
+            status = SyncStatusEntity.SYNCED
+        )
+    }
+
 
 }

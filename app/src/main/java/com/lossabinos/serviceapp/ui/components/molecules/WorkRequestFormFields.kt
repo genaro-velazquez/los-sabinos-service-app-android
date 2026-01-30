@@ -53,6 +53,7 @@ import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
+import com.lossabinos.serviceapp.states.WorkRequestFormErrors
 import com.lossabinos.serviceapp.ui.components.atoms.ActionButtonAtom
 import com.lossabinos.serviceapp.ui.components.atoms.CheckboxRow
 import com.lossabinos.serviceapp.ui.components.atoms.ErrorText
@@ -82,9 +83,19 @@ fun launchCamera(
 
 @Composable
 fun WorkRequestFormFields(
+    errorMessage: String?,
+    formErrors: WorkRequestFormErrors,
     formData: WorkRequestUIModel,
     photos: List<WorkRequestPhoto>,
-    viewModel: WorkRequestViewModel = hiltViewModel()
+    //viewModel: WorkRequestViewModel = hiltViewModel()
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onFindingsChange: (String) -> Unit,
+    onJustificationChange: (String) -> Unit,
+    onUrgencyChange: (UrgencyUI) -> Unit,
+    onRequiresApprovalChange: (Boolean) -> Unit,
+    onPhotoCaptured: (String) -> Unit,
+    onPhotoDeleted: (String) -> Unit
 ) {
 
     // ───────────────────────────
@@ -104,11 +115,7 @@ fun WorkRequestFormFields(
             contract = ActivityResultContracts.TakePicture()
         ) { success ->
             if (success && currentPhotoFile != null) {
-                viewModel.onEvent(
-                    WorkRequestUiEvent.OnPhotoCaptured(
-                        localPath = currentPhotoFile!!.absolutePath
-                    )
-                )
+                onPhotoCaptured(currentPhotoFile!!.absolutePath)
             }
 /*
             if (success && photoUri != null) {
@@ -143,6 +150,19 @@ fun WorkRequestFormFields(
             }
         }
 
+
+
+    // 🔴 ERROR DE VALIDACIÓN
+    if (!errorMessage.isNullOrEmpty()) {
+        Text(
+            text = errorMessage,
+            color = Color.Red,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+    }
+
+
+
     // ───────────────────────────
     // UI
     // ───────────────────────────
@@ -153,41 +173,42 @@ fun WorkRequestFormFields(
 
         TextInput(
             value = formData.title,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnTitleChange(it))
-            },
-            placeholder = "Título"
+            onValueChange =  onTitleChange,
+            placeholder = "Título",
+            isError = formErrors.title != null,
+            errorText = formErrors.title
         )
 
         TextInput(
             value = formData.description,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnDescriptionChange(it))
-            },
-            placeholder = "Descripción"
+            onValueChange = onDescriptionChange,
+            placeholder = "Descripción",
+            isError = formErrors.title != null,
+            errorText = formErrors.title,
+            maxLines = 4,
+            maxLength = 500
         )
 
         TextInput(
             value = formData.findings,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnFindingsChange(it))
-            },
-            placeholder = "Hallazgos"
+            onValueChange = onFindingsChange,
+            placeholder = "Hallazgos",
+            isError = formErrors.title != null,
+            errorText = formErrors.title
         )
 
         TextInput(
             value = formData.justification,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnJustificationChange(it))
-            },
-            placeholder = "Justificación"
+            onValueChange = onJustificationChange,
+            placeholder = "Justificación",
+            isError = formErrors.title != null,
+            errorText = formErrors.title
         )
 
         UrgencyDropdown(
             selected = formData.urgency,
-            onUrgencySelected = {
-                viewModel.onEvent(WorkRequestUiEvent.OnUrgencyChange(it))
-            }
+            onUrgencySelected = onUrgencyChange
+
         )
 
         // ───────────────────────────
@@ -273,9 +294,7 @@ fun WorkRequestFormFields(
                                 shape = CircleShape
                             )
                             .clickable {
-                                viewModel.onEvent(
-                                    WorkRequestUiEvent.OnPhotoDeleted(photo.id)
-                                )
+                                onPhotoDeleted
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -293,11 +312,7 @@ fun WorkRequestFormFields(
         CheckboxRow(
             checked = formData.requiresCustomerApproval,
             label = "Requiere aprobación del cliente",
-            onCheckedChange = {
-                viewModel.onEvent(
-                    WorkRequestUiEvent.OnRequiresApprovalChange(it)
-                )
-            }
+            onCheckedChange = onRequiresApprovalChange
         )
     }
 }

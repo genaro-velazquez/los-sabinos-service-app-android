@@ -23,12 +23,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.lossabinos.domain.entities.WorkRequestPhoto
+import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
+import com.lossabinos.serviceapp.states.WorkRequestFormErrors
 import com.lossabinos.serviceapp.ui.components.molecules.WorkRequestFormFields
 
 
@@ -37,9 +40,20 @@ fun WorkRequestModal(
     isVisible: Boolean,
     formData: WorkRequestUIModel,
     photos: List<WorkRequestPhoto>,
+    errorMessage: String?,
+    formErrors: WorkRequestFormErrors,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onFindingsChange: (String) -> Unit,
+    onJustificationChange: (String) -> Unit,
+    onUrgencyChange: (UrgencyUI) -> Unit,
+    onRequiresApprovalChange: (Boolean) -> Unit,
+    onPhotoCaptured: (String) -> Unit,
+    onPhotoDeleted: (String) -> Unit
+
 ) {
     if (!isVisible) return
 
@@ -102,8 +116,18 @@ fun WorkRequestModal(
                         .padding(16.dp)
                 ) {
                     WorkRequestFormFields(
+                        errorMessage = errorMessage,
+                        formErrors = formErrors,
                         formData = formData,
-                        photos = photos
+                        photos = photos,
+                        onTitleChange = onTitleChange,
+                        onDescriptionChange = onDescriptionChange,
+                        onFindingsChange = onFindingsChange,
+                        onJustificationChange = onJustificationChange,
+                        onUrgencyChange = onUrgencyChange,
+                        onRequiresApprovalChange = onRequiresApprovalChange,
+                        onPhotoCaptured = onPhotoCaptured,
+                        onPhotoDeleted = onPhotoDeleted
                     )
                 }
 
@@ -129,7 +153,7 @@ fun WorkRequestModal(
 
                     Button(
                         onClick = onSaveClick,
-                        enabled = formData.isValid() && !isLoading,
+                        enabled = !isLoading, //formData.isValid() && !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(if (isLoading) "Guardando..." else "Guardar")

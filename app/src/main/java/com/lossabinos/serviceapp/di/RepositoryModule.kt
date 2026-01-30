@@ -21,6 +21,7 @@ import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
+import com.lossabinos.data.datasource.remoto.WorkRequestPhotoRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
@@ -216,10 +217,12 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideWorkRequestPhotoRepository(
-        workRequestPhotoLocalDataSource: WorkRequestPhotoLocalDataSource
+        workRequestPhotoLocalDataSource: WorkRequestPhotoLocalDataSource,
+        workRequestPhotoRemoteDataSource: WorkRequestPhotoRemoteDataSource
     ) : WorkRequestPhotoRepository{
         return WorkRequestPhotoRepositoryImpl(
-            workRequestPhotoLocalDataSource = workRequestPhotoLocalDataSource
+            workRequestPhotoLocalDataSource = workRequestPhotoLocalDataSource,
+            workRequestPhotoRemoteDataSource = workRequestPhotoRemoteDataSource
         )
     }
 }

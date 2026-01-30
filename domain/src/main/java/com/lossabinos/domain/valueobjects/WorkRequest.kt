@@ -4,7 +4,7 @@ import com.lossabinos.domain.entities.DomainEntity
 import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.enums.UrgencyLevel
 
-class WorkRequest(
+data class WorkRequest(
     val id: String,
     val workOrderId:String,
     val title:String,

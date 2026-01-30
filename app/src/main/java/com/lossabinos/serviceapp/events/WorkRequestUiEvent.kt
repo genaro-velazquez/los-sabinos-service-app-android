@@ -12,6 +12,7 @@ sealed interface WorkRequestUiEvent {
     data class OnPhotoCaptured(val localPath: String) : WorkRequestUiEvent
     data class OnPhotoDeleted(val photoId: String) : WorkRequestUiEvent
     data class OnSubmit(
+        val serviceExecutionId: String,
         val workOrderId: String,
         val vehicleId: String
     ) : WorkRequestUiEvent

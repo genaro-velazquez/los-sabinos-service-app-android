@@ -145,16 +145,19 @@ fun HomeScreen(
     val isLoading = homeViewModel.isLoading.collectAsStateWithLifecycle().value
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
     val workRequestViewModel: WorkRequestViewModel = hiltViewModel()
-    val uiState by workRequestViewModel.uiState.collectAsState()
+    val workRequestState by workRequestViewModel.uiState.collectAsState()
+    //val uiState by workRequestViewModel.uiState.collectAsState()
 
 
     val isHomeScreenVisible = remember { mutableStateOf(true) }
 
     // Estado local para mostrar el modal
-    var showWorkRequestModal by rememberSaveable { mutableStateOf(false) }
+    //var showWorkRequestModal by rememberSaveable { mutableStateOf(false) }
     var selectedWorkOrderId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedVehicleId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedServiceExecutionId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    /*
     // Se ejecuta solo cuando cambia
     LaunchedEffect(showWorkRequestModal) {
         if (
@@ -162,12 +165,14 @@ fun HomeScreen(
             selectedWorkOrderId != null &&
             selectedVehicleId != null
         ) {
+
             workRequestViewModel.initializeDraft(
                 workOrderId = selectedWorkOrderId!!,
                 vehicleId = selectedVehicleId!!
             )
         }
     }
+    */
 
     // ==========================================
     // 1️⃣ ESTADOS WEBSOCKET
@@ -191,6 +196,15 @@ fun HomeScreen(
         // ✨ SOLO cargar API (los Flows se auto-observan de Room)
         mechanicsViewModel.loadInitialData()
     }
+
+    //🎯 Limpia IDs cuando el modal se cierra por éxito
+    LaunchedEffect(workRequestState.isModalVisible) {
+        if (!workRequestState.isModalVisible) {
+            selectedWorkOrderId = null
+            selectedVehicleId = null
+        }
+    }
+
 
     // ← CUANDO SALES DE HomeScreen
     DisposableEffect(Unit) {
@@ -579,10 +593,16 @@ fun HomeScreen(
                                 it.assignedService.id == serviceId
                             }
 
+                            selectedServiceExecutionId = selectedService?.assignedService?.id
                             selectedWorkOrderId = selectedService?.assignedService?.workOrderId
                             selectedVehicleId = selectedService?.assignedService?.vehicle?.id
 
-                            showWorkRequestModal = true
+                            if (!workRequestState.isModalVisible) {
+                                workRequestViewModel.openWorkRequest(
+                                    serviceExecutionId = serviceId
+                                )
+                            }
+                            //showWorkRequestModal = true
                         }
                     )
                 }
@@ -624,19 +644,23 @@ fun HomeScreen(
     )
 
     if (
-        showWorkRequestModal &&
+        workRequestState.isModalVisible &&
         selectedWorkOrderId != null &&
-        selectedVehicleId != null
+        selectedVehicleId != null &&
+        selectedServiceExecutionId != null
     ) {
         println("🟢 Intentando mostrar WorkRequestModal")
 
         WorkRequestModal(
             isVisible = true,
-            formData = uiState.form,
-            photos = uiState.photos,
+            formData = workRequestState.form,
+            photos = workRequestState.photos,
+            errorMessage = workRequestState.errorMessage, // 👈 AQUÍ
+            formErrors = workRequestState.formErrors,
             onSaveClick = {
                 workRequestViewModel.onEvent(
                     WorkRequestUiEvent.OnSubmit(
+                        serviceExecutionId = selectedServiceExecutionId!!,
                         workOrderId = selectedWorkOrderId!!,
                         vehicleId = selectedVehicleId!!
                     )
@@ -644,12 +668,54 @@ fun HomeScreen(
             },
 
             onCancelClick = {
-                showWorkRequestModal = false
+                workRequestViewModel.onEvent(WorkRequestUiEvent.OnCancel)
+                //showWorkRequestModal = false
                 selectedWorkOrderId = null
                 selectedVehicleId = null
             },
 
-            isLoading = uiState.isLoading
+            isLoading = workRequestState.isLoading,
+
+            onTitleChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnTitleChange(it)
+                )
+            },
+            onDescriptionChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnDescriptionChange(it)
+                )
+            },
+            onFindingsChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnFindingsChange(it)
+                )
+            },
+            onJustificationChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnJustificationChange(it)
+                )
+            },
+            onUrgencyChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnUrgencyChange(it)
+                )
+            },
+            onRequiresApprovalChange = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnRequiresApprovalChange(it)
+                )
+            },
+            onPhotoCaptured = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnPhotoCaptured(it)
+                )
+            },
+            onPhotoDeleted = {
+                workRequestViewModel.onEvent(
+                    WorkRequestUiEvent.OnPhotoDeleted(it)
+                )
+            }
         )
     }
 

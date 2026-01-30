@@ -13,6 +13,7 @@ import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.SaveWorkRequestPhotoUseCase
+import com.lossabinos.domain.usecases.WorkRequestPhoto.UploadPhotoUseCase
 import com.lossabinos.domain.usecases.authentication.EmailPasswordLoginUseCase
 import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
 import com.lossabinos.domain.usecases.authentication.GetRefreshTokenUseCase
@@ -51,6 +52,7 @@ import com.lossabinos.domain.usecases.mechanics.UpdateServiceProgressUseCase
 import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
 import com.lossabinos.domain.usecases.notifications.SetNotificationReadUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
+import com.lossabinos.domain.usecases.submitWorkRequestUseCase.SubmitWorkRequestUseCase
 import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
@@ -536,6 +538,28 @@ object UseCaseModule {
     ) : SaveWorkRequestPhotoUseCase {
         return SaveWorkRequestPhotoUseCase(
             repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideUploadPhotoUseCase(
+        repository: WorkRequestPhotoRepository
+    ) : UploadPhotoUseCase{
+        return UploadPhotoUseCase(
+            repository = repository
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSubmitWorkRequestUseCase(
+        workRequestRepository: WorkRequestRepository,
+        workRequestPhotoRepository: WorkRequestPhotoRepository
+    ): SubmitWorkRequestUseCase{
+        return SubmitWorkRequestUseCase(
+            workRequestRepository = workRequestRepository,
+            workRequestPhotoRepository = workRequestPhotoRepository
         )
     }
 }

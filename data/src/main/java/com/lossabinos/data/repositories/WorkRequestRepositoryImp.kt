@@ -32,7 +32,7 @@ class WorkRequestRepositoryImp(
                 findings = request.findings,
                 justification = request.justification,
                 photoUrls = request.photoUls,  // Convertir List a JSON String
-                requestType = request.requestType,
+                requestType = "additional_work", //request.requestType,
                 requiresCustomerApproval = request.requiresCustomerApproval,
                 urgency = UrgencyLevelEntity.valueOf(request.urgency.name),
                 createdAt = request.createdAt,
