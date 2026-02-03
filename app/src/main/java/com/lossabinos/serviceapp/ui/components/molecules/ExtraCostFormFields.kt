@@ -39,6 +39,7 @@ fun ExtraCostFormFields(
         // ═══════════════════════════════════════════════════════
         // FIELD 1: QUANTITY
         // ═══════════════════════════════════════════════════════
+        /*
         Text(
             text = "Amount * (Required)",
             fontSize = 14.sp,
@@ -59,6 +60,7 @@ fun ExtraCostFormFields(
             error = errors["quantity"],
             modifier = Modifier.padding(bottom = 16.dp)
         )
+        */
 
         // ═══════════════════════════════════════════════════════
         // FIELD 2: CATEGORY

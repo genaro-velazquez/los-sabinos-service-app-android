@@ -26,6 +26,20 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private val MIGRATION_9_TO_10 = object : Migration(
+        startVersion = 9,
+        endVersion = 10
+    ){
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+            ALTER TABLE work_request
+            ADD COLUMN conceptCategory TEXT NOT NULL DEFAULT 'OTHER'
+            """.trimIndent()
+            )
+        }
+    }
+
     private val MIGRATION_8_TO_9 = object : Migration(
         startVersion = 8,
         endVersion = 9
@@ -271,7 +285,8 @@ object DatabaseModule {
                 MIGRATION_5_TO_6,
                 MIGRATION_6_TO_7,
                 MIGRATION_7_TO_8,
-                MIGRATION_8_TO_9)
+                MIGRATION_8_TO_9,
+                MIGRATION_9_TO_10)
             .fallbackToDestructiveMigration(true)
             .build()
     }

@@ -1,12 +1,17 @@
 package com.lossabinos.serviceapp.models.ui
 
+import com.lossabinos.serviceapp.models.ui.enums.IssueCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.ConceptCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.UrgencyLevelTypeUIModel
+
 data class WorkRequestUIModel(
     val title: String = "",
     val description: String = "",
     val findings: String = "",
     val justification: String = "",
-    val urgency: UrgencyUI = UrgencyUI.NORMAL,
-    val category: CategoryUI = CategoryUI.OTHER,
+    val urgency: UrgencyLevelTypeUIModel = UrgencyLevelTypeUIModel.MEDIUM,
+    val issueCategory: IssueCategoryTypeUIModel = IssueCategoryTypeUIModel.OTHER,
+    val conceptCategory: ConceptCategoryTypeUIModel = ConceptCategoryTypeUIModel.OTROS,
     val requiresCustomerApproval: Boolean = true
 ) {
     fun isValid(): Boolean {
@@ -18,7 +23,8 @@ data class WorkRequestUIModel(
 }
 
 enum class UrgencyUI {
-    LOW, NORMAL, HIGH, CRITICAL
+    LOW, MEDIUM, HIGH, CRITICAL
+    //LOW, NORMAL, HIGH, CRITICAL
 }
 
 enum class CategoryUI {

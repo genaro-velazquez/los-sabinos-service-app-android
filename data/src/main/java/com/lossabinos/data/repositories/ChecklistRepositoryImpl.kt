@@ -757,7 +757,7 @@ class ChecklistRepositoryImpl(
 
                     // Construir JSON
                     val jsonObject = JSONObject().apply {
-                        put("amount", entity.quantity)
+                        put("amount", "0")
                         put("category", entity.category)
                         put("description", entity.description)
                         put("notes", entity.notes ?: "")

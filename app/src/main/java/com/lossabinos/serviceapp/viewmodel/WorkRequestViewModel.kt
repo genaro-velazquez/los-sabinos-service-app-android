@@ -5,18 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.entities.WorkRequestPhoto
 import com.lossabinos.domain.enums.SyncStatus
-import com.lossabinos.domain.enums.UrgencyLevel
 import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.SaveWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.submitWorkRequestUseCase.SubmitWorkRequestUseCase
-import com.lossabinos.domain.usecases.workrequest.CreateWorkRequestUseCase
-import com.lossabinos.domain.valueobjects.WorkRequest
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.mappers.toDomain
-import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
-import com.lossabinos.serviceapp.models.ui.validate
 import com.lossabinos.serviceapp.states.WorkRequestFormErrors
 import com.lossabinos.serviceapp.states.WorkRequestUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -96,7 +90,6 @@ class WorkRequestViewModel @Inject constructor(
                     updateErrors = { copy(justification = null) }
                 )
 
-
             is WorkRequestUiEvent.OnUrgencyChange ->
                 updateForm(
                     update = { copy(urgency = event.value) }
@@ -104,7 +97,12 @@ class WorkRequestViewModel @Inject constructor(
 
             is WorkRequestUiEvent.OnCategoryChange ->
                 updateForm(
-                    update = {copy(category = event.value)}
+                    update = {copy(issueCategory = event.value)}
+                )
+
+            is WorkRequestUiEvent.OnConceptCategoryChange ->
+                updateForm(
+                    update = {copy(conceptCategory = event.value)}
                 )
 
             is WorkRequestUiEvent.OnRequiresApprovalChange ->

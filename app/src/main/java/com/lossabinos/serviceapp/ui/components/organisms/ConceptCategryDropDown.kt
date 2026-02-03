@@ -1,12 +1,9 @@
 package com.lossabinos.serviceapp.ui.components.organisms
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -23,15 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lossabinos.serviceapp.models.ui.UrgencyUI
-import com.lossabinos.serviceapp.models.ui.enums.UrgencyLevelTypeUIModel
-import com.lossabinos.serviceapp.ui.components.atoms.TextInput
+import com.lossabinos.serviceapp.models.ui.enums.ConceptCategoryTypeUIModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UrgencyDropdown(
-    selected: UrgencyLevelTypeUIModel,
-    onUrgencySelected: (UrgencyLevelTypeUIModel) -> Unit,
+fun ConceptCategoryDropdown(
+    selected: ConceptCategoryTypeUIModel,
+    onConceeptCategorySelected: (ConceptCategoryTypeUIModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -43,7 +38,7 @@ fun UrgencyDropdown(
     Column(modifier = modifier) {
 
         Text(
-            text = "Urgencia",
+            text = "Concepto",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -73,19 +68,17 @@ fun UrgencyDropdown(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                UrgencyLevelTypeUIModel.entries.forEach { urgency ->
+                ConceptCategoryTypeUIModel.entries.forEach { category ->
                     DropdownMenuItem(
                         onClick = {
-                            onUrgencySelected(urgency)
+                            onConceeptCategorySelected(category)
                             expanded = false
                         }
                     ) {
-                        Text( text = urgency.label)
+                        Text(text = category.label)
                     }
                 }
             }
         }
     }
 }
-
-

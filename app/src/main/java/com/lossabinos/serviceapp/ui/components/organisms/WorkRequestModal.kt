@@ -32,6 +32,9 @@ import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.models.ui.CategoryUI
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
+import com.lossabinos.serviceapp.models.ui.enums.ConceptCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.IssueCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.UrgencyLevelTypeUIModel
 import com.lossabinos.serviceapp.states.WorkRequestFormErrors
 import com.lossabinos.serviceapp.ui.components.molecules.WorkRequestFormFields
 
@@ -50,11 +53,12 @@ fun WorkRequestModal(
     onDescriptionChange: (String) -> Unit,
     onFindingsChange: (String) -> Unit,
     onJustificationChange: (String) -> Unit,
-    onUrgencyChange: (UrgencyUI) -> Unit,
+    onUrgencyChange: (UrgencyLevelTypeUIModel) -> Unit,
     onRequiresApprovalChange: (Boolean) -> Unit,
     onPhotoCaptured: (String) -> Unit,
     onPhotoDeleted: (String) -> Unit,
-    onCategoryChange: (CategoryUI) -> Unit
+    onCategoryChange: (IssueCategoryTypeUIModel) -> Unit,
+    onConceptCategoryChange:(ConceptCategoryTypeUIModel) -> Unit
 ) {
     if (!isVisible) return
 
@@ -129,7 +133,8 @@ fun WorkRequestModal(
                         onRequiresApprovalChange = onRequiresApprovalChange,
                         onPhotoCaptured = onPhotoCaptured,
                         onPhotoDeleted = onPhotoDeleted,
-                        onCategoryChange = onCategoryChange
+                        onCategoryChange = onCategoryChange,
+                        onConceptCategoryChange = onConceptCategoryChange
                     )
                 }
 

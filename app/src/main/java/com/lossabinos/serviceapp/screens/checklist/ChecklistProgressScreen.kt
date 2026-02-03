@@ -276,13 +276,12 @@ fun ChecklistProgressScreen(
         // ═══════════════════════════════════════════════════════
         if (showDeleteConfirmation && extraCostToDelete != null) {
             ConfirmationDialog(
-                title = "Delete Extra Cost",
-                content = "Are you sure you want to delete this extra cost?\n\n" +
-                        "${extraCostToDelete.category.icon} ${extraCostToDelete.description}\n" +
-                        "${extraCostToDelete.getFormattedQuantity()}\n\n" +
-                        "This action cannot be undone.",
-                primaryButtonText = "Delete",
-                secondaryButtonText = "Cancel",
+                title = "Eliminar costo extra",
+                content = "¿Estás seguro de que deseas eliminar este costo extra?\n\n" +
+                        "${extraCostToDelete.category.icon} ${extraCostToDelete.description}\n\n" +
+                        "Esta acción no se puede deshacer.",
+                primaryButtonText = "Eliminar",
+                secondaryButtonText = "Cancelar",
                 onPrimaryClick = {
                     println("✅ [DELETE] Confirming deletion")
                     extraCostViewModel.confirmDeleteExtraCost()

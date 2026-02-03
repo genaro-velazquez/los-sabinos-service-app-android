@@ -24,6 +24,7 @@ import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestPhotoRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
+import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.MechanicsRetrofitRepository
@@ -205,11 +206,13 @@ object RepositoryModule {
     @Provides
     fun provideWorkRequestRepository(
         workRequestLocalDataSource: WorkRequestLocalDataSource,
-        workRequestRemoteRepository: WorkRequestRemoteDataSource
+        workRequestRemoteRepository: WorkRequestRemoteDataSource,
+        apiMapper: WorkRequestIssueApiMapper
     ): WorkRequestRepository {
         return WorkRequestRepositoryImp(
             workRequestLocalDataSource = workRequestLocalDataSource,
-            workRequestRemoteRepository= workRequestRemoteRepository
+            workRequestRemoteDataSource = workRequestRemoteRepository,
+            apiMapper = apiMapper
         )
     }
 

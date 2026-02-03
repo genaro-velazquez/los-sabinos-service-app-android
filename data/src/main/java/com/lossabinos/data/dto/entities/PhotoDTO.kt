@@ -14,9 +14,9 @@ class PhotoDTO(
 
     constructor(json: JSONObject): this (
         id =            json.asString("id"),
-        url =           json.asString("service_execution_id"),
-        description =   json.asString("checklist_item_id"),
-        uploadedAt =    json.asString("file_url")
+        url =           json.asString("url"), //service_execution_id
+        description =   json.asString("description"),//checklist_item_id
+        uploadedAt =    json.asString("uploaded_at")//file_url
     )
 
     override fun toEntity(): Photo = Photo(

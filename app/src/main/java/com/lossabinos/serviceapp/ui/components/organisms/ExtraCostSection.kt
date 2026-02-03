@@ -52,7 +52,7 @@ fun ExtraCostSection(
         // HEADER
         // ═══════════════════════════════════════════════════════
         Text(
-            text = "💰 EXTRA COSTS",
+            text = "💰 COSTOS EXTRA",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -79,7 +79,7 @@ fun ExtraCostSection(
                 modifier = Modifier.padding(end = 8.dp)
             )
             Text(
-                text = "+ Add Extra Cost",
+                text = "Agregar Costo Extra",
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
@@ -107,7 +107,7 @@ fun ExtraCostSection(
                     )
                 }
             }
-
+/*
             // ═══════════════════════════════════════════════════════
             // TOTAL SECTION
             // ═══════════════════════════════════════════════════════
@@ -137,6 +137,7 @@ fun ExtraCostSection(
                     modifier = Modifier.align(Alignment.CenterEnd)
                 )
             }
+ */
         } else {
             // ═══════════════════════════════════════════════════════
             // EMPTY STATE
@@ -148,7 +149,7 @@ fun ExtraCostSection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "(No extra costs added yet)",
+                    text = "(Aún no se han agregado costos extra)",
                     fontSize = 14.sp,
                     color = Color(0xFFAAAAAA)
                 )

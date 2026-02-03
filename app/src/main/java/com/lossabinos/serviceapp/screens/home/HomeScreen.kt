@@ -134,7 +134,6 @@ fun HomeScreen(
     // ==========================================
     // 1️⃣ OBSERVAR DATOS
     // ==========================================
-    // Estado general del home (nombre, ubicación, logout, etc.)
     val state = homeViewModel.state.collectAsState().value
     val mechanic    = mechanicsViewModel.mechanic.collectAsStateWithLifecycle().value
     val services    = mechanicsViewModel.assignedServices.collectAsStateWithLifecycle().value
@@ -146,33 +145,13 @@ fun HomeScreen(
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
     val workRequestViewModel: WorkRequestViewModel = hiltViewModel()
     val workRequestState by workRequestViewModel.uiState.collectAsState()
-    //val uiState by workRequestViewModel.uiState.collectAsState()
-
 
     val isHomeScreenVisible = remember { mutableStateOf(true) }
 
     // Estado local para mostrar el modal
-    //var showWorkRequestModal by rememberSaveable { mutableStateOf(false) }
     var selectedWorkOrderId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedVehicleId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedServiceExecutionId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    /*
-    // Se ejecuta solo cuando cambia
-    LaunchedEffect(showWorkRequestModal) {
-        if (
-            showWorkRequestModal &&
-            selectedWorkOrderId != null &&
-            selectedVehicleId != null
-        ) {
-
-            workRequestViewModel.initializeDraft(
-                workOrderId = selectedWorkOrderId!!,
-                vehicleId = selectedVehicleId!!
-            )
-        }
-    }
-    */
 
     // ==========================================
     // 1️⃣ ESTADOS WEBSOCKET
@@ -204,7 +183,6 @@ fun HomeScreen(
             selectedVehicleId = null
         }
     }
-
 
     // ← CUANDO SALES DE HomeScreen
     DisposableEffect(Unit) {
@@ -253,6 +231,7 @@ fun HomeScreen(
     // ALERTA DE NOTIFICACIÓN WEBSOCKET
     // =================================
     if (!webSocketNotification.isNullOrEmpty()) {
+/*
         AlertDialog(
             onDismissRequest = {
                 homeViewModel.clearWebSocketNotification()
@@ -294,12 +273,14 @@ fun HomeScreen(
                 }
             }
         )
+ */
     }
 
     // =================================
     // ALERTA DE MANTENIMIENTO WEBSOCKET
     // ==================================
     if (!webSocketAlert.isNullOrEmpty()) {
+/*
         AlertDialog(
             onDismissRequest = {
                 homeViewModel.clearWebSocketAlert()
@@ -341,6 +322,7 @@ fun HomeScreen(
                 }
             }
         )
+ */
     }
 
     // ==========================================
@@ -376,8 +358,6 @@ fun HomeScreen(
             }
         )
     }
-
-
 
     // ==========================================
     // LOADING OVERLAY
@@ -420,6 +400,7 @@ fun HomeScreen(
         )
     }
 
+    /* Muestra mensaje "El servicio ya fue sincronizado" */
     if (!uiMessage.isNullOrEmpty()) {
         AlertDialog(
             onDismissRequest = { homeViewModel.clearMessage() },
@@ -434,29 +415,8 @@ fun HomeScreen(
     }
 
     // ==========================================
-    // 4️⃣ ACCIONES RÁPIDAS
+    // 4️⃣ ACCIONES RÁPIDAS  (Omitidas)
     // ==========================================
-    val actionCards = emptyList<ActionCardModel>() /*listOf(
-
-        ActionCardModel(
-            id = "camera",
-            title = "Cámara",
-            icon = Icons.Filled.Camera,
-            onClick = onCameraClick
-        ),
-        ActionCardModel(
-            id = "reports",
-            title = "Reportes",
-            icon = Icons.Filled.BarChart,
-            onClick = onReportsClick
-        ),
-        ActionCardModel(
-            id = "location",
-            title = "Ubicación",
-            icon = Icons.Filled.LocationOn,
-            onClick = onLocationClick
-        )
-    ) */
 
     // ==========================================
     // 5️⃣ TEMPLATE PRINCIPAL
@@ -491,10 +451,9 @@ fun HomeScreen(
                 unsyncTitle = "${metrics.totalServices} servicios", //"${metadata?.totalServices ?: 0} Servicios",
                 unsyncDetails = "${metrics.pendingServices} pendientes, ${metrics.inProgressServices} en progreso",
                 isLoading = isLoading,
-                    //"${metadata?.pendingServices ?: 0} Pendientes, ${metadata?.inProgressServices ?: 0} En Progreso",
                 onSyncClick = {
                     println("🔄 [SYNC] Usuario presionó sincronizar")
-                    onSyncClick()
+                    mechanicsViewModel.loadInitialData()
                 },
                 onSyncNowClick = {
                     println("⚡ [SYNC] Usuario presionó sincronizar ahora")
@@ -507,17 +466,7 @@ fun HomeScreen(
         // ─────────────────────────────────────────
         // Acciones rápidas
         // ─────────────────────────────────────────
-        actionsSection = {
-            /*
-            ActionCardsSection(
-                actions = actionCards,
-                title = "Acciones Rápidas",
-                onActionClick = { actionId ->
-                    println("✅ [ACTION] Action selected: $actionId")
-                },
-                columns = 3
-            )*/
-        },
+        actionsSection = {},
 
         // ─────────────────────────────────────────
         // Métricas
@@ -720,59 +669,14 @@ fun HomeScreen(
                 workRequestViewModel.onEvent(
                     event = WorkRequestUiEvent.OnCategoryChange(value = it)
                 )
+            },
+            onConceptCategoryChange = {
+                workRequestViewModel.onEvent(
+                    event = WorkRequestUiEvent.OnConceptCategoryChange(value = it)
+                )
             }
         )
     }
-
-}
-
-/**
- * Modal para mostrar detalles de un servicio
- *
- * Se abre cuando el usuario presiona "Completar" en una tarjeta
- *
- * @param detailedService Datos detallados del servicio
- * @param onDismiss Callback cuando se cierra el modal
- */
-@Composable
-fun ServiceDetailModal(
-    detailedService: DetailedServiceResponse,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Detalles del Servicio",
-                style = MaterialTheme.typography.headlineSmall
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("ID Ejecución: ${detailedService.serviceExecutionId}")
-                Text("ID Servicio: ${detailedService.serviceId}")
-                Text("Tipo: ${detailedService.serviceType.name}")
-                Text("Progreso: ${detailedService.currentProgress.itemsCompleted}/${detailedService.currentProgress.itemTotal}")
-
-                // Mostrar información del servicio
-                Text(
-                    text = "Información",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = detailedService.serviceInfo.status,
-                    fontSize = 12.sp
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Cerrar")
-            }
-        }
-    )
 }
 
 /**

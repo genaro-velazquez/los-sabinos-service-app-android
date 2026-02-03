@@ -54,12 +54,16 @@ import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.models.ui.CategoryUI
 import com.lossabinos.serviceapp.models.ui.UrgencyUI
 import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
+import com.lossabinos.serviceapp.models.ui.enums.ConceptCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.IssueCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.UrgencyLevelTypeUIModel
 import com.lossabinos.serviceapp.states.WorkRequestFormErrors
 import com.lossabinos.serviceapp.ui.components.atoms.ActionButtonAtom
 import com.lossabinos.serviceapp.ui.components.atoms.CheckboxRow
 import com.lossabinos.serviceapp.ui.components.atoms.ErrorText
 import com.lossabinos.serviceapp.ui.components.atoms.TextInput
 import com.lossabinos.serviceapp.ui.components.organisms.CategoryDropdown
+import com.lossabinos.serviceapp.ui.components.organisms.ConceptCategoryDropdown
 import com.lossabinos.serviceapp.ui.components.organisms.UrgencyDropdown
 import com.lossabinos.serviceapp.utils.createImageFile
 import com.lossabinos.serviceapp.viewmodel.WorkRequestViewModel
@@ -94,11 +98,12 @@ fun WorkRequestFormFields(
     onDescriptionChange: (String) -> Unit,
     onFindingsChange: (String) -> Unit,
     onJustificationChange: (String) -> Unit,
-    onUrgencyChange: (UrgencyUI) -> Unit,
+    onUrgencyChange: (UrgencyLevelTypeUIModel) -> Unit,
     onRequiresApprovalChange: (Boolean) -> Unit,
     onPhotoCaptured: (String) -> Unit,
     onPhotoDeleted: (String) -> Unit,
-    onCategoryChange: (CategoryUI) -> Unit
+    onCategoryChange: (IssueCategoryTypeUIModel) -> Unit,
+    onConceptCategoryChange:(ConceptCategoryTypeUIModel) -> Unit
 ) {
 
     // ───────────────────────────
@@ -186,8 +191,8 @@ fun WorkRequestFormFields(
             value = formData.description,
             onValueChange = onDescriptionChange,
             placeholder = "Descripción",
-            isError = formErrors.title != null,
-            errorText = formErrors.title,
+            isError = formErrors.description != null,
+            errorText = formErrors.description,
             maxLines = 4,
             maxLength = 500
         )
@@ -196,16 +201,16 @@ fun WorkRequestFormFields(
             value = formData.findings,
             onValueChange = onFindingsChange,
             placeholder = "Hallazgos",
-            isError = formErrors.title != null,
-            errorText = formErrors.title
+            isError = formErrors.findings != null,
+            errorText = formErrors.findings
         )
 
         TextInput(
             value = formData.justification,
             onValueChange = onJustificationChange,
             placeholder = "Justificación",
-            isError = formErrors.title != null,
-            errorText = formErrors.title
+            isError = formErrors.justification != null,
+            errorText = formErrors.justification
         )
 
         UrgencyDropdown(
@@ -213,10 +218,17 @@ fun WorkRequestFormFields(
             onUrgencySelected = onUrgencyChange
         )
 
+        // issueCategory
         CategoryDropdown(
-            selected = formData.category,
+            selected = formData.issueCategory,
             onCategorySelected = onCategoryChange
         )
+/*
+        ConceptCategoryDropdown(
+            selected = formData.conceptCategory,
+            onConceeptCategorySelected = onConceptCategoryChange
+        )
+ */
 
         // ───────────────────────────
         // 📸 BOTÓN TOMAR FOTO
@@ -323,186 +335,4 @@ fun WorkRequestFormFields(
         )
     }
 }
-
-
-
-/*
-@Composable
-fun WorkRequestFormFields(
-    formData: WorkRequestUIModel,
-    photos: List<WorkRequestPhoto>,
-    viewModel: WorkRequestViewModel = hiltViewModel()
-) {
-
-    // ───────────────────────────
-    // SETUP DE CÁMARA (VA AQUÍ)
-    // ───────────────────────────
-    val context = LocalContext.current
-
-    var photoUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-
-    val takePictureLauncher
-
-
-    val cameraPermissionLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (isGranted) {
-                launchCamera()
-            } else {
-                Toast
-                    .makeText(context, "Permiso de cámara requerido", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-
-    fun launchCamera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-        cameraLauncher.launch(intent)
-    }
-
-    val takePictureLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.TakePicture()
-        ) { success ->
-            if (success && photoUri != null) {
-                viewModel.onEvent(
-                    WorkRequestUiEvent.OnPhotoCaptured(
-                        localPath = File(photoUri!!.path!!).absolutePath
-                    )
-                )
-            }
-        }
-
-    fun createImageFile(context: Context): File {
-        val dir = File(context.filesDir, "work_requests")
-        if (!dir.exists()) dir.mkdirs()
-
-        return File(
-            dir,
-            "WR_${System.currentTimeMillis()}.jpg"
-        )
-    }
-
-
-    // ───────────
-    //  UI
-    // ──────────-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-
-        TextInput(
-            value = formData.title,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnTitleChange(it))
-            },
-            placeholder = "Título"
-        )
-
-        TextInput(
-            value = formData.description,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnDescriptionChange(it))
-            },
-            placeholder = "Descripción"
-        )
-
-        TextInput(
-            value = formData.findings,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnFindingsChange(it))
-            },
-            placeholder = "Hallazgos"
-        )
-
-        TextInput(
-            value = formData.justification,
-            onValueChange = {
-                viewModel.onEvent(WorkRequestUiEvent.OnJustificationChange(it))
-            },
-            placeholder = "Justificación"
-        )
-
-        // ✅ NUEVO: Dropdown de urgencia
-        UrgencyDropdown(
-            selected = formData.urgency,
-            onUrgencySelected = {
-                viewModel.onEvent(WorkRequestUiEvent.OnUrgencyChange(it))
-            }
-        )
-
-        // ─────────────────────────────────────────────
-        // 📸 BOTÓN TOMAR FOTO
-        // ─────────────────────────────────────────────
-        ActionButtonAtom(
-            text = "Tomar foto (${photos.size}/3)",
-            icon = Icons.Default.CameraAlt,
-            enabled = photos.size < 3,
-            onClick = {
-
-                                val file = createImageFile(context)
-
-                                val uri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-
-                                photoUri = uri
-                                takePictureLauncher.launch(uri)
-
-            }
-        )
-
-        // ─────────────────────────────────────────────
-        // 🖼️ PREVIEW DE FOTOS
-        // ─────────────────────────────────────────────
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(photos) { photo ->
-                Box {
-                    Image(
-                        painter = rememberAsyncImagePainter(File(photo.localPath)),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-
-                    IconButton(
-                        onClick = {
-                            viewModel.onEvent(
-                                WorkRequestUiEvent.OnPhotoDeleted(photo.id)
-                            )
-                        },
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Eliminar"
-                        )
-                    }
-                }
-            }
-        }
-
-        CheckboxRow(
-            checked = formData.requiresCustomerApproval,
-            label = "Requiere aprobación del cliente",
-            onCheckedChange = {
-                viewModel.onEvent(
-                    WorkRequestUiEvent.OnRequiresApprovalChange(it)
-                )
-            }
-        )
-    }
-}
-*/
 

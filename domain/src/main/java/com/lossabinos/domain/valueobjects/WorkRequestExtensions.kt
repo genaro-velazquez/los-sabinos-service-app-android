@@ -16,5 +16,7 @@ fun WorkRequest.withPhotoUrls(
         urgency = urgency,
         createdAt = createdAt,
         vehicleId = vehicleId,
-        syncStatus = syncStatus
+        syncStatus = syncStatus,
+        issueCategory = issueCategory,
+        conceptCategory = conceptCategory
     )

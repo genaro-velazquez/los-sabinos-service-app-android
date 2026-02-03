@@ -13,7 +13,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lossabinos.serviceapp.ui.components.templates.VehicleRegistrationTemplate
 import com.lossabinos.serviceapp.viewmodel.MechanicsViewModel
@@ -25,7 +24,7 @@ fun VehicleRegistrationScreen(
     serviceId: String,
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit,
-    navController: NavController  // 🆕 Agregar para navegar
+    navController: NavController
 ) {
     val viewModel: VehicleRegistrationViewModel = hiltViewModel()
 
@@ -127,44 +126,3 @@ fun VehicleRegistrationScreen(
         isValidatingManual = isValidatingManual
     )
 }
-
-
-/*
-@Composable
-fun VehicleRegistrationScreen(
-    checklistTemplateJson: String,
-    serviceId: String,
-    onContinueClick: () -> Unit,
-    onBackClick: () -> Unit
-) {
-    val viewModel: VehicleRegistrationViewModel = hiltViewModel()
-
-    // 🆕 Cargar campos dinámicamente al abrir
-    LaunchedEffect(checklistTemplateJson) {
-        // 1. Cargar campos del template
-        viewModel.loadServiceFieldsFromJson(checklistTemplateJson)
-        // 2. Cargar datos previos guardados
-        viewModel.loadPreviousFieldValues(serviceId)
-    }
-
-    val serviceFields by viewModel.serviceFields.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val isEnabled = viewModel.validateAndContinue() && !isLoading
-
-    VehicleRegistrationTemplate(
-        fields = serviceFields,  // 🆕 Usa los campos dinámicos
-        onFieldChange = { fieldId, newValue ->
-            viewModel.updateFieldValue(fieldId, newValue)
-        },
-        onContinueClick = {
-            viewModel.saveVehicleData(
-                assignedServiceId = serviceId
-            ) {
-                onContinueClick()
-            }
-        },
-        onBackClick = onBackClick,
-        isEnabled = isEnabled
-    )
-}
-*/

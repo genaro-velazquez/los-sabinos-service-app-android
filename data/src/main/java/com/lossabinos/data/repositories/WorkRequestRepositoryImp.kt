@@ -4,10 +4,14 @@ import com.lossabinos.data.datasource.local.WorkRequestLocalDataSource
 import com.lossabinos.data.datasource.local.database.entities.SyncStatusEntity
 import com.lossabinos.data.datasource.local.database.entities.UrgencyLevelEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
+import com.lossabinos.data.datasource.local.database.enums.ConceptCategoryTypeEntity
+import com.lossabinos.data.datasource.local.database.enums.IssueCategoryEntity
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
+import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
 import com.lossabinos.data.mappers.toDomain
 import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.valueobjects.WorkRequest
+import com.lossabinos.domain.valueobjects.WorkRequestIssue
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -16,7 +20,8 @@ import org.json.JSONObject
 
 class WorkRequestRepositoryImp(
     private val workRequestLocalDataSource: WorkRequestLocalDataSource,
-    private val workRequestRemoteRepository: WorkRequestRemoteDataSource
+    private val workRequestRemoteDataSource: WorkRequestRemoteDataSource,
+    private val apiMapper: WorkRequestIssueApiMapper
 ) : WorkRequestRepository {
 
     override suspend fun createWorkRequest(request: WorkRequest) {
@@ -37,7 +42,9 @@ class WorkRequestRepositoryImp(
                 urgency = UrgencyLevelEntity.valueOf(request.urgency.name),
                 createdAt = request.createdAt,
                 vehicleId = request.vehicleId,
-                syncStatus = SyncStatusEntity.PENDING
+                syncStatus = SyncStatusEntity.PENDING,
+                issueCategory = IssueCategoryEntity.valueOf(request.issueCategory.name),
+                conceptCategory = ConceptCategoryTypeEntity.valueOf(request.conceptCategory.name)
             )
 
             // 🔑 CLAVE: decidir INSERT vs UPDATE
@@ -86,7 +93,7 @@ class WorkRequestRepositoryImp(
             println("📤 [Repo] Sincronizando work request: ${entity.id}")
 
             val workRequest = buildWorkRequestBody(entity = entity)
-            workRequestRemoteRepository.workRequest( request = workRequest )
+            workRequestRemoteDataSource.workRequest( request = workRequest )
 
             // Actualizar a SYNCED
             val syncedEntity = entity.copy(syncStatus = SyncStatusEntity.SYNCED) //"SYNCED"
@@ -145,9 +152,20 @@ class WorkRequestRepositoryImp(
             put("vehicle_id", entity.vehicleId)
             put("urgency", entity.urgency.name.lowercase())
         }
-
+print("--> jsonObject:$jsonObject")
         return jsonObject.toString()
             .toRequestBody("application/json".toMediaType())
+    }
+
+    override suspend fun createWorkRequestIssue(
+        serviceExecutionId: String,
+        issue: WorkRequestIssue
+    ) {
+        val body = apiMapper.toRequestBody(issue)
+        workRequestRemoteDataSource.createIssue(
+            serviceExecutionId = serviceExecutionId,
+            body = body
+        )
     }
 
 }

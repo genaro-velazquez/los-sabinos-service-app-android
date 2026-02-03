@@ -11,7 +11,7 @@ class UploadPhotoResponseDTO(
 ): DTO<UploadPhotoResponse>(){
 
     constructor(json: JSONObject) : this (
-        photo = PhotoDTO(json = json.asJSONObject("data").asJSONObject("photo"))
+        photo = PhotoDTO(json = json.asJSONObject("data"))//.asJSONObject("photo"))
     )
 
     override fun toEntity(): UploadPhotoResponse = UploadPhotoResponse(

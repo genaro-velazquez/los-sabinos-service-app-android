@@ -45,7 +45,7 @@ fun ManualQRInputMolecule(
     ) {
         // Etiqueta
         Text(
-            text = "Código QR",
+            text = "Ingresa los últimos 6 digitos del NIV",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF424242),
@@ -55,7 +55,15 @@ fun ManualQRInputMolecule(
         // TextField
         TextField(
             value = qrValue,
-            onValueChange = onValueChange,
+            onValueChange = { newValue ->
+                // 1️⃣ Solo letras y números
+                val filtered = newValue
+                    .uppercase()
+                    .filter { it.isLetterOrDigit() }
+                    .take(6)
+
+                onValueChange(filtered)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -82,7 +90,7 @@ fun ManualQRInputMolecule(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            enabled = qrValue.isNotEmpty() && !isValidating,
+            enabled = qrValue.length == 6 && !isValidating,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1976D2),
                 disabledContainerColor = Color(0xFFBDBDBD)

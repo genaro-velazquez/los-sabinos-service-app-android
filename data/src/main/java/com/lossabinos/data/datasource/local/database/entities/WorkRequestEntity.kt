@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.lossabinos.data.datasource.local.database.enums.ConceptCategoryTypeEntity
+import com.lossabinos.data.datasource.local.database.enums.IssueCategoryEntity
 
 // ═══════════════════════════════════════════════════════
 // WORK REQUEST ENTITY
@@ -29,6 +31,8 @@ data class WorkRequestEntity(
     val urgency: UrgencyLevelEntity,  // LOW, NORMAL, HIGH, CRITICAL
     val createdAt: Long = System.currentTimeMillis(),
     val vehicleId: String,
-    val syncStatus: SyncStatusEntity  // PENDING, SYNCED, ERROR
+    val syncStatus: SyncStatusEntity,  // PENDING, SYNCED, ERROR
+    val issueCategory: IssueCategoryEntity,
+    val conceptCategory: ConceptCategoryTypeEntity
 )
 

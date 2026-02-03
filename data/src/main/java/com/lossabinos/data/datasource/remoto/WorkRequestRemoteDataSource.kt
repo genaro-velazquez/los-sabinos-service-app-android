@@ -22,4 +22,16 @@ class WorkRequestRemoteDataSource @Inject constructor(
         )
     }
 
+    suspend fun createIssue(
+        serviceExecutionId: String,
+        body: RequestBody
+    ) {
+        workRequestServices.workRequestIssue(
+            headers = headersMaker.build(),
+            serviceExecutionId = serviceExecutionId,
+            request = body
+        )
+    }
+
+
 }

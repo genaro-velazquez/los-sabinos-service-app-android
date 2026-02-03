@@ -22,17 +22,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lossabinos.serviceapp.models.ui.CategoryUI
+import com.lossabinos.serviceapp.models.ui.enums.IssueCategoryTypeUIModel
+import com.lossabinos.serviceapp.models.ui.enums.UrgencyLevelTypeUIModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDropdown(
-    selected: CategoryUI,
-    onCategorySelected: (CategoryUI) -> Unit,
+    selected: IssueCategoryTypeUIModel,
+    onCategorySelected: (IssueCategoryTypeUIModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val label = selected.name
+    val label = selected.label
         .lowercase()
         .replaceFirstChar { it.uppercase() }
 
@@ -69,18 +71,14 @@ fun CategoryDropdown(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                CategoryUI.entries.forEach { category ->
+                IssueCategoryTypeUIModel.entries.forEach { category ->
                     DropdownMenuItem(
                         onClick = {
                             onCategorySelected(category)
                             expanded = false
                         }
                     ) {
-                        Text(
-                            category.name
-                                .lowercase()
-                                .replaceFirstChar { it.uppercase() }
-                        )
+                        Text(text = category.label)
                     }
                 }
             }

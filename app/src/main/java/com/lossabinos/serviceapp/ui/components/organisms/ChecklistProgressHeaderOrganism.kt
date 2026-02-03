@@ -68,18 +68,17 @@ fun ChecklistProgressHeaderOrganism(
     }
 }
 
-/*
+
 @Preview(showBackground = true)
 @Composable
 fun ChecklistProgressHeaderOrganismPreview(){
     MaterialTheme{
         ChecklistProgressHeaderOrganism(
             serviceName = "Service name",
-            serviceType = "Service type",
+            templateName = "prueba",
             currentProgress = 4,
-            totalTasks = 4,
+            totalTasks = 7,
             progressPercentage = 40
         )
     }
 }
-*/

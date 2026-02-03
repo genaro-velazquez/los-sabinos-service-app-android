@@ -146,13 +146,11 @@ class ExtraCostViewModel @Inject constructor(
         val form = _currentExtraCostForm.value
         var errors = ExtraCostFormErrors()
 
+        /*
         if (form.quantity <= 0.0) {
             errors = errors.copy(quantityError = "Amount must be greater than 0")
         }
-
-        if (form.category == null) {
-            errors = errors.copy(categoryError = "Please select a category")
-        }
+        */
 
         if (form.description.isBlank()) {
             errors = errors.copy(descriptionError = "Description is required")

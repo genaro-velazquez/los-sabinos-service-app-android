@@ -92,6 +92,7 @@ fun ExtraCostCard(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.padding(start = 12.dp)
             ) {
+                /*
                 // Price
                 Text(
                     text = extraCost.getFormattedQuantity(),
@@ -100,6 +101,7 @@ fun ExtraCostCard(
                     color = Color(0xFF1976D2),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+                */
 
                 // Action buttons
                 Row {
