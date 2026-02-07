@@ -1,10 +1,18 @@
-import org.gradle.kotlin.dsl.implementation
+//import org.gradle.kotlin.dsl.implementation
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+
+    // 🔑 KAPT
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+
+    // 🔑 Hilt
+    id("dagger.hilt.android.plugin")
+    //id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+
+    // 🔑 Kotlin Serialization
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -49,6 +57,8 @@ dependencies {
     // ✅ REFERENCIAR DOMAIN
     implementation(project(":domain"))
 
+    implementation(libs.okhttp)
+
     // ✅ Retrofit (core)
     implementation(libs.retrofit)
     // room
@@ -58,7 +68,12 @@ dependencies {
     // Serialización JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
-    implementation("com.google.dagger:hilt-core:2.50")
+    //implementation("com.google.dagger:hilt-android:2.50")
+    //kapt("com.google.dagger:hilt-android-compiler:2.50")
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
     // WorkManager para sincronización
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 

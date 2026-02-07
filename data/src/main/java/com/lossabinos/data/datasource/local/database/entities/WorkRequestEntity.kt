@@ -21,6 +21,7 @@ data class WorkRequestEntity(
     @PrimaryKey
     val id: String = java.util.UUID.randomUUID().toString(),
     val workOrderId: String,  // FK - El workOrder donde se reporta
+    val serviceExecutionId: String,
     val title: String,  // "Balatas dañadas"
     val description: String,  // Descripción detallada
     val findings: String,  // Hallazgos específicos

@@ -2,7 +2,7 @@ package com.lossabinos.domain.entities
 
 import com.lossabinos.domain.enums.SyncStatus
 
-class WorkRequestPhoto(
+data class WorkRequestPhoto(
     val id: String,
     val workRequestId: String,
     val localPath: String,

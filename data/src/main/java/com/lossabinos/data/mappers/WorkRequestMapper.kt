@@ -15,6 +15,7 @@ fun WorkRequestEntity.toDomain(): WorkRequest =
     WorkRequest(
         id = id,
         workOrderId = workOrderId,
+        serviceExecutionId = serviceExecutionId,
         title = title,
         description = description,
         findings = findings,
@@ -34,6 +35,7 @@ fun WorkRequest.toEntity() : WorkRequestEntity =
     WorkRequestEntity(
         id = id,
         workOrderId = workOrderId,
+        serviceExecutionId = serviceExecutionId,
         title = title,
         description = description,
         findings = findings,

@@ -6,11 +6,26 @@ import com.lossabinos.data.datasource.local.database.entities.WorkRequestPhotoEn
 import com.lossabinos.data.mappers.toDomain
 import com.lossabinos.data.mappers.toEntity
 import com.lossabinos.domain.entities.WorkRequestPhoto
+import com.lossabinos.domain.valueobjects.UploadedPhoto
 import javax.inject.Inject
 
 class WorkRequestPhotoLocalDataSource @Inject constructor(
     private val workRequestPhotoDao: WorkRequestPhotoDao
 ) {
+
+    suspend fun savePhotos(photos: List<WorkRequestPhotoEntity>){
+        workRequestPhotoDao.insertAll(photos)
+    }
+
+    suspend fun getByWorkRequestAndStatus(
+        workRequestId: String,
+        status: SyncStatusEntity
+    ): List<WorkRequestPhotoEntity> {
+        return workRequestPhotoDao.getByWorkRequestAndStatus(
+            workRequestId = workRequestId,
+            status = status
+        )
+    }
 
     suspend fun savePhoto(photo: WorkRequestPhotoEntity){
         workRequestPhotoDao.insert(photo = photo)
@@ -27,14 +42,14 @@ class WorkRequestPhotoLocalDataSource @Inject constructor(
     }
 
     suspend fun markAsSynced(
-        photoId: String,
-        remoteUrl: String
+        uploadedPhotos: List<UploadedPhoto>
     ) {
-        workRequestPhotoDao.markAsSynced(
-            photoId = photoId,
-            remoteUrl = remoteUrl,
-            status = SyncStatusEntity.SYNCED
-        )
+        uploadedPhotos.forEach { uploaded ->
+            workRequestPhotoDao.updateAsSynced(
+                photoId = uploaded.localPhotoId,
+                remoteUrl = uploaded.remoteUrl
+            )
+        }
     }
 
 

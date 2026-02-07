@@ -25,7 +25,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
+/*
     private val MIGRATION_9_TO_10 = object : Migration(
         startVersion = 9,
         endVersion = 10
@@ -268,7 +268,7 @@ object DatabaseModule {
             """)
         }
     }
-
+*/
     @Singleton
     @Provides
     fun provideAppDatabase(
@@ -279,6 +279,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "los_sabinos.db"
         )
+            /*
             .addMigrations(MIGRATION_2_TO_3,
                 MIGRATION_3_TO_4,
                 MIGRATION_4_TO_5,
@@ -288,6 +289,7 @@ object DatabaseModule {
                 MIGRATION_8_TO_9,
                 MIGRATION_9_TO_10)
             .fallbackToDestructiveMigration(true)
+            */
             .build()
     }
 

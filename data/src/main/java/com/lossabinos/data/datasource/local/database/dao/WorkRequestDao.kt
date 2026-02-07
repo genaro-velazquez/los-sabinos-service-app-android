@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.lossabinos.data.datasource.local.database.entities.SyncStatusEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,22 @@ import kotlinx.coroutines.flow.Flow
 // ═══════════════════════════════════════════════════════
 @Dao
 interface WorkRequestDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: WorkRequestEntity)
+
+    @Query("""
+        UPDATE work_request 
+        SET syncStatus = :status 
+        WHERE id = :id
+    """)
+    suspend fun updateSyncStatus(
+        id: String,
+        status: SyncStatusEntity
+    )
+
+    @Query("SELECT * FROM work_request WHERE syncStatus = :status")
+    suspend fun getBySyncStatus(status: SyncStatusEntity): List<WorkRequestEntity>
 
     @Upsert
     suspend fun upsertWorkRequest(workRequest: WorkRequestEntity)

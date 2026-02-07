@@ -7,8 +7,11 @@ import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
 import com.lossabinos.data.datasource.local.database.enums.ConceptCategoryTypeEntity
 import com.lossabinos.data.datasource.local.database.enums.IssueCategoryEntity
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
+import com.lossabinos.data.mappers.WorkRequestEntityMapper
 import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
 import com.lossabinos.data.mappers.toDomain
+import com.lossabinos.data.mappers.toEntity
+import com.lossabinos.domain.enums.SyncStatus
 import com.lossabinos.domain.repositories.WorkRequestRepository
 import com.lossabinos.domain.valueobjects.WorkRequest
 import com.lossabinos.domain.valueobjects.WorkRequestIssue
@@ -21,7 +24,8 @@ import org.json.JSONObject
 class WorkRequestRepositoryImp(
     private val workRequestLocalDataSource: WorkRequestLocalDataSource,
     private val workRequestRemoteDataSource: WorkRequestRemoteDataSource,
-    private val apiMapper: WorkRequestIssueApiMapper
+    private val apiMapper: WorkRequestIssueApiMapper,
+    private val mapper: WorkRequestEntityMapper
 ) : WorkRequestRepository {
 
     override suspend fun createWorkRequest(request: WorkRequest) {
@@ -32,6 +36,7 @@ class WorkRequestRepositoryImp(
             val entity = WorkRequestEntity(
                 id = request.id,
                 workOrderId = request.workOrderId,
+                serviceExecutionId = request.serviceExecutionId,
                 title = request.title,
                 description = request.description,
                 findings = request.findings,
@@ -168,4 +173,25 @@ print("--> jsonObject:$jsonObject")
         )
     }
 
+    override suspend fun register(workRequest: WorkRequest) {
+        workRequestLocalDataSource.insert(
+            workRequest = workRequest
+                .copy(syncStatus = SyncStatus.PENDING)
+                .toEntity()
+        )
+    }
+
+    override suspend fun getPending(): List<WorkRequest> {
+        return workRequestLocalDataSource
+            .getBySyncStatus(SyncStatusEntity.PENDING)
+            .map { mapper.toDomain(it) }
+    }
+
+
+    override suspend fun markAsSynced(workRequestId: String) {
+        workRequestLocalDataSource.updateSyncStatus(
+            workRequestId = workRequestId,
+            status = SyncStatusEntity.SYNCED
+        )
+    }
 }

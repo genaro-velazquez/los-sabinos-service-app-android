@@ -2,6 +2,7 @@ package com.lossabinos.serviceapp.di
 
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
+import com.lossabinos.domain.repositories.IssueRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
@@ -9,6 +10,7 @@ import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
 import com.lossabinos.domain.repositories.WorkRequestPhotoRepository
 import com.lossabinos.domain.repositories.WorkRequestRepository
+import com.lossabinos.domain.repositories.WorkRequestSyncScheduler
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.DeleteWorkRequestPhotoUseCase
 import com.lossabinos.domain.usecases.WorkRequestPhoto.GetWorkRequestPhotosUseCase
@@ -53,6 +55,7 @@ import com.lossabinos.domain.usecases.notifications.GetNotificationsUseCase
 import com.lossabinos.domain.usecases.notifications.SetNotificationReadUseCase
 import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import com.lossabinos.domain.usecases.submitWorkRequestUseCase.SubmitWorkRequestUseCase
+import com.lossabinos.domain.usecases.submitWorkRequestUseCase.SyncWorkRequestUseCase
 import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
@@ -69,7 +72,6 @@ import javax.inject.Singleton
 object UseCaseModule {
 
     // ============== PREFERENCES USE CASES ==============
-
     @Singleton
     @Provides
     fun provideGetUserPreferencesUseCase(
@@ -554,12 +556,28 @@ object UseCaseModule {
     @Singleton
     @Provides
     fun provideSubmitWorkRequestUseCase(
-        workRequestRepository: WorkRequestRepository,
-        workRequestPhotoRepository: WorkRequestPhotoRepository
+        workRequestLocalRepository: WorkRequestRepository,
+        workRequestPhotoLocalRepository: WorkRequestPhotoRepository,
+        syncScheduler: WorkRequestSyncScheduler
     ): SubmitWorkRequestUseCase{
         return SubmitWorkRequestUseCase(
+            workRequestLocalRepository = workRequestLocalRepository,
+            workRequestPhotoLocalRepository = workRequestPhotoLocalRepository,
+            syncScheduler = syncScheduler
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideSyncWorkRequestUseCase(
+        workRequestRepository: WorkRequestRepository,
+        workRequestPhotoRepository: WorkRequestPhotoRepository,
+        issueRepository: IssueRepository
+    ): SyncWorkRequestUseCase{
+        return SyncWorkRequestUseCase(
             workRequestRepository = workRequestRepository,
-            workRequestPhotoRepository = workRequestPhotoRepository
+            workRequestPhotoRepository = workRequestPhotoRepository,
+            issueRepository = issueRepository
         )
     }
 }

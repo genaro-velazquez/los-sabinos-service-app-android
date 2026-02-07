@@ -13,6 +13,65 @@ interface WorkRequestPhotoDao {
 
     @Query("""
         UPDATE work_request_photo
+        SET syncStatus = :status,
+            remoteUrl = :remoteUrl
+        WHERE id = :photoId
+    """)
+    suspend fun updateAsSynced(
+        photoId: String,
+        remoteUrl: String,
+        status: SyncStatusEntity = SyncStatusEntity.SYNCED
+    )
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(
+        entities: List<WorkRequestPhotoEntity>
+    )
+
+    @Query("""
+        UPDATE work_request_photo
+        SET syncStatus = :status
+        WHERE id IN (:ids)
+    """)
+    suspend fun updateSyncStatus(
+        ids: List<String>,
+        status: SyncStatusEntity
+    )
+
+    @Query("""
+        SELECT * FROM work_request_photo
+        WHERE workRequestId = :workRequestId
+        AND syncStatus = :status
+    """)
+    suspend fun getPendingByWorkRequest(
+        workRequestId: String,
+        status: SyncStatusEntity
+    ): List<WorkRequestPhotoEntity>
+
+    @Query("""
+        SELECT * FROM work_request_photo
+        WHERE workRequestId = :workRequestId
+        AND syncStatus = :status
+    """)
+    suspend fun getByWorkRequestAndStatus(
+        workRequestId: String,
+        status: SyncStatusEntity
+    ): List<WorkRequestPhotoEntity>
+
+    /*
+        @Query("""
+        SELECT * FROM work_request_photo
+        WHERE workRequestId = :workRequestId
+        AND syncStatus = :status
+    """)
+        suspend fun getPendingPhotos(
+            workRequestId: String,
+            status: SyncStatusEntity
+        ): List<WorkRequestPhotoEntity>
+     */
+
+    @Query("""
+        UPDATE work_request_photo
         SET 
             syncStatus = :status,
             remoteUrl = :remoteUrl

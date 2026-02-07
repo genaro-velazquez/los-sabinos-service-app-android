@@ -10,11 +10,13 @@ import com.lossabinos.serviceapp.models.ui.WorkRequestUIModel
 fun WorkRequestUIModel.toDomain(
     id: String,
     workOrderId: String,
+    serviceExecutionId: String,
     vehicleId: String
 ): WorkRequest {
     return WorkRequest(
         id = id,
         workOrderId = workOrderId,
+        serviceExecutionId = serviceExecutionId,
         title = title,
         description = description,
         findings = findings,

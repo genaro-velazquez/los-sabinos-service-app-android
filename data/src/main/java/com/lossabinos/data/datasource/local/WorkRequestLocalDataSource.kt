@@ -1,13 +1,38 @@
 package com.lossabinos.data.datasource.local
 
 import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
+import com.lossabinos.data.datasource.local.database.entities.SyncStatusEntity
 import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
+import com.lossabinos.domain.valueobjects.WorkRequest
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class WorkRequestLocalDataSource @Inject constructor(
     private val workRequestDao: WorkRequestDao
 ) {
+
+
+    suspend fun updateSyncStatus(
+        workRequestId: String,
+        status: SyncStatusEntity
+    ) {
+        workRequestDao.updateSyncStatus(
+            id = workRequestId,
+            status = status
+        )
+    }
+    suspend fun getBySyncStatus(
+        status: SyncStatusEntity
+    ): List<WorkRequestEntity> {
+        return workRequestDao.getBySyncStatus(status)
+    }
+
+    /**
+     * Guardar un nuevo reporte de trabajo
+     */
+    suspend fun insert(workRequest: WorkRequestEntity){
+        workRequestDao.insert(entity = workRequest)
+    }
 
     /**
      * Guardar un nuevo reporte de trabajo

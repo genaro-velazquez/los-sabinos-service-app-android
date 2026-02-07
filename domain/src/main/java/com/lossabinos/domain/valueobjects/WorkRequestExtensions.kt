@@ -6,6 +6,7 @@ fun WorkRequest.withPhotoUrls(
     WorkRequest(
         id = id,
         workOrderId = workOrderId,
+        serviceExecutionId = serviceExecutionId,
         title = title,
         description = description,
         findings = findings,

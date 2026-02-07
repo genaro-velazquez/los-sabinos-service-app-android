@@ -10,4 +10,12 @@ interface WorkRequestRepository{
         serviceExecutionId: String,
         issue: WorkRequestIssue
     )
+
+    suspend fun register(workRequest: WorkRequest)
+
+    suspend fun getPending(): List<WorkRequest>
+
+    suspend fun markAsSynced(
+        workRequestId: String
+    )
 }

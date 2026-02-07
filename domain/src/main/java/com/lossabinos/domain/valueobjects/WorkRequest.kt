@@ -9,6 +9,7 @@ import com.lossabinos.domain.enums.UrgencyLevelType
 data class WorkRequest(
     val id: String,
     val workOrderId:String,
+    val serviceExecutionId: String,
     val title:String,
     val description: String,
     val findings: String,

@@ -329,6 +329,7 @@ fun HomeScreen(
     //  ERROR DE WEBSOCKET
     // ==========================================
     if (!webSocketError.isNullOrEmpty()) {
+/*
         AlertDialog(
             onDismissRequest = { homeViewModel.clearWebSocketError() },
             title = {
@@ -357,6 +358,7 @@ fun HomeScreen(
                 }
             }
         )
+ */
     }
 
     // ==========================================
@@ -604,7 +606,7 @@ fun HomeScreen(
             isVisible = true,
             formData = workRequestState.form,
             photos = workRequestState.photos,
-            errorMessage = workRequestState.errorMessage, // 👈 AQUÍ
+            errorMessage = workRequestState.errorMessage,
             formErrors = workRequestState.formErrors,
             onSaveClick = {
                 workRequestViewModel.onEvent(

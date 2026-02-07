@@ -1,5 +1,6 @@
 package com.lossabinos.serviceapp.di
 
+import android.content.Context
 import android.content.SharedPreferences
 import com.lossabinos.data.datasource.local.ChecklistLocalDataSource
 import com.lossabinos.data.dto.repositories.retrofit.authentication.AuthenticationRetrofitRepository
@@ -19,12 +20,16 @@ import com.lossabinos.data.datasource.local.database.dao.WorkRequestDao
 import com.lossabinos.data.datasource.local.database.dao.WorkRequestPhotoDao
 import com.lossabinos.data.datasource.remoto.AuthenticationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.ChecklistRemoteDataSource
+import com.lossabinos.data.datasource.remoto.IssueRemoteDataSource
 import com.lossabinos.data.datasource.remoto.MechanicsRemoteDataSource
 import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestPhotoRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
+import com.lossabinos.data.mappers.WorkRequestEntityMapper
 import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
+import com.lossabinos.data.mappers.WorkRequestPhotoEntityMapper
+import com.lossabinos.data.repositories.IssueRepositoryImpl
 //import com.lossabinos.data.repositories.local.ChecklistRepository
 import com.lossabinos.data.repositories.UserSharedPreferencesRepositoryImpl
 import com.lossabinos.data.repositories.MechanicsRetrofitRepository
@@ -33,9 +38,11 @@ import com.lossabinos.data.repositories.SystemClock
 import com.lossabinos.data.repositories.WebSocketRepositoryImpl
 import com.lossabinos.data.repositories.WorkRequestPhotoRepositoryImpl
 import com.lossabinos.data.repositories.WorkRequestRepositoryImp
+import com.lossabinos.data.repositories.WorkRequestSyncSchedulerImpl
 import com.lossabinos.domain.repositories.AuthenticationRepository
 import com.lossabinos.domain.repositories.ChecklistRepository
 import com.lossabinos.domain.repositories.ClockRepository
+import com.lossabinos.domain.repositories.IssueRepository
 import com.lossabinos.domain.repositories.LocalDataRepository
 import com.lossabinos.domain.repositories.MechanicsRepository
 import com.lossabinos.domain.repositories.NotificationRepository
@@ -43,6 +50,7 @@ import com.lossabinos.domain.repositories.UserPreferencesRepository
 import com.lossabinos.domain.repositories.WebSocketRepository
 import com.lossabinos.domain.repositories.WorkRequestPhotoRepository
 import com.lossabinos.domain.repositories.WorkRequestRepository
+import com.lossabinos.domain.repositories.WorkRequestSyncScheduler
 import com.lossabinos.domain.usecases.authentication.RefreshSessionUseCase
 import dagger.Module
 import dagger.Provides
@@ -207,12 +215,14 @@ object RepositoryModule {
     fun provideWorkRequestRepository(
         workRequestLocalDataSource: WorkRequestLocalDataSource,
         workRequestRemoteRepository: WorkRequestRemoteDataSource,
-        apiMapper: WorkRequestIssueApiMapper
+        apiMapper: WorkRequestIssueApiMapper,
+        mapper: WorkRequestEntityMapper
     ): WorkRequestRepository {
         return WorkRequestRepositoryImp(
             workRequestLocalDataSource = workRequestLocalDataSource,
             workRequestRemoteDataSource = workRequestRemoteRepository,
-            apiMapper = apiMapper
+            apiMapper = apiMapper,
+            mapper = mapper
         )
     }
 
@@ -221,11 +231,27 @@ object RepositoryModule {
     @Provides
     fun provideWorkRequestPhotoRepository(
         workRequestPhotoLocalDataSource: WorkRequestPhotoLocalDataSource,
-        workRequestPhotoRemoteDataSource: WorkRequestPhotoRemoteDataSource
+        workRequestPhotoRemoteDataSource: WorkRequestPhotoRemoteDataSource,
+        mapper: WorkRequestPhotoEntityMapper
     ) : WorkRequestPhotoRepository{
         return WorkRequestPhotoRepositoryImpl(
             workRequestPhotoLocalDataSource = workRequestPhotoLocalDataSource,
-            workRequestPhotoRemoteDataSource = workRequestPhotoRemoteDataSource
+            workRequestPhotoRemoteDataSource = workRequestPhotoRemoteDataSource,
+            mapper = mapper
         )
     }
+
+    // ============== Work Request Photo Repository ==============
+    @Singleton
+    @Provides
+    fun provideIssueRepository(
+        remoteDataSource: IssueRemoteDataSource,
+        apiMapper: WorkRequestIssueApiMapper
+    ) : IssueRepository {
+        return IssueRepositoryImpl(
+            remoteDataSource = remoteDataSource,
+            apiMapper = apiMapper
+        )
+    }
+
 }
