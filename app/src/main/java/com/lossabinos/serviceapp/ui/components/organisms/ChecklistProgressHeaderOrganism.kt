@@ -27,6 +27,7 @@ fun ChecklistProgressHeaderOrganism(
     serviceName: String,
     templateName: String,
     currentProgress: Int,  // ej: 1
+    totalSections:Int,
     totalTasks: Int,       // ej: 4
     progressPercentage: Int,  // ej: 35
     modifier: Modifier = Modifier
@@ -52,7 +53,7 @@ fun ChecklistProgressHeaderOrganism(
             HeaderWithBadgeMolecule(
                 title = serviceName,
                 subtitle = templateName,
-                badge = "$currentProgress/$totalTasks"
+                badge = "$currentProgress/$totalSections"
             )
 
             Spacer(modifier = Modifier.height(1.dp))
@@ -76,7 +77,8 @@ fun ChecklistProgressHeaderOrganismPreview(){
         ChecklistProgressHeaderOrganism(
             serviceName = "Service name",
             templateName = "prueba",
-            currentProgress = 4,
+            currentProgress = 1,
+            totalSections = 3,
             totalTasks = 7,
             progressPercentage = 40
         )

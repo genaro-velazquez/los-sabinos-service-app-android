@@ -38,6 +38,7 @@ fun ChecklistProgressTemplate(
     serviceName: String,
     templateName: String,
     currentProgress: Int,
+    totalSections:Int,
     totalTasks: Int,
     progressPercentage: Int,
     tasks: List<ActivityTaskItem> = emptyList(),
@@ -86,6 +87,7 @@ fun ChecklistProgressTemplate(
                 templateName = templateName,
                 currentProgress = currentProgress,
                 totalTasks = totalTasks,
+                totalSections = totalSections,
                 progressPercentage = progressPercentage,
                 modifier = Modifier.padding(16.dp)
             )

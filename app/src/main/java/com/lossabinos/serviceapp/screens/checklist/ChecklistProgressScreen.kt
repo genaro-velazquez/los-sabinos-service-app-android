@@ -318,6 +318,7 @@ fun ChecklistProgressScreen(
             serviceName = uiState.currentSectionName,
             templateName = uiState.templateName,
             currentProgress = uiState.currentSectionIndex + 1,
+            totalSections = uiState.totalSections,
             totalTasks = uiState.totalActivities,
             progressPercentage = localProgressPercentage,//uiState.sectionProgressPercentage,
             tasks = uiState.currentSectionActivities.mapIndexed { index, activityUI ->
