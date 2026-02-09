@@ -125,4 +125,7 @@ dependencies {
     // Material (necesario para pullrefresh)
     implementation("androidx.compose.material:material:1.6.0")
 
+    implementation(libs.androidx.hilt.work)
+    kapt(libs.androidx.hilt.compiler)
+
 }

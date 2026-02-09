@@ -10,8 +10,16 @@ plugins {
     // 🔑 KAPT
     id("kotlin-kapt")
 
+    // 🔑 KSP (para Hilt)
+    //id("com.google.devtools.ksp")
+//    alias(libs.plugins.ksp)
+
+
     // 🔑 Hilt
+    //id("dagger.hilt.android.plugin")
+    //id("com.google.dagger.hilt.android")
     id("dagger.hilt.android.plugin")
+
     //id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 
     // 🔑 Kotlin Serialization
@@ -88,9 +96,6 @@ dependencies {
     // Serialización JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
-    //implementation("com.google.dagger:hilt-android:2.50")
-    //kapt("com.google.dagger:hilt-android-compiler:2.50")
-
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
@@ -106,4 +111,17 @@ dependencies {
     // 🔑 DataStore (delegate Context.dataStore)
     implementation("androidx.datastore:datastore:1.1.1")
 
+    // 🔴 Hilt + WorkManager (OBLIGATORIO para @HiltWorker)
+    implementation(libs.androidx.hilt.work)
+    kapt(libs.androidx.hilt.compiler)
+//    ksp(libs.hilt.compiler)
+//    ksp(libs.androidx.hilt.compiler)
+
+
+
 }
+
+kapt {
+    correctErrorTypes = true
+}
+

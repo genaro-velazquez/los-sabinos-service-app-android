@@ -55,7 +55,7 @@ fun SyncSection(
         
         // Datos sin sincronizar
         UnsyncSection(
-            subtitle = "Datos sin sincronizar",
+            subtitle = "",
             title = unsyncTitle,
             details = unsyncDetails,
             onSyncNowClick = onSyncNowClick,
