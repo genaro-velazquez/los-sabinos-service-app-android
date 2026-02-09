@@ -14,7 +14,7 @@ class HeadersMaker(
         map["X-LOS-SABINOS-PLATFORM-TYPE"] = "app"
         map["X-LOS-SABINOS-PLATFORM-name"] = "Android"
         //map["X-App-Version"] = "" //BuildConfig().VERSION_NAME
-        map["X-LOS-SABINOS-BUILD-VERSION"] = Build.VERSION.RELEASE
+        //map["X-LOS-SABINOS-BUILD-VERSION"] = Build.VERSION.RELEASE
         val token = userPreferencesRepository.getAccessToken() // Obtener del repo
         map["Authorization"] = "Bearer $token"
 
