@@ -16,6 +16,10 @@ plugins {
 
     // 🔑 Kotlin Serialization (DESDE EL CATÁLOGO)
     alias(libs.plugins.kotlin.serialization)
+
+    // 🔥 FIREBASE (FALTABAN)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -127,5 +131,11 @@ dependencies {
 
     implementation(libs.androidx.hilt.work)
     kapt(libs.androidx.hilt.compiler)
+
+    // 🔥 Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
+
 
 }
