@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.domain.entities.Mechanic
 import com.lossabinos.domain.entities.ServiceType
+import com.lossabinos.domain.repositories.HomeSyncStatusRepository
 import com.lossabinos.domain.responses.InitialDataResponse
 import com.lossabinos.domain.usecases.checklist.SyncChecklistUseCase
 import com.lossabinos.domain.usecases.mechanics.GetAssignedServicesFlowUseCase
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,7 +41,8 @@ class MechanicsViewModel @Inject constructor(
     getAssignedServicesFlowUseCase: GetAssignedServicesFlowUseCase,
     getServiceTypesFlowUseCase: GetServiceTypesFlowUseCase,
     getSyncMetadataFlowUseCase: GetSyncMetadataFlowUseCase,
-    private val syncChecklistUseCase: SyncChecklistUseCase
+    private val syncChecklistUseCase: SyncChecklistUseCase,
+    private val homeSyncStatusRepository: HomeSyncStatusRepository
 ) : ViewModel(){
 
 
@@ -58,7 +61,15 @@ class MechanicsViewModel @Inject constructor(
                     //println("✅ [API] Datos recibidos")
 
                     //println("💾 [ROOM] Guardando datos...")
+                    //_syncInitialData.value = Result.Success(data = response)
+
+                    // ✅ AQUÍ: la carga terminó correctamente
+                    homeSyncStatusRepository.updateLastServicesRefreshAt(
+                        Instant.now()
+                    )
                     _syncInitialData.value = Result.Success(data = response)
+
+                    println("🕒 Última recarga de servicios guardada")
                     println("✅ [API] Proceso completo\n")
                 }
                 catch (e: Exception){

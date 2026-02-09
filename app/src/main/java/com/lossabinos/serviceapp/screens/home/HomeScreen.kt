@@ -59,8 +59,10 @@ import com.lossabinos.domain.enums.ServiceStatus
 import com.lossabinos.serviceapp.events.WorkRequestUiEvent
 import com.lossabinos.serviceapp.mappers.toServiceCardUiModel
 import com.lossabinos.serviceapp.models.ui.ServiceCardUiModel
+import com.lossabinos.serviceapp.ui.components.organisms.HomeHeader
 import com.lossabinos.serviceapp.ui.components.organisms.WorkRequestModal
 import com.lossabinos.serviceapp.utils.getStatusColor
+import com.lossabinos.serviceapp.utils.toHomeDateLabel
 import com.lossabinos.serviceapp.viewmodel.WorkRequestViewModel
 
 
@@ -145,6 +147,7 @@ fun HomeScreen(
     val uiMessage = homeViewModel.uiMessage.collectAsStateWithLifecycle().value
     val workRequestViewModel: WorkRequestViewModel = hiltViewModel()
     val workRequestState by workRequestViewModel.uiState.collectAsState()
+    val homeHeaderState by homeViewModel.homeHeaderUiState.collectAsState()
 
     val isHomeScreenVisible = remember { mutableStateOf(true) }
 
@@ -431,7 +434,7 @@ fun HomeScreen(
             HomeHeaderSection(
                 userName = mechanic?.name ?: state.userName,
                 userLocation = mechanic?.zoneName ?: state.userLocation,
-                isOnline = true,
+                isOnline = homeHeaderState.isOnline,
                 onSettingsClick = {
                     println("📬 Notifications clicked")
                     homeViewModel.onEvent(HomeEvent.NavigateToNotificationsClicked)  // ← O el evento que uses
@@ -448,8 +451,11 @@ fun HomeScreen(
         // ─────────────────────────────────────────
         syncSection = {
             SyncSection(
+                /*
                 statusText = "Estás en línea",
                 lastSyncText = "Última sincronización: Hoy 10:45 AM",
+                */
+                uiState = homeHeaderState,
                 unsyncTitle = "${metrics.totalServices} servicios", //"${metadata?.totalServices ?: 0} Servicios",
                 unsyncDetails = "${metrics.pendingServices} pendientes, ${metrics.inProgressServices} en progreso",
                 isLoading = isLoading,

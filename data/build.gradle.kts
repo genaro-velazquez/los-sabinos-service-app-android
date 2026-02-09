@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
 
+    alias(libs.plugins.google.protobuf)
+
+
     // 🔑 KAPT
     id("kotlin-kapt")
 
@@ -46,6 +49,23 @@ android {
     }
 }
 
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
+}
+
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -76,5 +96,14 @@ dependencies {
 
     // WorkManager para sincronización
     implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    // 🔑 DataStore Proto
+    implementation("androidx.datastore:datastore-core:1.1.1")
+
+    // 🔑 Protobuf (lite)
+    implementation("com.google.protobuf:protobuf-javalite:3.25.3")
+
+    // 🔑 DataStore (delegate Context.dataStore)
+    implementation("androidx.datastore:datastore:1.1.1")
 
 }

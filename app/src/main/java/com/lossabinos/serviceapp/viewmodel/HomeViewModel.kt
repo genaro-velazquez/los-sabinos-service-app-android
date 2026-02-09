@@ -4,6 +4,7 @@ package com.lossabinos.serviceapp.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lossabinos.domain.repositories.HomeSyncStatusRepository
 import com.lossabinos.domain.responses.SyncResult
 import com.lossabinos.domain.usecases.LocalData.ClearAllUseCase
 import com.lossabinos.domain.usecases.authentication.GetAccessTokenUseCase
@@ -13,12 +14,17 @@ import com.lossabinos.domain.usecases.preferences.GetUserPreferencesUseCase
 import com.lossabinos.domain.usecases.websocket.ConnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.DisconnectWebSocketUseCase
 import com.lossabinos.domain.usecases.websocket.ObserveWebSocketMessagesUseCase
+import com.lossabinos.serviceapp.models.ui.HomeSyncStatusUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -66,12 +72,36 @@ class HomeViewModel @Inject constructor(
     private val connectWebSocketUseCase: ConnectWebSocketUseCase,
     private val disconnectWebSocketUseCase: DisconnectWebSocketUseCase,
     private val observeWebSocketMessagesUseCase: ObserveWebSocketMessagesUseCase,
-    ) : ViewModel() {
-
+    private val homeSyncStatusRepository: HomeSyncStatusRepository
+) : ViewModel() {
 
     // ========== ESTADOS PARA WEBSOCKET ==========
     private val _isWebSocketConnected = MutableStateFlow(false)
     val isWebSocketConnected: StateFlow<Boolean> = _isWebSocketConnected.asStateFlow()
+
+    val syncStatusUiState: StateFlow<HomeSyncStatusUiState> =
+        homeSyncStatusRepository.lastServicesRefreshAt
+            .map { instant ->
+                HomeSyncStatusUiState(lastSyncAt = instant)
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = HomeSyncStatusUiState()
+            )
+
+    val homeHeaderUiState: StateFlow<HomeSyncStatusUiState> =
+        combine(
+            syncStatusUiState,
+            isWebSocketConnected
+        ) { syncState, isOnline ->
+            syncState.copy(isOnline = isOnline)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HomeSyncStatusUiState()
+        )
+
 
     private val _webSocketNotification = MutableStateFlow<String?>(null)
     val webSocketNotification: StateFlow<String?> = _webSocketNotification.asStateFlow()

@@ -4,11 +4,14 @@ package com.lossabinos.serviceapp.ui.components.organisms
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.lossabinos.serviceapp.models.ui.HomeSyncStatusUiState
 import com.lossabinos.serviceapp.ui.components.molecules.StatusSection
 import com.lossabinos.serviceapp.ui.components.molecules.UnsyncSection
+import com.lossabinos.serviceapp.utils.toHomeDateLabel
 
 /**
  * Organism que combina las secciones de sincronización
@@ -27,8 +30,11 @@ import com.lossabinos.serviceapp.ui.components.molecules.UnsyncSection
  */
 @Composable
 fun SyncSection(
+    /*
     statusText: String = "Estás en línea",
     lastSyncText: String = "Última sincronización: Hoy 10:45 AM",
+    */
+    uiState: HomeSyncStatusUiState,
     unsyncTitle: String = "4 Servicios",
     unsyncDetails: String = "2 Firmas, 8 Fotos, 1 Observación",
     isLoading: Boolean = false,
@@ -42,8 +48,7 @@ fun SyncSection(
     ) {
         // Estado online + última sincronización
         StatusSection(
-            statusText = statusText,
-            lastSyncText = lastSyncText,
+            uiState = uiState,
             onSyncClick = onSyncClick,
             modifier = Modifier.fillMaxWidth()
         )

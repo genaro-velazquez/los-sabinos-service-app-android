@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+option java_package = "com.lossabinos.data.datastore.sync";
+option java_multiple_files = true;
+
+message SyncPreferences {
+
+    // Timestamp (epoch millis) de la última sincronización EXITOSA
+    int64 last_services_sync_at = 1;
+
+    // Último estado conocido de conectividad
+    bool is_online = 2;
+}
