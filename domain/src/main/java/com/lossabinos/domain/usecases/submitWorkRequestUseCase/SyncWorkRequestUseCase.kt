@@ -50,6 +50,12 @@ class SyncWorkRequestUseCase(
             workRequestPhotoRepository.markAsSynced(uploadedPhotos)
         }
 
+        // 3️⃣ Crear WorkRequest remoto
+        workRequestRepository.sync(
+            workRequest = workRequest,
+            photoUrls = uploadedPhotos.map { it.remoteUrl }
+        )
+
         // 3️⃣ 👇 CERRAR EL CICLO
         workRequestRepository.markAsSynced(workRequest.id)
     }

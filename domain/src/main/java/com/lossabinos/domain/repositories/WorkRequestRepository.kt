@@ -18,4 +18,9 @@ interface WorkRequestRepository{
     suspend fun markAsSynced(
         workRequestId: String
     )
+
+    suspend fun sync(
+        workRequest: WorkRequest,
+        photoUrls: List<String>
+    )
 }

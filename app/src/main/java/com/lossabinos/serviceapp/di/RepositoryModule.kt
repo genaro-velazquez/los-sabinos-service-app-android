@@ -26,6 +26,7 @@ import com.lossabinos.data.datasource.remoto.NotificationRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestPhotoRemoteDataSource
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
 import com.lossabinos.data.mappers.ChecklistProgressRequestMapper
+import com.lossabinos.data.mappers.WorkRequestApiMapper
 import com.lossabinos.data.mappers.WorkRequestEntityMapper
 import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
 import com.lossabinos.data.mappers.WorkRequestPhotoEntityMapper
@@ -216,13 +217,15 @@ object RepositoryModule {
         workRequestLocalDataSource: WorkRequestLocalDataSource,
         workRequestRemoteRepository: WorkRequestRemoteDataSource,
         apiMapper: WorkRequestIssueApiMapper,
+        workRequestApiMapper : WorkRequestApiMapper,
         mapper: WorkRequestEntityMapper
     ): WorkRequestRepository {
         return WorkRequestRepositoryImp(
             workRequestLocalDataSource = workRequestLocalDataSource,
             workRequestRemoteDataSource = workRequestRemoteRepository,
             apiMapper = apiMapper,
-            mapper = mapper
+            workRequestApiMapper = workRequestApiMapper,
+        mapper = mapper
         )
     }
 

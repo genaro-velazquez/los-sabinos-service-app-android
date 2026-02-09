@@ -33,5 +33,14 @@ class WorkRequestRemoteDataSource @Inject constructor(
         )
     }
 
+    suspend fun create(
+        request: RequestBody
+    ){
+        workRequestServices.workRequests(
+            headers = headersMaker.build(),
+            request = request
+        )
+    }
+
 
 }

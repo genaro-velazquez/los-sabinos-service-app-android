@@ -1,11 +1,13 @@
 // presentation/ui/components/organisms/SyncSection.kt
 package com.lossabinos.serviceapp.ui.components.organisms
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.lossabinos.serviceapp.models.ui.HomeSyncStatusUiState
@@ -42,6 +44,11 @@ fun SyncSection(
     onSyncNowClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+
+    LaunchedEffect(uiState.isOnline) {
+        Log.d("HOME_UI", "🎨 UI isOnline = ${uiState.isOnline}")
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)

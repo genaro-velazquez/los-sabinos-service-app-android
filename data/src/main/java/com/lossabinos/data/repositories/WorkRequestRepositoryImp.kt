@@ -7,6 +7,7 @@ import com.lossabinos.data.datasource.local.database.entities.WorkRequestEntity
 import com.lossabinos.data.datasource.local.database.enums.ConceptCategoryTypeEntity
 import com.lossabinos.data.datasource.local.database.enums.IssueCategoryEntity
 import com.lossabinos.data.datasource.remoto.WorkRequestRemoteDataSource
+import com.lossabinos.data.mappers.WorkRequestApiMapper
 import com.lossabinos.data.mappers.WorkRequestEntityMapper
 import com.lossabinos.data.mappers.WorkRequestIssueApiMapper
 import com.lossabinos.data.mappers.toDomain
@@ -25,6 +26,7 @@ class WorkRequestRepositoryImp(
     private val workRequestLocalDataSource: WorkRequestLocalDataSource,
     private val workRequestRemoteDataSource: WorkRequestRemoteDataSource,
     private val apiMapper: WorkRequestIssueApiMapper,
+    private val workRequestApiMapper: WorkRequestApiMapper,
     private val mapper: WorkRequestEntityMapper
 ) : WorkRequestRepository {
 
@@ -193,5 +195,13 @@ print("--> jsonObject:$jsonObject")
             workRequestId = workRequestId,
             status = SyncStatusEntity.SYNCED
         )
+    }
+
+    override suspend fun sync(workRequest: WorkRequest, photoUrls: List<String>) {
+        val body = workRequestApiMapper.toRequestBody(
+            workRequest = workRequest,
+            photoUrls = photoUrls
+        )
+        workRequestRemoteDataSource.create(body)
     }
 }

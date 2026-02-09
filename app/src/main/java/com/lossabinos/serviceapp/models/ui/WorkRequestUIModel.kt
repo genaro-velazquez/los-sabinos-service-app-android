@@ -9,7 +9,7 @@ data class WorkRequestUIModel(
     val description: String = "",
     val findings: String = "",
     val justification: String = "",
-    val urgency: UrgencyLevelTypeUIModel = UrgencyLevelTypeUIModel.MEDIUM,
+    val urgency: UrgencyLevelTypeUIModel = UrgencyLevelTypeUIModel.NORMAL,
     val issueCategory: IssueCategoryTypeUIModel = IssueCategoryTypeUIModel.OTHER,
     val conceptCategory: ConceptCategoryTypeUIModel = ConceptCategoryTypeUIModel.OTROS,
     val requiresCustomerApproval: Boolean = true

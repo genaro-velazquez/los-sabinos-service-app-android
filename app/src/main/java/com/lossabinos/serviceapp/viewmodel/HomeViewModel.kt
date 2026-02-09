@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import javax.inject.Inject
+import com.lossabinos.data.network.NetworkMonitor
 
 /**
  * Estado del Home
@@ -72,8 +73,16 @@ class HomeViewModel @Inject constructor(
     private val connectWebSocketUseCase: ConnectWebSocketUseCase,
     private val disconnectWebSocketUseCase: DisconnectWebSocketUseCase,
     private val observeWebSocketMessagesUseCase: ObserveWebSocketMessagesUseCase,
-    private val homeSyncStatusRepository: HomeSyncStatusRepository
+    private val homeSyncStatusRepository: HomeSyncStatusRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
+
+    val isOnline: StateFlow<Boolean> =
+        networkMonitor.isOnline.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true
+        )
 
     // ========== ESTADOS PARA WEBSOCKET ==========
     private val _isWebSocketConnected = MutableStateFlow(false)
@@ -93,7 +102,7 @@ class HomeViewModel @Inject constructor(
     val homeHeaderUiState: StateFlow<HomeSyncStatusUiState> =
         combine(
             syncStatusUiState,
-            isWebSocketConnected
+            isOnline
         ) { syncState, isOnline ->
             syncState.copy(isOnline = isOnline)
         }.stateIn(
@@ -116,6 +125,11 @@ class HomeViewModel @Inject constructor(
 
     init {
         connectToWebSocket()
+        viewModelScope.launch {
+            isOnline.collect {
+                Log.d("HOME_VM", "📡 isOnline = $it")
+            }
+        }
     }
 
     // ========== CONECTAR A WEBSOCKET ==========

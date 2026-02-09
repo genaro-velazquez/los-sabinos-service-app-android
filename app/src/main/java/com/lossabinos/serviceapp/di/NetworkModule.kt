@@ -1,8 +1,10 @@
 package com.lossabinos.serviceapp.di
 
+import android.content.Context
 import com.lossabinos.data.datasource.local.TokenManager
 import com.lossabinos.data.datasource.remoto.interceptor.TokenRefreshInterceptor
 import com.lossabinos.data.dto.utilities.HeadersMaker
+import com.lossabinos.data.network.NetworkMonitor
 import com.lossabinos.data.retrofit.AuthenticationServices
 import com.lossabinos.data.retrofit.MechanicsServices
 import com.lossabinos.data.retrofit.NotificationsServices
@@ -133,6 +135,18 @@ object NetworkModule {
     fun provideWorkRequestServices(retrofit: Retrofit): WorkRequestServices{
         return retrofit.create(WorkRequestServices::class.java)
     }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object NetworkModule {
+
+        @Provides
+        @Singleton
+        fun provideNetworkMonitor(
+            @ApplicationContext context: Context
+        ): NetworkMonitor = NetworkMonitor(context)
+    }
+
 
     /*
         private const val BASE_URL = "https://lossabinos-e9gvbjfrf9h5dphf.eastus2-01.azurewebsites.net"

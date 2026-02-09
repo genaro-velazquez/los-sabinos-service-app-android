@@ -22,7 +22,7 @@ fun WorkRequestUIModel.toDomain(
         findings = findings,
         justification = justification,
         photoUls = emptyList(), // luego se puede extender
-        requestType = "MANUAL",
+        requestType = "additional_work",
         requiresCustomerApproval = requiresCustomerApproval,
         urgency = UrgencyLevelType.valueOf(urgency.name),
         createdAt = System.currentTimeMillis(),
