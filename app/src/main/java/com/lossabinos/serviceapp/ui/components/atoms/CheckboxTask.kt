@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CheckboxTask(
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -28,15 +29,28 @@ fun CheckboxTask(
         modifier = modifier
             .size(24.dp)
             .background(
-                color = if (checked) Color(0xFF1F64FF) else Color.White,
+                //color = if (checked) Color(0xFF1F64FF) else Color.White,
+                color = when {
+                    checked -> Color(0xFF1F64FF)
+                    !enabled -> Color(0xFFE0E0E0)     // gris deshabilitado
+                    else -> Color.White
+                },
                 shape = RoundedCornerShape(4.dp)
             )
             .border(
                 width = 2.dp,
-                color = if (checked) Color(0xFF1F64FF) else Color(0xFFBDBDBD),
+                //color = if (checked) Color(0xFF1F64FF) else Color(0xFFBDBDBD),
+                color = when {
+                    checked -> Color(0xFF1F64FF)
+                    !enabled -> Color(0xFFBDBDBD)
+                    else -> Color(0xFFBDBDBD)
+                },
                 shape = RoundedCornerShape(4.dp)
             )
-            .clickable { onCheckedChange(!checked) },
+            //.clickable { onCheckedChange(!checked) },
+            .clickable(enabled = enabled){
+                onCheckedChange(!checked)
+            },
         contentAlignment = Alignment.Center
     ) {
         if (checked) {

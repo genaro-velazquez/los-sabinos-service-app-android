@@ -63,8 +63,9 @@ data class ChecklistUIState(
     val sectionCompletedActivities: Int = 0,  // Tareas completadas en la sección actual
     val observations: String = "",
     val canContinue: Boolean = false,
-    val allSectionsComplete: Boolean = false
-    )
+    val allSectionsComplete: Boolean = false,
+    val validationError: String? = null,
+)
 
 
 @HiltViewModel
@@ -587,6 +588,8 @@ class ChecklistViewModel @Inject constructor(
                     activity.progress.id
                 }
 
+
+
                 println("✅ Progress ID obtenido: $progressId")
 
                 // Guardar foto en Room
@@ -648,6 +651,9 @@ class ChecklistViewModel @Inject constructor(
                 _state.value = state.copy(
                     currentSectionActivities = updatedActivities
                 )
+
+                // 🧹 LIMPIAR ERROR SI EXISTÍA
+                clearValidationError()
 
                 println("✅ UI actualizada completamente")
 
@@ -1299,6 +1305,34 @@ class ChecklistViewModel @Inject constructor(
      */
     fun getTotalExtraCosts(): Double {
         return _extraCosts.value.sumOf { it.quantity }
+    }
+
+    fun isCurrentSectionValid(): Boolean {
+        val state = _state.value
+
+        return state.currentSectionActivities.all { activityUI ->
+            val requiresEvidence = activityUI.activity.requiresEvidence
+
+            if (requiresEvidence) {
+                // 🔒 Requiere evidencia → debe tener al menos una foto
+                activityUI.evidence.isNotEmpty()
+            } else {
+                // ✅ No requiere evidencia → debe estar completada
+                activityUI.progress?.completed == true
+            }
+        }
+    }
+
+    fun showValidationError(message: String) {
+        _state.value = _state.value.copy(
+            validationError = message
+        )
+    }
+
+    fun clearValidationError() {
+        _state.value = _state.value.copy(
+            validationError = null
+        )
     }
 
 }

@@ -1,5 +1,10 @@
 package com.lossabinos.serviceapp.screens.checklist
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,8 +45,10 @@ import com.lossabinos.serviceapp.viewmodel.ChecklistViewModel
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.lossabinos.serviceapp.navigation.NavigationEvent
 import com.lossabinos.serviceapp.navigation.Routes
@@ -243,6 +250,29 @@ fun ChecklistProgressScreen(
         extraCostViewModel.loadExtraCosts(serviceId)
     }
 
+
+
+
+    val context = LocalContext.current
+    val activity = context as Activity
+
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) {
+                // ✅ AQUÍ se abre la cámara automáticamente
+                showCamera.value = true
+            } else {
+                // ❌ Usuario negó
+                //showPermissionDeniedDialog = true
+            }
+        }
+
+
+
+
+
     // 🆕 Mostrar cámara si está activada
     if (showCamera.value) {
         CameraScreen(
@@ -315,6 +345,7 @@ fun ChecklistProgressScreen(
 
         // Pantalla normal de checklist
         ChecklistProgressTemplate(
+            validationError = uiState.validationError,
             serviceName = uiState.currentSectionName,
             templateName = uiState.templateName,
             currentProgress = uiState.currentSectionIndex + 1,
@@ -323,8 +354,19 @@ fun ChecklistProgressScreen(
             progressPercentage = localProgressPercentage,//uiState.sectionProgressPercentage,
             tasks = uiState.currentSectionActivities.mapIndexed { index, activityUI ->
                 // 🆕 USAR estado local para checkboxes
+                /*
                 val isLocalCompleted = localCompletedActivities[index]
                     ?: activityUI.progress?.completed ?: false
+                 */
+                val isLocalCompleted =
+                    if (activityUI.activity.requiresEvidence) {
+                        activityUI.evidence.isNotEmpty()
+                    } else {
+                        localCompletedActivities[index]
+                            ?: activityUI.progress?.completed
+                            ?: false
+                    }
+
 
                 ActivityTaskItem(
                     id = "activity_$index",
@@ -355,7 +397,19 @@ fun ChecklistProgressScreen(
                 println("📷 Abriendo cámara para $taskId")
                 val index = taskId.removePrefix("activity_").toIntOrNull() ?: return@ChecklistProgressTemplate
                 currentActivityIndex.value = index
-                showCamera.value = true
+                //showCamera.value = true
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    // Ya hay permiso → abrir cámara
+                    showCamera.value = true
+                } else {
+                    // 🚀 AQUÍ Android decide mostrar el diálogo "Permitir"
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+
             },
             onAddPhoto = { taskId ->
                 println("📷 Abriendo cámara para $taskId")
@@ -402,22 +456,96 @@ fun ChecklistProgressScreen(
             },
             continueButtonText = continueButtonText,
             onContinueClick = {
+                // 2️⃣ Calcular actividades completadas (UI-only)
+                val completedIndices = uiState.currentSectionActivities.mapIndexedNotNull { index, activityUI ->
+                    val completed =
+                        if (activityUI.activity.requiresEvidence) {
+                            activityUI.evidence.isNotEmpty()
+                        } else {
+                            localCompletedActivities[index]
+                                ?: activityUI.progress?.completed
+                                ?: false
+                        }
+
+                    if (completed) index else null
+                }
+
+                // 3️⃣ 🔥 PASO 2 — VALIDACIÓN (AQUÍ VA EXACTAMENTE)
+                val isSectionValid = uiState.currentSectionActivities.all { activityUI ->
+                    if (activityUI.activity.requiresEvidence) {
+                        activityUI.evidence.isNotEmpty()
+                    } else {
+                        activityUI.progress?.completed == true ||
+                                localCompletedActivities[
+                                    uiState.currentSectionActivities.indexOf(activityUI)
+                                ] == true
+                    }
+                }
+
+                // 4️⃣ Si falla → mostrar error y salir
+                if (!isSectionValid) {
+                    println("❌ No se puede continuar: checklist incompleto")
+                    viewModel.showValidationError(
+                        "Completa todas las actividades antes de continuar"
+                    )
+                    return@ChecklistProgressTemplate
+                }
+
+                // 5️⃣ SOLO si pasa validación → guardar
+                viewModel.saveAllCompletedActivities(completedIndices)
+
+                // 6️⃣ Navegación
                 if (isLastSection) {
-                    // Última sección: PRIMERO guardar, LUEGO mostrar modal
-                    println("💾 [SCREEN] Última sección - Guardando antes de firmar...")
-                    val completedIndices = localCompletedActivities
-                        .filter { it.value }
-                        .keys.toList()
-                    // Guardar actividades de esta sección
                     viewModel.saveAndNavigateToNextSection(completedIndices)
-                    // Luego mostrar modal de firma (después de guardar)
                     viewModel.onSignChecklistClicked()
                 } else {
-                    // Secciones normales: Avanzar
-                    viewModel.saveAndNavigateToNextSection(
-                        completedIndices = localCompletedActivities.filter { it.value }.keys.toList()
-                    )
+                    viewModel.saveAndNavigateToNextSection(completedIndices)
                 }
+
+                /*
+                                // 1️⃣ Limpiar error previo
+                                viewModel.clearValidationError()
+
+                                val completedIndices = uiState.currentSectionActivities.mapIndexedNotNull { index, activityUI ->
+                                    val completed =
+                                        if (activityUI.activity.requiresEvidence) {
+                                            activityUI.evidence.isNotEmpty()
+                                        } else {
+                                            localCompletedActivities[index]
+                                                ?: activityUI.progress?.completed
+                                                ?: false
+                                        }
+
+                                    if (completed) index else null
+                                }
+
+                                viewModel.saveAllCompletedActivities(completedIndices)
+
+                                if (!viewModel.isCurrentSectionValid()) {
+                                    println("❌ No se puede continuar: checklist incompleto")
+                                    viewModel.showValidationError(
+                                        "Completa todas las actividades antes de continuar"
+                                    )
+                                    return@ChecklistProgressTemplate
+                                }
+
+                                if (isLastSection) {
+                                    // Última sección: PRIMERO guardar, LUEGO mostrar modal
+                                    println("💾 [SCREEN] Última sección - Guardando antes de firmar...")
+                                    val completedIndices = localCompletedActivities
+                                        .filter { it.value }
+                                        .keys.toList()
+                                    // Guardar actividades de esta sección
+                                    viewModel.saveAndNavigateToNextSection(completedIndices)
+                                    // Luego mostrar modal de firma (después de guardar)
+                                    viewModel.onSignChecklistClicked()
+                                } else {
+                                    // Secciones normales: Avanzar
+                                    viewModel.saveAndNavigateToNextSection(
+                                        completedIndices = localCompletedActivities.filter { it.value }.keys.toList()
+                                    )
+                                }
+                */
             },
             isLoading = isLoading,
             onBackClick = onBackClick,

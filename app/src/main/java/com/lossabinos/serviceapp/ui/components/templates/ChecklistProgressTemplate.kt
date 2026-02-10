@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,6 +37,7 @@ import com.lossabinos.serviceapp.ui.components.organisms.ObservationsOrganism
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChecklistProgressTemplate(
+    validationError: String? = null,
     serviceName: String,
     templateName: String,
     currentProgress: Int,
@@ -59,6 +62,7 @@ fun ChecklistProgressTemplate(
     onAddExtraCostClick: () -> Unit = {},
     onEditExtraCostClick: (ExtraCostUIModel) -> Unit = {},
     onDeleteExtraCostClick: (ExtraCostUIModel) -> Unit = {},
+
     ) {
     Scaffold(
         topBar = {
@@ -131,6 +135,17 @@ fun ChecklistProgressTemplate(
                 onDeleteCostClick = onDeleteExtraCostClick,
                 modifier = Modifier.padding(16.dp)
             )
+
+            validationError?.let { error ->
+                Text(
+                    text = error,
+                    color = Color(0xFFD32F2F),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
 
             ContinueActionOrganism(
                 onClick = onContinueClick,

@@ -36,6 +36,7 @@ fun TaskHeaderMolecule(
         ) {
             CheckboxTask(
                 checked = completed,
+                enabled = !requiresEvidence,
                 onCheckedChange = onCheckedChange
             )
             TaskDescription(
