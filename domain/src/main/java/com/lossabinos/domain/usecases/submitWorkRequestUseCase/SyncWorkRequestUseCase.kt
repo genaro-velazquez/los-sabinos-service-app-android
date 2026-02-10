@@ -56,7 +56,11 @@ class SyncWorkRequestUseCase(
             photoUrls = uploadedPhotos.map { it.remoteUrl }
         )
 
+        // 🔥 3️⃣ SOLO SI TODO LO ANTERIOR SALIÓ BIEN
+        workRequestPhotoRepository.deleteByWorkRequestId(workRequest.id)
+        workRequestRepository.deleteById(workRequest.id)
+
         // 3️⃣ 👇 CERRAR EL CICLO
-        workRequestRepository.markAsSynced(workRequest.id)
+        //workRequestRepository.markAsSynced(workRequest.id)
     }
 }

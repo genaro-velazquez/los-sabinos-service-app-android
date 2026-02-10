@@ -11,6 +11,9 @@ import com.lossabinos.data.datasource.local.database.entities.WorkRequestPhotoEn
 @Dao
 interface WorkRequestPhotoDao {
 
+    @Query("DELETE FROM work_request_photo WHERE workRequestId = :workRequestId")
+    suspend fun deletePhotosByWorkRequestId(workRequestId: String)
+
     @Query("""
         UPDATE work_request_photo
         SET syncStatus = :status,

@@ -29,4 +29,6 @@ interface WorkRequestPhotoRepository {
         workRequestId: String
     ): List<WorkRequestPhoto>
 
+    suspend fun deleteByWorkRequestId(workRequestId: String)
+
 }

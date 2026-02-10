@@ -11,6 +11,10 @@ class WorkRequestLocalDataSource @Inject constructor(
     private val workRequestDao: WorkRequestDao
 ) {
 
+    suspend fun deleteById(id: String) {
+        workRequestDao.deleteWorkRequestById(id = id)
+    }
+
 
     suspend fun updateSyncStatus(
         workRequestId: String,

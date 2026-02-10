@@ -141,4 +141,8 @@ class WorkRequestPhotoRepositoryImpl(
             )
             .map { mapper.toDomain(it) }
     }
+
+    override suspend fun deleteByWorkRequestId(workRequestId: String) {
+        workRequestPhotoLocalDataSource.deleteByWorkRequestId(workRequestId)
+    }
 }

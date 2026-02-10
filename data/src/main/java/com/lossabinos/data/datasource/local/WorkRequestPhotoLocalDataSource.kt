@@ -53,5 +53,8 @@ class WorkRequestPhotoLocalDataSource @Inject constructor(
         }
     }
 
+    suspend fun deleteByWorkRequestId(workRequestId: String) {
+        workRequestPhotoDao.deletePhotosByWorkRequestId(workRequestId)
+    }
 
 }

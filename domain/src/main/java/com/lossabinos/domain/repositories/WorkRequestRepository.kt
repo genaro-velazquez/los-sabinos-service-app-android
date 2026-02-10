@@ -23,4 +23,6 @@ interface WorkRequestRepository{
         workRequest: WorkRequest,
         photoUrls: List<String>
     )
+
+    suspend fun deleteById(id: String)
 }

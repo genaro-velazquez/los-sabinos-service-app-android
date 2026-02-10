@@ -204,4 +204,10 @@ print("--> jsonObject:$jsonObject")
         )
         workRequestRemoteDataSource.create(body)
     }
+
+    // 🧹 LIMPIEZA LOCAL (solo si el backend respondió OK)
+    override suspend fun deleteById(id: String) {
+        workRequestLocalDataSource.deleteById(id)
+    }
+
 }
