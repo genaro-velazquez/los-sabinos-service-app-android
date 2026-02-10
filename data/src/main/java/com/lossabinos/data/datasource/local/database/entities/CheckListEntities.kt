@@ -168,7 +168,18 @@ data class ServiceFieldValueEntity(
     val timestamp: String? = null
 )
 
-@Entity(tableName = "service_progress")
+@Entity(
+    tableName = "service_progress",
+    foreignKeys = [
+        ForeignKey(
+            entity = AssignedServiceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["assignedServiceId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("assignedServiceId")]
+)
 data class ServiceProgressEntity(
     @PrimaryKey
     val assignedServiceId: String,
