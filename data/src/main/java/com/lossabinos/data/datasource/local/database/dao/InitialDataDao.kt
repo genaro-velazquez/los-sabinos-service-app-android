@@ -25,6 +25,13 @@ interface InitialDataDao {
     // mechanics
     // ============
 
+    @Query("SELECT id FROM assigned_services")
+    suspend fun getAllAssignedServiceIds(): List<String>
+
+    @Query("DELETE FROM assigned_services WHERE id IN (:ids)")
+    suspend fun deleteAssignedServicesByIds(ids: List<String>)
+
+
     @Query("SELECT * FROM mechanics")
     suspend fun getAllMechanics(): List<MechanicEntity>
 

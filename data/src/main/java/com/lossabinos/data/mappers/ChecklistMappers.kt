@@ -241,6 +241,7 @@ fun AssignedServiceWithProgressEntity.toDomain(): AssignedServiceProgress{
             when (assignedService.status.lowercase()) {
                 "in_progress" -> ServiceStatus.IN_PROGRESS
                 "completed" -> ServiceStatus.COMPLETED
+                "pending_approval" -> ServiceStatus.PENDING_APPROVAL
                 else -> ServiceStatus.PENDING
             }
         }

@@ -19,46 +19,100 @@ class MechanicsLocalDataSource @Inject constructor(
 ){
     suspend fun saveToRoom(data: InitialDataResponse) {
         try {
-            // Guardar Mechanic (solo uno)
+            // 1️⃣ Guardar Mechanic
             initialDataDao.insertMechanics(
                 mechanics = listOf(data.mechanic.toRoomEntity())
             )
 
-            // Guardar ServiceTypes
+            // 2️⃣ Guardar ServiceTypes
             initialDataDao.insertServiceTypes(
                 serviceTypes = data.serviceTypes.map { it.toRoomEntity() }
             )
 
-            // Guardar AssignedServices
-            //initialDataDao.insertAssignedServices(
-            //    assignedServices = data.assignedServices.map { it.toRoomEntity() }
-            //)
+            // 3️⃣ 🧠 SINCRONIZAR AssignedServices (insert / update / delete)
 
+            // IDs que vienen del backend
+            val remoteIds = data.assignedServices.map { it.id }.toSet()
+
+            // IDs que existen en Room
+            val localIds = initialDataDao.getAllAssignedServiceIds().toSet()
+
+            // ❌ Servicios que ya NO existen en backend
+            val idsToDelete = localIds - remoteIds
+
+            if (idsToDelete.isNotEmpty()) {
+                println("🗑️ [ROOM] Eliminando servicios obsoletos: $idsToDelete")
+                initialDataDao.deleteAssignedServicesByIds(idsToDelete.toList())
+            }
+
+            // Insertar o actualizar los que sí vienen
             data.assignedServices.forEach { serviceDto ->
-                val existing = initialDataDao.getAssignedServiceById(serviceDto.id)
+                val existing =
+                    initialDataDao.getAssignedServiceById(serviceDto.id)
 
                 if (existing == null) {
-                    // ✅ No existe → Insertar (nuevo servicio)
                     println("✅ [ROOM] Insertando servicio nuevo: ${serviceDto.id}")
                     initialDataDao.insertAssignedServices(
                         listOf(serviceDto.toRoomEntity())
                     )
                 } else {
-                    // ✅ Existe → Actualizar (cambios del servidor, sin tocar BD local)
-                    println("✅ [ROOM] Actualizando servicio existente: ${serviceDto.id}")
+                    println("🔄 [ROOM] Actualizando servicio existente: ${serviceDto.id}")
                     initialDataDao.updateAssignedService(
                         serviceDto.toRoomEntity()
                     )
                 }
             }
 
-            // Guardar AsyncMetadata
+            // 4️⃣ Guardar SyncMetadata
             initialDataDao.insertSyncMetadata(
                 syncMetadata = data.syncMetadata.toRoomEntity()
             )
 
-            // Log para debugging
             println("✅ Datos guardados en Room exitosamente")
+
+            /*
+                        // Guardar Mechanic (solo uno)
+                        initialDataDao.insertMechanics(
+                            mechanics = listOf(data.mechanic.toRoomEntity())
+                        )
+
+                        // Guardar ServiceTypes
+                        initialDataDao.insertServiceTypes(
+                            serviceTypes = data.serviceTypes.map { it.toRoomEntity() }
+                        )
+
+                        // Guardar AssignedServices
+                        //initialDataDao.insertAssignedServices(
+                        //    assignedServices = data.assignedServices.map { it.toRoomEntity() }
+                        //)
+
+                        data.assignedServices.forEach { serviceDto ->
+                            val existing = initialDataDao.getAssignedServiceById(serviceDto.id)
+
+                            if (existing == null) {
+                                // ✅ No existe → Insertar (nuevo servicio)
+                                println("✅ [ROOM] Insertando servicio nuevo: ${serviceDto.id}")
+                                initialDataDao.insertAssignedServices(
+                                    listOf(serviceDto.toRoomEntity())
+                                )
+                            } else {
+                                // ✅ Existe → Actualizar (cambios del servidor, sin tocar BD local)
+                                println("✅ [ROOM] Actualizando servicio existente: ${serviceDto.id}")
+                                initialDataDao.updateAssignedService(
+                                    serviceDto.toRoomEntity()
+                                )
+                            }
+                        }
+
+                        // Guardar AsyncMetadata
+                        initialDataDao.insertSyncMetadata(
+                            syncMetadata = data.syncMetadata.toRoomEntity()
+                        )
+
+                        // Log para debugging
+                        println("✅ Datos guardados en Room exitosamente")
+
+             */
         } catch (e: Exception) {
             println("❌ Error al guardar en Room: ${e.message}")
             throw e
