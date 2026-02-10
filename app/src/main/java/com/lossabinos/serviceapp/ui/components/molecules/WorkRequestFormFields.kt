@@ -293,7 +293,10 @@ fun WorkRequestFormFields(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(photos) { photo ->
-                Box {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 6.dp, end = 6.dp) // 👈 espacio real
+                )  {
                     Image(
                         painter = rememberAsyncImagePainter(File(photo.localPath)),
                         contentDescription = null,
@@ -313,7 +316,7 @@ fun WorkRequestFormFields(
                                 shape = CircleShape
                             )
                             .clickable {
-                                onPhotoDeleted
+                                onPhotoDeleted(photo.id)
                             },
                         contentAlignment = Alignment.Center
                     ) {

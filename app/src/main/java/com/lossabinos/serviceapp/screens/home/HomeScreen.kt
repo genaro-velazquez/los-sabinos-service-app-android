@@ -672,6 +672,7 @@ fun HomeScreen(
                 )
             },
             onPhotoDeleted = {
+                println("delete photo HomeScreen onPhotoDeleted")
                 workRequestViewModel.onEvent(
                     WorkRequestUiEvent.OnPhotoDeleted(it)
                 )

@@ -142,6 +142,7 @@ class WorkRequestViewModel @Inject constructor(
 
             is WorkRequestUiEvent.OnPhotoDeleted -> {
                 viewModelScope.launch {
+                    println("delete photo WorkRequestUiEvent.OnPhotoDeleted photoId:${event.photoId}")
                     deleteWorkRequestPhotoUseCase(event.photoId)
                     val photos = getWorkRequestPhotosUseCase(currentWorkRequestId)
                     _uiState.update { it.copy(photos = photos) }

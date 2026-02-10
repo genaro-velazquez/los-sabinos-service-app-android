@@ -34,6 +34,7 @@ class WorkRequestPhotoRepositoryImpl(
     }
 
     override suspend fun deletePhoto(photoId: String) {
+        println("delete photo photoId:$photoId")
         workRequestPhotoLocalDataSource.deletePhoto(photoId)
     }
 
